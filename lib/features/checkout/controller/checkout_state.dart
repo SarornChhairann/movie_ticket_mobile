@@ -1,9 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../core/model/booking_summary.dart';
 import '../../../core/validation/validators.dart';
 import '../../seats/model/seat_map.dart';
 import '../model/checkout_failure.dart';
-import '../model/confirmation.dart';
 import '../model/quote.dart';
 
 part 'checkout_state.freezed.dart';
@@ -42,7 +42,7 @@ sealed class CheckoutState with _$CheckoutState {
   const factory CheckoutState.failure(Hold hold, CheckoutFailure failure) = CheckoutFailureState;
 
   /// Paid and booked; the view replaces the stack with the success screen.
-  const factory CheckoutState.success(Confirmation confirmation) = CheckoutSuccess;
+  const factory CheckoutState.success(BookingSummary confirmation) = CheckoutSuccess;
 }
 
 extension CheckoutReadyX on CheckoutReady {

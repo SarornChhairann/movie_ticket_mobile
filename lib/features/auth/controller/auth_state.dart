@@ -10,14 +10,16 @@ sealed class AuthState with _$AuthState {
   /// Restoring a stored session.
   const factory AuthState.unknown() = AuthUnknownState;
 
-  /// On the login/register screens. [failure] is shown as a banner until the
-  /// next submit.
-  const factory AuthState.unauthenticated({
+  /// Signed out, browsing (the default after start-up — there is no login wall).
+  /// [submitting] and [failure] belong to the on-demand login/register screens;
+  /// [failure] is shown as a banner until the next submit. [guestCheckout] is set
+  /// once the shopper chose "continue as guest" at Book Ticket, so they are not
+  /// asked again this session.
+  const factory AuthState.guest({
     @Default(false) bool submitting,
     AuthFailure? failure,
-  }) = AuthUnauthenticated;
-
-  const factory AuthState.guest() = AuthGuest;
+    @Default(false) bool guestCheckout,
+  }) = AuthGuest;
 
   const factory AuthState.authenticated(User user) = AuthAuthenticated;
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/spacing.dart';
+import '../../../core/widgets/primary_button.dart';
 import '../controller/auth_bloc.dart';
 
 class BlockedPage extends StatelessWidget {
@@ -34,9 +35,9 @@ class BlockedPage extends StatelessWidget {
                   Text(message, textAlign: TextAlign.center),
                 ],
                 const SizedBox(height: Space.x3),
-                FilledButton(
+                PrimaryButton(
+                  label: 'auth.backToLogin'.tr(context: context),
                   onPressed: () => context.read<AuthBloc>().add(const BlockedAcknowledged()),
-                  child: Text('auth.backToLogin'.tr(context: context)),
                 ),
               ],
             ),

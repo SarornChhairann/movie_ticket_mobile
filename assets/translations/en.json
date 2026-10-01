@@ -19,7 +19,6 @@
   "auth": {
     "login": "Log in",
     "register": "Create account",
-    "guest": "Continue as guest",
     "logout": "Log out",
     "signIn": "Sign in",
     "email": "Email",
@@ -31,11 +30,17 @@
     "sessionExpired": "Your session expired. Please log in again.",
     "noAccount": "No account? Create one",
     "haveAccount": "Already have an account? Log in",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "guestCheckout": "Continue as guest",
+    "guestCheckoutHint": "You can book without an account. Signed-in bookings earn points and appear in Bookings.",
+    "reason": {
+      "bookings": "Sign in to see your bookings and tickets.",
+      "account": "Sign in to see your profile and points.",
+      "checkout": "Sign in to book faster and earn points — or continue as a guest."
+    }
   },
   "profile": {
     "title": "Profile",
-    "points": "Points",
     "phone": "Phone",
     "edit": "Edit profile",
     "save": "Save",
@@ -43,7 +48,9 @@
     "currentPassword": "Current password",
     "newPassword": "New password",
     "saved": "Profile saved.",
-    "passwordChanged": "Password changed."
+    "passwordChanged": "Password changed.",
+    "guest": "You're browsing as a guest",
+    "guestHint": "Sign in to keep your bookings and earn points."
   },
   "validation": {
     "required": "This field is required.",
@@ -60,10 +67,20 @@
     "releaseDate": "Release date",
     "director": "Director",
     "cast": "Cast",
-    "trailer": "Copy trailer link",
-    "trailerCopied": "Trailer link copied.",
+    "trailer": "Play trailer",
     "showtimes": "Showtimes",
-    "noShowtimes": "No showtimes available."
+    "noShowtimes": "No showtimes available.",
+    "greeting": "Find your favourite movies!",
+    "nowInCinemas": "Now in Cinemas",
+    "seeAll": "See all",
+    "allGenres": "All",
+    "filter": "Genres",
+    "bookTicket": "Book Ticket",
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "selectDate": "Select date",
+    "selectTime": "Select time",
+    "trailerOpenFailed": "Couldn't open the trailer. The link was copied instead."
   },
   "seats": {
     "screen": "SCREEN",
@@ -72,14 +89,17 @@
       "selected": "Selected",
       "held": "Held",
       "booked": "Booked",
-      "couple": "Couple"
+      "couple": "Couple",
+      "reserved": "Reserved"
     },
     "noneSelected": "Tap seats to select",
     "continue": "Continue",
     "expiresIn": "Hold expires in {time}",
     "expired": "Your hold expired. Please pick seats again.",
     "pairError": "Couple seats must be selected in pairs.",
-    "conflict": "Some seats were just taken. Please reselect."
+    "conflict": "Some seats were just taken. Please reselect.",
+    "title": "Select Seat",
+    "count": "{count} seat(s) selected"
   },
   "checkout": {
     "title": "Checkout",
@@ -108,11 +128,65 @@
     "tryAgain": "Try again",
     "pickSeats": "Pick seats",
     "viewTickets": "View tickets",
-    "ticketsSoon": "My tickets is coming in the next update.",
     "backHome": "Back to home",
     "ticketCode": "Ticket code",
     "method": {
       "card": "Card (demo)"
     }
+  },
+  "tickets": {
+    "title": "My bookings",
+    "empty": "No bookings yet. Your tickets will appear here after you pay.",
+    "detail": "Booking",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "cancel": "Cancel booking",
+    "cancelConfirm": "Cancel this booking? Your seats will be released. Points and promo codes are not refunded.",
+    "keep": "Keep booking",
+    "cancelled": "Booking cancelled. Your seats were released.",
+    "qr": "Ticket QR",
+    "code": "Ticket code",
+    "brightnessHint": "Turn up your screen brightness for scanning."
+  },
+  "loyalty": {
+    "points": "Loyalty points",
+    "lastBooking": "Last booking"
+  },
+  "reminders": {
+    "title": "Get notified when tickets open",
+    "email": "Email",
+    "submit": "Remind me",
+    "success": "You're subscribed. We'll email you when tickets open.",
+    "exists": "You're already subscribed for this movie.",
+    "subscribed": "Subscribed"
+  },
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "bookings": "Bookings",
+    "profile": "Profile"
+  },
+  "splash": {
+    "tagline": "Your seat is waiting.",
+    "loading": "Getting things ready…"
+  },
+  "home": {
+    "comingSoon": "Coming soon",
+    "comingSoonCount": "{index} of {count}"
+  },
+  "release": {
+    "inDays": {
+      "one": "In {} day",
+      "other": "In {} days"
+    },
+    "tomorrow": "Tomorrow",
+    "outNow": "Out now",
+    "on": "{date}"
+  },
+  "a11y": {
+    "carouselItem": "Coming soon, {index} of {count}, {title}, {release}. Double-tap to open."
   }
 }

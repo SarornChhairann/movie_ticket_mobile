@@ -137,7 +137,12 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
           effect: null,
         ));
       case SeatChange(type: SeatEventType.released, :final seatIds):
-        emit(s.copyWith(heldByOthers: s.heldByOthers.difference(seatIds), effect: null));
+        // A hold ended, or a cancelled booking freed its seats: either way they are available.
+        emit(s.copyWith(
+          heldByOthers: s.heldByOthers.difference(seatIds),
+          booked: s.booked.difference(seatIds),
+          effect: null,
+        ));
       case SeatChange(type: SeatEventType.booked, :final seatIds):
         emit(s.copyWith(
           booked: s.booked.union(seatIds),

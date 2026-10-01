@@ -8,12 +8,14 @@ Depends on: sprints 1 through 6. Analytics sections 3.1, 3.2, 3.5. Gap rows G21,
 
 ## Acceptance
 
-- [ ] Profile points match `users.points` after a confirmed booking and stay unchanged after a failed payment.
-- [ ] Coming-soon movie detail can submit an email reminder (`POST /api/reminders`). Signed-in users get their email prefilled.
-- [ ] A duplicate reminder returns `REMINDER_EXISTS` and the app shows a friendly "already subscribed" message, not an error crash.
-- [ ] A reminder is saved even when the mail server is not configured (dev).
-- [ ] Every user-visible string in `shell`, `auth`, `profile`, `catalog`, `seats`, `checkout`, `tickets`, `reminders` exists in `en.json` and `km.json`, and a test fails if the key sets differ.
-- [ ] Switching language on the shell updates the current screen, including dates and money formats.
+- [x] Profile points match `users.points` after a confirmed booking and stay unchanged after a failed payment.
+- [x] Coming-soon movie detail can submit an email reminder (`POST /api/reminders`). Signed-in users get their email prefilled.
+- [x] A duplicate reminder returns `REMINDER_EXISTS` and the app shows a friendly "already subscribed" message, not an error crash.
+- [x] A reminder is saved even when the mail server is not configured (dev).
+- [x] Every user-visible string in `shell`, `auth`, `profile`, `catalog`, `seats`, `checkout`, `tickets`, `reminders` exists in `en.json` and `km.json`, and a test fails if the key sets differ.
+- [x] Switching language on the shell updates the current screen, including dates and money formats.
+
+*Verified by backend `MovieReminderIntegrationTest` on H2 (duplicate → one row + `REMINDER_EXISTS`, case-insensitive duplicate, mail failure still saves, now-showing rejected) and `MovieReminderServiceTest` (no mail sender configured → saved, no send); points are covered by the sprint 5 `BookingServiceTest` cases (paid → `points += intValue(total)`, payment failure → unchanged, guest → no save). Flutter: reminder bloc/repository tests, reminder form widget tests (prefill, hidden for now-showing, already-subscribed notice), profile widget tests (Khmer points label, last-booking shortcut), translation parity + "every literal `.tr(` key exists" tests, and a widget test that switches en → km on a live screen and checks copy, date, and money. The end-to-end manual script (step 4.5) on an emulator against a running API is still pending.*
 
 ## API contract
 

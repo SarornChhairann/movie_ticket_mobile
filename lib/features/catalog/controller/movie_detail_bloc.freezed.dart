@@ -126,12 +126,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( MovieDetail detail,  bool refreshing)?  ready,TResult Function( ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( MovieDetail detail,  bool refreshing,  int? selectedShowtimeId)?  ready,TResult Function( ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case MovieDetailInitial() when initial != null:
 return initial();case MovieDetailLoading() when loading != null:
 return loading();case MovieDetailReady() when ready != null:
-return ready(_that.detail,_that.refreshing);case MovieDetailFailure() when failure != null:
+return ready(_that.detail,_that.refreshing,_that.selectedShowtimeId);case MovieDetailFailure() when failure != null:
 return failure(_that.failure);case _:
   return orElse();
 
@@ -150,12 +150,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( MovieDetail detail,  bool refreshing)  ready,required TResult Function( ApiFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( MovieDetail detail,  bool refreshing,  int? selectedShowtimeId)  ready,required TResult Function( ApiFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case MovieDetailInitial():
 return initial();case MovieDetailLoading():
 return loading();case MovieDetailReady():
-return ready(_that.detail,_that.refreshing);case MovieDetailFailure():
+return ready(_that.detail,_that.refreshing,_that.selectedShowtimeId);case MovieDetailFailure():
 return failure(_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -170,12 +170,12 @@ return failure(_that.failure);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( MovieDetail detail,  bool refreshing)?  ready,TResult? Function( ApiFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( MovieDetail detail,  bool refreshing,  int? selectedShowtimeId)?  ready,TResult? Function( ApiFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case MovieDetailInitial() when initial != null:
 return initial();case MovieDetailLoading() when loading != null:
 return loading();case MovieDetailReady() when ready != null:
-return ready(_that.detail,_that.refreshing);case MovieDetailFailure() when failure != null:
+return ready(_that.detail,_that.refreshing,_that.selectedShowtimeId);case MovieDetailFailure() when failure != null:
 return failure(_that.failure);case _:
   return null;
 
@@ -252,11 +252,12 @@ String toString() {
 
 
 class MovieDetailReady implements MovieDetailState {
-  const MovieDetailReady(this.detail, {this.refreshing = false});
+  const MovieDetailReady(this.detail, {this.refreshing = false, this.selectedShowtimeId});
   
 
  final  MovieDetail detail;
 @JsonKey() final  bool refreshing;
+ final  int? selectedShowtimeId;
 
 /// Create a copy of MovieDetailState
 /// with the given fields replaced by the non-null parameter values.
@@ -268,18 +269,18 @@ $MovieDetailReadyCopyWith<MovieDetailReady> get copyWith => _$MovieDetailReadyCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieDetailReady&&(identical(other.detail, detail) || other.detail == detail)&&(identical(other.refreshing, refreshing) || other.refreshing == refreshing));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieDetailReady&&(identical(other.detail, detail) || other.detail == detail)&&(identical(other.refreshing, refreshing) || other.refreshing == refreshing)&&(identical(other.selectedShowtimeId, selectedShowtimeId) || other.selectedShowtimeId == selectedShowtimeId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,detail,refreshing);
+    return Object.hash(runtimeType,detail,refreshing,selectedShowtimeId);
 }
 
 @override
 String toString() {
-    return 'MovieDetailState.ready(detail: $detail, refreshing: $refreshing)';
+    return 'MovieDetailState.ready(detail: $detail, refreshing: $refreshing, selectedShowtimeId: $selectedShowtimeId)';
 }
 
 
@@ -290,7 +291,7 @@ abstract mixin class $MovieDetailReadyCopyWith<$Res> implements $MovieDetailStat
   factory $MovieDetailReadyCopyWith(MovieDetailReady value, $Res Function(MovieDetailReady) _then) = _$MovieDetailReadyCopyWithImpl;
 @useResult
 $Res call({
- MovieDetail detail, bool refreshing
+ MovieDetail detail, bool refreshing, int? selectedShowtimeId
 });
 
 
@@ -307,11 +308,12 @@ class _$MovieDetailReadyCopyWithImpl<$Res>
 
 /// Create a copy of MovieDetailState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? detail = null,Object? refreshing = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? detail = null,Object? refreshing = null,Object? selectedShowtimeId = freezed,}) {
   return _then(MovieDetailReady(
 null == detail ? _self.detail : detail // ignore: cast_nullable_to_non_nullable
 as MovieDetail,refreshing: null == refreshing ? _self.refreshing : refreshing // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,selectedShowtimeId: freezed == selectedShowtimeId ? _self.selectedShowtimeId : selectedShowtimeId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

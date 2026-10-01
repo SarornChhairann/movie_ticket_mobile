@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../core/model/dto/booking_detail_dto.dart';
+
 part 'quote_dtos.g.dart';
 
 @JsonSerializable(createFactory: false, includeIfNull: false)
@@ -38,7 +40,7 @@ class QuoteResponseDto {
 
   factory QuoteResponseDto.fromJson(Map<String, dynamic> json) => _$QuoteResponseDtoFromJson(json);
 
-  final QuoteShowtimeDto showtime;
+  final ShowtimeInfoDto showtime;
   final List<QuoteSeatDto> seats;
   final num baseAmount;
   final num morningDiscount;
@@ -53,19 +55,6 @@ class QuoteResponseDto {
   final num totalAmount;
   final List<FoodItemDto> availableFoodItems;
   final QuoteUserDto? user;
-}
-
-@JsonSerializable(createToJson: false)
-class QuoteShowtimeDto {
-  const QuoteShowtimeDto({required this.id, this.showDate, this.showTime, this.movieTitle, this.hallName});
-
-  factory QuoteShowtimeDto.fromJson(Map<String, dynamic> json) => _$QuoteShowtimeDtoFromJson(json);
-
-  final int id;
-  final String? showDate;
-  final String? showTime;
-  final String? movieTitle;
-  final String? hallName;
 }
 
 @JsonSerializable(createToJson: false)

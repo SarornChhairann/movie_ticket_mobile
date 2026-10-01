@@ -5,9 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/validation/validators.dart';
 import '../../../core/widgets/error_banner.dart';
+import '../../../core/widgets/primary_button.dart';
 import '../controller/auth_bloc.dart';
 import 'auth_failure_text.dart';
 
+/// Opened from the login sheet. On success the login sheet below it closes both
+/// screens and returns the user to the action that asked for sign-in.
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -41,8 +44,8 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AuthBloc>().state;
-    final submitting = state is AuthUnauthenticated && state.submitting;
-    final failure = state is AuthUnauthenticated ? state.failure : null;
+    final submitting = state is AuthGuest && state.submitting;
+    final failure = state is AuthGuest ? state.failure : null;
 
     return Scaffold(
       appBar: AppBar(title: Text('auth.register'.tr(context: context))),
@@ -53,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.all(Space.x3),
+                padding: const EdgeInsets.fromLTRB(Space.screen, Space.x2, Space.screen, Space.x3),
                 children: [
                   TextFormField(
                     controller: _name,
@@ -90,14 +93,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     onFieldSubmitted: (_) => _submit(),
                   ),
                   const SizedBox(height: Space.x3),
-                  FilledButton(
-                    onPressed: submitting ? null : _submit,
-                    child: submitting
-                        ? const SizedBox.square(
-                            dimension: Space.x2,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text('auth.register'.tr(context: context)),
+                  PrimaryButton(
+                    key: const Key('register.submit'),
+                    label: 'auth.register'.tr(context: context),
+                    loading: submitting,
+                    onPressed: _submit,
                   ),
                   TextButton(
                     onPressed: submitting ? null : () => Navigator.of(context).pop(),

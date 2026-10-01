@@ -2,7 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/format/money.dart';
+import '../../../core/format/locale_format.dart';
+import '../../../core/motion/crossfade_text.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/validation/validators.dart';
@@ -120,7 +121,7 @@ class _ReadyBody extends StatelessWidget {
           children: [
             Text(quote.movieTitle, style: textTheme.titleLarge),
             Text(
-              [quote.hallName, quote.showDate, quote.showTime?.substring(0, 5)].whereType<String>().join(' · '),
+              context.showLine(hallName: quote.hallName, showDate: quote.showDate, showTime: quote.showTime),
               style: textTheme.bodySmall,
             ),
             const SizedBox(height: Space.x1),
@@ -188,7 +189,7 @@ class _FoodRow extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(item.name),
-      subtitle: Text(formatMoney(item.price)),
+      subtitle: Text(context.money(item.price)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -284,7 +285,7 @@ class _PriceLines extends StatelessWidget {
         child: Row(
           children: [
             Expanded(child: Text('checkout.$key'.tr(context: context), style: style)),
-            Text('${negative ? '−' : ''}${formatMoney(amount)}', style: style),
+            CrossfadeText('${negative ? '−' : ''}${context.money(amount)}', style: style),
           ],
         ),
       );
@@ -380,9 +381,9 @@ class _PayBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('checkout.total'.tr(context: context), style: Theme.of(context).textTheme.bodySmall),
-                    Text(
-                      formatMoney(state.quote.totalAmount),
-                      key: const Key('checkout.stickyTotal'),
+                    CrossfadeText(
+                      context.money(state.quote.totalAmount),
+                      textKey: const Key('checkout.stickyTotal'),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ],

@@ -35,11 +35,20 @@ void main() {
     );
 
     blocTest<AuthBloc, AuthState>(
-      'without a stored session goes to login',
+      'without a stored session opens Home as a signed-out shopper (no login wall)',
       setUp: () => when(() => repository.restoreSession()).thenAnswer((_) async => const Ok(null)),
       build: () => AuthBloc(repository),
       act: (bloc) => bloc.add(const SessionStarted()),
-      expect: () => const [AuthState.unauthenticated()],
+      expect: () => const [AuthState.guest()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'offline at start still opens Home; the failure waits for the next sign-in',
+      setUp: () =>
+          when(() => repository.restoreSession()).thenAnswer((_) async => const Err(AuthFailure.network())),
+      build: () => AuthBloc(repository),
+      act: (bloc) => bloc.add(const SessionStarted()),
+      expect: () => const [AuthState.guest(failure: AuthFailure.network())],
     );
   });
 
@@ -50,7 +59,7 @@ void main() {
       build: () => AuthBloc(repository),
       act: (bloc) => bloc.add(const LoginRequested(email: 'dara@example.com', password: 'secret1')),
       expect: () => const [
-        AuthState.unauthenticated(submitting: true),
+        AuthState.guest(submitting: true),
         AuthState.authenticated(testUser),
       ],
     );
@@ -62,7 +71,7 @@ void main() {
       build: () => AuthBloc(repository),
       act: (bloc) => bloc.add(const LoginRequested(email: 'dara@example.com', password: 'secret1')),
       expect: () => const [
-        AuthState.unauthenticated(submitting: true),
+        AuthState.guest(submitting: true),
         AuthState.blocked('This account is suspended.'),
       ],
     );
@@ -74,11 +83,32 @@ void main() {
       build: () => AuthBloc(repository),
       act: (bloc) => bloc.add(const LoginRequested(email: 'dara@example.com', password: 'wrong1')),
       expect: () => const [
-        AuthState.unauthenticated(submitting: true),
-        AuthState.unauthenticated(failure: AuthFailure.invalidCredentials()),
+        AuthState.guest(submitting: true),
+        AuthState.guest(failure: AuthFailure.invalidCredentials()),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a failed login keeps the guest-checkout choice',
+      setUp: () => when(() => repository.login(any(), any()))
+          .thenAnswer((_) async => const Err(AuthFailure.invalidCredentials())),
+      build: () => AuthBloc(repository),
+      seed: () => const AuthState.guest(guestCheckout: true),
+      act: (bloc) => bloc.add(const LoginRequested(email: 'dara@example.com', password: 'wrong1')),
+      expect: () => const [
+        AuthState.guest(submitting: true, guestCheckout: true),
+        AuthState.guest(failure: AuthFailure.invalidCredentials(), guestCheckout: true),
       ],
     );
   });
+
+  blocTest<AuthBloc, AuthState>(
+    'opening the login screen clears a stale banner',
+    build: () => AuthBloc(repository),
+    seed: () => const AuthState.guest(failure: AuthFailure.invalidCredentials(), guestCheckout: true),
+    act: (bloc) => bloc.add(const SignInRequested()),
+    expect: () => const [AuthState.guest(guestCheckout: true)],
+  );
 
   blocTest<AuthBloc, AuthState>(
     'RegisterRequested signs the new user in',
@@ -89,7 +119,7 @@ void main() {
       const RegisterRequested(name: 'Dara Sok', email: 'dara@example.com', password: 'secret1'),
     ),
     expect: () => const [
-      AuthState.unauthenticated(submitting: true),
+      AuthState.guest(submitting: true),
       AuthState.authenticated(testUser),
     ],
   );
@@ -100,16 +130,16 @@ void main() {
     build: () => AuthBloc(repository),
     seed: () => const AuthState.authenticated(testUser),
     act: (bloc) => bloc.add(const LogoutRequested()),
-    expect: () => const [AuthState.unauthenticated()],
+    expect: () => const [AuthState.guest()],
     verify: (_) => verify(() => repository.logout()).called(1),
   );
 
   blocTest<AuthBloc, AuthState>(
-    'GuestContinued enters as guest without calling login',
+    'GuestContinued remembers guest checkout without calling login',
     build: () => AuthBloc(repository),
-    seed: () => const AuthState.unauthenticated(),
+    seed: () => const AuthState.guest(),
     act: (bloc) => bloc.add(const GuestContinued()),
-    expect: () => const [AuthState.guest()],
+    expect: () => const [AuthState.guest(guestCheckout: true)],
     verify: (_) => verifyNever(() => repository.login(any(), any())),
   );
 
@@ -123,11 +153,11 @@ void main() {
     );
 
     blocTest<AuthBloc, AuthState>(
-      'expired session returns to login with a notice',
+      'expired session signs out with a notice for the login screen',
       build: () => AuthBloc(repository),
       seed: () => const AuthState.authenticated(testUser),
       act: (_) => sessionEnded.add(const SessionExpired()),
-      expect: () => const [AuthState.unauthenticated(failure: AuthFailure.sessionExpired())],
+      expect: () => const [AuthState.guest(failure: AuthFailure.sessionExpired())],
     );
 
     blocTest<AuthBloc, AuthState>(

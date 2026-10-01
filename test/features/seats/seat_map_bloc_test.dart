@@ -183,6 +183,14 @@ void main() {
     );
 
     blocTest<SeatMapBloc, SeatMapState>(
+      'a cancelled booking releasing its seats makes them available again',
+      build: build,
+      seed: ready,
+      act: (bloc) => bloc.add(const RemoteSeatChanged(SeatEvent.change(type: SeatEventType.released, seatIds: {3}))),
+      expect: () => [ready().copyWith(booked: {14})],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
       'a polling snapshot replaces held-by-others',
       build: build,
       seed: () => ready(heldByOthers: {1}),

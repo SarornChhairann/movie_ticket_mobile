@@ -91,7 +91,7 @@ The client maps unknown codes to a generic failure and still shows the server's 
 
 ## Backend gap register
 
-Verified against `Ticket-Management-System` source on 2026-10-01. Each row is closed by the named sprint; ✅ marks rows already closed (G1–G17 as of sprint 5). Re-check a row before closing it — the code may have moved.
+Verified against `Ticket-Management-System` source on 2026-10-01. Each row is closed by the named sprint; ✅ marks rows already closed (all of G1–G23 as of sprint 7; G23 accepted for v1). Re-check a row before closing it — the code may have moved.
 
 | # | Area | Current backend | Target | Sprint |
 | --- | --- | --- | --- | --- |
@@ -112,12 +112,12 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | G15 | Confirm order ✅ | Promo usage recorded before payment; `processMockPayment` always `PAID` and flips `CONFIRMED` itself | Analytics 6.3 order behind a `PaymentGateway` interface | 5 |
 | G16 | Confirm response ✅ | `{ bookingId }` only | Returns the `BookingDetailResponse` (same as `/confirmation/{id}`) | 5 |
 | G17 | Blocked checkout ✅ | Guest path has no status check; signed-in blocked users are stopped by the sync filter | Confirm rejects a blocked attached user with `ACCOUNT_BLOCKED` (defense in depth) | 5 |
-| G18 | My bookings order | `findByUser` (unordered) | `findByUserOrderByBookedAtDesc` | 6 |
-| G19 | Cancel errors | Not owner, already cancelled, inside window → all 400 | `NOT_OWNER` 403, `ALREADY_CANCELLED` 409, `CANCEL_WINDOW` 409 | 6 |
-| G20 | Cancel realtime | Cancel frees seats but publishes nothing | Publish `RELEASED` for freed seats so open seat maps update | 6 |
-| G21 | Reminder duplicate | Silently returns `{ok:true}` | 409 `REMINDER_EXISTS` | 7 |
-| G22 | Reminder email | Sends synchronously and throws 409 when mail is not configured, so the row is rolled back in dev | Persist first; email is best-effort (log on failure) | 7 |
-| G23 | Ticket QR access | `/tickets/{code}/qr` is public to anyone holding a code | Accepted for v1 (code is the bearer secret). Note in sprint 6, revisit after v1 | 6 |
+| G18 | My bookings order ✅ | `findByUser` (unordered) | `findByUserOrderByBookedAtDesc` | 6 |
+| G19 | Cancel errors ✅ | Not owner, already cancelled, inside window → all 400 | `NOT_OWNER` 403, `ALREADY_CANCELLED` 409, `CANCEL_WINDOW` 409 | 6 |
+| G20 | Cancel realtime ✅ | Cancel frees seats but publishes nothing | Publish `RELEASED` for freed seats so open seat maps update | 6 |
+| G21 | Reminder duplicate ✅ | Silently returns `{ok:true}` | 409 `REMINDER_EXISTS` | 7 |
+| G22 | Reminder email ✅ | Sends synchronously and throws 409 when mail is not configured, so the row is rolled back in dev | Persist first; email is best-effort (log on failure) | 7 |
+| G23 | Ticket QR access ✅ | `/tickets/{code}/qr` is public to anyone holding a code | Accepted for v1 (code is the bearer secret). Note in sprint 6, revisit after v1 | 6 |
 
 ## Sequence
 
@@ -131,6 +131,7 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | 5 | `sprint-05-confirm-pay` | Pay, tickets issued, seats booked | G15, G16, G17 |
 | 6 | `sprint-06-tickets-cancel` | My bookings, QR, cancel window | G18, G19, G20, G23 |
 | 7 | `sprint-07-loyalty-reminders` | Points, coming-soon reminder, locale pass | G21, G22 |
+| 8 | `sprint-08-motion-carousel` | Motion system, journey transitions, coming-soon hero carousel | — (UX only, no backend) |
 
 ## Per-feature build order (Flutter)
 

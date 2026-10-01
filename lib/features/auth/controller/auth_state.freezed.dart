@@ -56,12 +56,11 @@ extension AuthStatePatterns on AuthState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AuthUnknownState value)?  unknown,TResult Function( AuthUnauthenticated value)?  unauthenticated,TResult Function( AuthGuest value)?  guest,TResult Function( AuthAuthenticated value)?  authenticated,TResult Function( AuthBlockedState value)?  blocked,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AuthUnknownState value)?  unknown,TResult Function( AuthGuest value)?  guest,TResult Function( AuthAuthenticated value)?  authenticated,TResult Function( AuthBlockedState value)?  blocked,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case AuthUnknownState() when unknown != null:
-return unknown(_that);case AuthUnauthenticated() when unauthenticated != null:
-return unauthenticated(_that);case AuthGuest() when guest != null:
+return unknown(_that);case AuthGuest() when guest != null:
 return guest(_that);case AuthAuthenticated() when authenticated != null:
 return authenticated(_that);case AuthBlockedState() when blocked != null:
 return blocked(_that);case _:
@@ -82,12 +81,11 @@ return blocked(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AuthUnknownState value)  unknown,required TResult Function( AuthUnauthenticated value)  unauthenticated,required TResult Function( AuthGuest value)  guest,required TResult Function( AuthAuthenticated value)  authenticated,required TResult Function( AuthBlockedState value)  blocked,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AuthUnknownState value)  unknown,required TResult Function( AuthGuest value)  guest,required TResult Function( AuthAuthenticated value)  authenticated,required TResult Function( AuthBlockedState value)  blocked,}){
 final _that = this;
 switch (_that) {
 case AuthUnknownState():
-return unknown(_that);case AuthUnauthenticated():
-return unauthenticated(_that);case AuthGuest():
+return unknown(_that);case AuthGuest():
 return guest(_that);case AuthAuthenticated():
 return authenticated(_that);case AuthBlockedState():
 return blocked(_that);}
@@ -104,12 +102,11 @@ return blocked(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AuthUnknownState value)?  unknown,TResult? Function( AuthUnauthenticated value)?  unauthenticated,TResult? Function( AuthGuest value)?  guest,TResult? Function( AuthAuthenticated value)?  authenticated,TResult? Function( AuthBlockedState value)?  blocked,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AuthUnknownState value)?  unknown,TResult? Function( AuthGuest value)?  guest,TResult? Function( AuthAuthenticated value)?  authenticated,TResult? Function( AuthBlockedState value)?  blocked,}){
 final _that = this;
 switch (_that) {
 case AuthUnknownState() when unknown != null:
-return unknown(_that);case AuthUnauthenticated() when unauthenticated != null:
-return unauthenticated(_that);case AuthGuest() when guest != null:
+return unknown(_that);case AuthGuest() when guest != null:
 return guest(_that);case AuthAuthenticated() when authenticated != null:
 return authenticated(_that);case AuthBlockedState() when blocked != null:
 return blocked(_that);case _:
@@ -129,12 +126,11 @@ return blocked(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  unknown,TResult Function( bool submitting,  AuthFailure? failure)?  unauthenticated,TResult Function()?  guest,TResult Function( User user)?  authenticated,TResult Function( String message)?  blocked,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  unknown,TResult Function( bool submitting,  AuthFailure? failure,  bool guestCheckout)?  guest,TResult Function( User user)?  authenticated,TResult Function( String message)?  blocked,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AuthUnknownState() when unknown != null:
-return unknown();case AuthUnauthenticated() when unauthenticated != null:
-return unauthenticated(_that.submitting,_that.failure);case AuthGuest() when guest != null:
-return guest();case AuthAuthenticated() when authenticated != null:
+return unknown();case AuthGuest() when guest != null:
+return guest(_that.submitting,_that.failure,_that.guestCheckout);case AuthAuthenticated() when authenticated != null:
 return authenticated(_that.user);case AuthBlockedState() when blocked != null:
 return blocked(_that.message);case _:
   return orElse();
@@ -154,12 +150,11 @@ return blocked(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  unknown,required TResult Function( bool submitting,  AuthFailure? failure)  unauthenticated,required TResult Function()  guest,required TResult Function( User user)  authenticated,required TResult Function( String message)  blocked,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  unknown,required TResult Function( bool submitting,  AuthFailure? failure,  bool guestCheckout)  guest,required TResult Function( User user)  authenticated,required TResult Function( String message)  blocked,}) {final _that = this;
 switch (_that) {
 case AuthUnknownState():
-return unknown();case AuthUnauthenticated():
-return unauthenticated(_that.submitting,_that.failure);case AuthGuest():
-return guest();case AuthAuthenticated():
+return unknown();case AuthGuest():
+return guest(_that.submitting,_that.failure,_that.guestCheckout);case AuthAuthenticated():
 return authenticated(_that.user);case AuthBlockedState():
 return blocked(_that.message);}
 }
@@ -175,12 +170,11 @@ return blocked(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  unknown,TResult? Function( bool submitting,  AuthFailure? failure)?  unauthenticated,TResult? Function()?  guest,TResult? Function( User user)?  authenticated,TResult? Function( String message)?  blocked,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  unknown,TResult? Function( bool submitting,  AuthFailure? failure,  bool guestCheckout)?  guest,TResult? Function( User user)?  authenticated,TResult? Function( String message)?  blocked,}) {final _that = this;
 switch (_that) {
 case AuthUnknownState() when unknown != null:
-return unknown();case AuthUnauthenticated() when unauthenticated != null:
-return unauthenticated(_that.submitting,_that.failure);case AuthGuest() when guest != null:
-return guest();case AuthAuthenticated() when authenticated != null:
+return unknown();case AuthGuest() when guest != null:
+return guest(_that.submitting,_that.failure,_that.guestCheckout);case AuthAuthenticated() when authenticated != null:
 return authenticated(_that.user);case AuthBlockedState() when blocked != null:
 return blocked(_that.message);case _:
   return null;
@@ -225,46 +219,47 @@ String toString() {
 /// @nodoc
 
 
-class AuthUnauthenticated implements AuthState {
-  const AuthUnauthenticated({this.submitting = false, this.failure});
+class AuthGuest implements AuthState {
+  const AuthGuest({this.submitting = false, this.failure, this.guestCheckout = false});
   
 
 @JsonKey() final  bool submitting;
  final  AuthFailure? failure;
+@JsonKey() final  bool guestCheckout;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$AuthUnauthenticatedCopyWith<AuthUnauthenticated> get copyWith => _$AuthUnauthenticatedCopyWithImpl<AuthUnauthenticated>(this, _$identity);
+$AuthGuestCopyWith<AuthGuest> get copyWith => _$AuthGuestCopyWithImpl<AuthGuest>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUnauthenticated&&(identical(other.submitting, submitting) || other.submitting == submitting)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthGuest&&(identical(other.submitting, submitting) || other.submitting == submitting)&&(identical(other.failure, failure) || other.failure == failure)&&(identical(other.guestCheckout, guestCheckout) || other.guestCheckout == guestCheckout));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,submitting,failure);
+    return Object.hash(runtimeType,submitting,failure,guestCheckout);
 }
 
 @override
 String toString() {
-    return 'AuthState.unauthenticated(submitting: $submitting, failure: $failure)';
+    return 'AuthState.guest(submitting: $submitting, failure: $failure, guestCheckout: $guestCheckout)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $AuthUnauthenticatedCopyWith<$Res> implements $AuthStateCopyWith<$Res> {
-  factory $AuthUnauthenticatedCopyWith(AuthUnauthenticated value, $Res Function(AuthUnauthenticated) _then) = _$AuthUnauthenticatedCopyWithImpl;
+abstract mixin class $AuthGuestCopyWith<$Res> implements $AuthStateCopyWith<$Res> {
+  factory $AuthGuestCopyWith(AuthGuest value, $Res Function(AuthGuest) _then) = _$AuthGuestCopyWithImpl;
 @useResult
 $Res call({
- bool submitting, AuthFailure? failure
+ bool submitting, AuthFailure? failure, bool guestCheckout
 });
 
 
@@ -272,20 +267,21 @@ $AuthFailureCopyWith<$Res>? get failure;
 
 }
 /// @nodoc
-class _$AuthUnauthenticatedCopyWithImpl<$Res>
-    implements $AuthUnauthenticatedCopyWith<$Res> {
-  _$AuthUnauthenticatedCopyWithImpl(this._self, this._then);
+class _$AuthGuestCopyWithImpl<$Res>
+    implements $AuthGuestCopyWith<$Res> {
+  _$AuthGuestCopyWithImpl(this._self, this._then);
 
-  final AuthUnauthenticated _self;
-  final $Res Function(AuthUnauthenticated) _then;
+  final AuthGuest _self;
+  final $Res Function(AuthGuest) _then;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? submitting = null,Object? failure = freezed,}) {
-  return _then(AuthUnauthenticated(
+@pragma('vm:prefer-inline') $Res call({Object? submitting = null,Object? failure = freezed,Object? guestCheckout = null,}) {
+  return _then(AuthGuest(
 submitting: null == submitting ? _self.submitting : submitting // ignore: cast_nullable_to_non_nullable
 as bool,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
-as AuthFailure?,
+as AuthFailure?,guestCheckout: null == guestCheckout ? _self.guestCheckout : guestCheckout // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -303,38 +299,6 @@ $AuthFailureCopyWith<$Res>? get failure {
   });
 }
 }
-
-/// @nodoc
-
-
-class AuthGuest implements AuthState {
-  const AuthGuest();
-  
-
-
-
-
-
-
-@override
-bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthGuest);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-    return 'AuthState.guest()';
-}
-
-
-}
-
-
-
 
 /// @nodoc
 

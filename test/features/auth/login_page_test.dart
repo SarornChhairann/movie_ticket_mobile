@@ -7,6 +7,7 @@ import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
 import 'package:movie_ticket_mobile/features/auth/model/auth_failure.dart';
 import 'package:movie_ticket_mobile/features/auth/view/login_page.dart';
 
+import '../../helpers/finders.dart';
 import '../../helpers/localized_app.dart';
 
 class _MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
@@ -26,7 +27,7 @@ void main() {
   }
 
   testWidgets('invalid email shows a validation message and does not submit', (tester) async {
-    final bloc = await pumpLogin(tester, const AuthState.unauthenticated());
+    final bloc = await pumpLogin(tester, const AuthState.guest());
 
     await tester.enterText(find.byKey(const Key('login.email')), 'dara@');
     await tester.enterText(find.byKey(const Key('login.password')), 'secret1');
@@ -38,7 +39,7 @@ void main() {
   });
 
   testWidgets('valid form dispatches LoginRequested', (tester) async {
-    final bloc = await pumpLogin(tester, const AuthState.unauthenticated());
+    final bloc = await pumpLogin(tester, const AuthState.guest());
 
     await tester.enterText(find.byKey(const Key('login.email')), 'dara@example.com');
     await tester.enterText(find.byKey(const Key('login.password')), 'secret1');
@@ -49,16 +50,15 @@ void main() {
   });
 
   testWidgets('submit is disabled while submitting', (tester) async {
-    await pumpLogin(tester, const AuthState.unauthenticated(submitting: true));
+    await pumpLogin(tester, const AuthState.guest(submitting: true));
 
-    final button = tester.widget<FilledButton>(find.byKey(const Key('login.submit')));
-    expect(button.onPressed, isNull);
+    expect(filledButtonIn(tester, const Key('login.submit')).onPressed, isNull);
   });
 
   testWidgets('bad credentials show a banner', (tester) async {
     await pumpLogin(
       tester,
-      const AuthState.unauthenticated(failure: AuthFailure.invalidCredentials()),
+      const AuthState.guest(failure: AuthFailure.invalidCredentials()),
     );
 
     expect(find.text('Incorrect email or password.'), findsOneWidget);

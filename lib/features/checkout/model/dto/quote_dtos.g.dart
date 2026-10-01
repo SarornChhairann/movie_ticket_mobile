@@ -15,7 +15,7 @@ Map<String, dynamic> _$QuoteRequestDtoToJson(QuoteRequestDto instance) =>
 
 QuoteResponseDto _$QuoteResponseDtoFromJson(Map<String, dynamic> json) =>
     QuoteResponseDto(
-      showtime: QuoteShowtimeDto.fromJson(
+      showtime: ShowtimeInfoDto.fromJson(
         json['showtime'] as Map<String, dynamic>,
       ),
       seats:
@@ -46,15 +46,6 @@ QuoteResponseDto _$QuoteResponseDtoFromJson(Map<String, dynamic> json) =>
       user: json['user'] == null
           ? null
           : QuoteUserDto.fromJson(json['user'] as Map<String, dynamic>),
-    );
-
-QuoteShowtimeDto _$QuoteShowtimeDtoFromJson(Map<String, dynamic> json) =>
-    QuoteShowtimeDto(
-      id: (json['id'] as num).toInt(),
-      showDate: json['showDate'] as String?,
-      showTime: json['showTime'] as String?,
-      movieTitle: json['movieTitle'] as String?,
-      hallName: json['hallName'] as String?,
     );
 
 QuoteSeatDto _$QuoteSeatDtoFromJson(Map<String, dynamic> json) => QuoteSeatDto(

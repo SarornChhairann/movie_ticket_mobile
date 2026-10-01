@@ -5,7 +5,7 @@ import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/features/checkout/controller/checkout_bloc.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_failure.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_repository.dart';
-import 'package:movie_ticket_mobile/features/checkout/model/confirmation.dart';
+import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
 
 import 'checkout_fixtures.dart';
@@ -145,9 +145,9 @@ void main() {
   });
 
   group('ConfirmRequested', () {
-    const confirmation = Confirmation(
+    const confirmation = BookingSummary(
       bookingId: 99,
-      status: 'CONFIRMED',
+      status: BookingStatus.confirmed,
       movieTitle: 'Dune',
       hallName: 'Hall 1',
       totalAmount: 12.5,
@@ -155,7 +155,7 @@ void main() {
     );
     const guest = GuestInfo(name: 'Dara', phone: '012');
 
-    void stubConfirm(Result<Confirmation, CheckoutFailure> result) => when(() => repository.confirm(
+    void stubConfirm(Result<BookingSummary, CheckoutFailure> result) => when(() => repository.confirm(
           any(),
           guest: any(named: 'guest'),
           promoCode: any(named: 'promoCode'),

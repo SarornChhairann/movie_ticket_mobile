@@ -25,11 +25,12 @@ final class RegisterRequested extends AuthEvent {
   final String password;
 }
 
+/// The shopper chose to book without an account (guest checkout).
 final class GuestContinued extends AuthEvent {
   const GuestContinued();
 }
 
-/// A guest asks for the login screen.
+/// The login screen is about to open: clear any stale banner.
 final class SignInRequested extends AuthEvent {
   const SignInRequested();
 }

@@ -13,18 +13,19 @@ import 'auth_state.dart';
 export 'auth_event.dart';
 export 'auth_state.dart';
 
-/// App-level session state. Provided above the navigator; the router reacts to
-/// its state type.
+/// App-level session state. Provided above the navigator. Signed out is
+/// [AuthGuest]: the app opens on Home and asks for sign-in only when an action
+/// needs it (see `requireSignIn`).
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._repository) : super(const AuthState.unknown()) {
     on<SessionStarted>(_onSessionStarted);
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
-    on<GuestContinued>((_, emit) => emit(const AuthState.guest()));
-    on<SignInRequested>((_, emit) => emit(const AuthState.unauthenticated()));
+    on<GuestContinued>((_, emit) => emit(const AuthState.guest(guestCheckout: true)));
+    on<SignInRequested>(_onSignInRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<SessionEnded>(_onSessionEnded);
-    on<BlockedAcknowledged>((_, emit) => emit(const AuthState.unauthenticated()));
+    on<BlockedAcknowledged>((_, emit) => emit(const AuthState.guest()));
     on<UserUpdated>(_onUserUpdated);
     on<UserRefreshRequested>(_onUserRefreshRequested);
     _sessionEndedSubscription = _repository.sessionEnded.listen((reason) => add(SessionEnded(reason)));
@@ -37,25 +38,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await _repository.restoreSession();
     emit(switch (result) {
       Ok(value: final User user) => _signedIn(user),
-      Ok() => const AuthState.unauthenticated(),
+      Ok() => const AuthState.guest(),
       Err(failure: AuthBlocked(:final message)) => AuthState.blocked(message),
-      Err(:final failure) => AuthState.unauthenticated(failure: failure),
+      // Offline or a server error: still open Home; the banner shows on next sign-in.
+      Err(:final failure) => AuthState.guest(failure: failure),
     });
   }
 
+  void _onSignInRequested(SignInRequested event, Emitter<AuthState> emit) {
+    final s = state;
+    if (s is AuthGuest) emit(s.copyWith(submitting: false, failure: null));
+  }
+
+  /// The guest state while a login/register call runs, keeping the checkout choice.
+  AuthState get _submitting => switch (state) {
+        AuthGuest(:final guestCheckout) => AuthState.guest(submitting: true, guestCheckout: guestCheckout),
+        _ => const AuthState.guest(submitting: true),
+      };
+
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
-    emit(const AuthState.unauthenticated(submitting: true));
+    emit(_submitting);
     emit(_fromResult(await _repository.login(event.email, event.password)));
   }
 
   Future<void> _onRegisterRequested(RegisterRequested event, Emitter<AuthState> emit) async {
-    emit(const AuthState.unauthenticated(submitting: true));
+    emit(_submitting);
     emit(_fromResult(await _repository.register(event.name, event.email, event.password)));
   }
 
   Future<void> _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) async {
     await _repository.logout();
-    emit(const AuthState.unauthenticated());
+    emit(const AuthState.guest());
   }
 
   void _onSessionEnded(SessionEnded event, Emitter<AuthState> emit) {
@@ -65,7 +78,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     emit(switch (event.reason) {
       SessionBlocked(:final message) => AuthState.blocked(message),
-      SessionExpired() => const AuthState.unauthenticated(failure: AuthFailure.sessionExpired()),
+      SessionExpired() => const AuthState.guest(failure: AuthFailure.sessionExpired()),
     });
   }
 
@@ -86,7 +99,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthState _fromResult(Result<User, AuthFailure> result) => switch (result) {
         Ok(:final value) => _signedIn(value),
         Err(failure: AuthBlocked(:final message)) => AuthState.blocked(message),
-        Err(:final failure) => AuthState.unauthenticated(failure: failure),
+        Err(:final failure) => switch (state) {
+            AuthGuest(:final guestCheckout) => AuthState.guest(failure: failure, guestCheckout: guestCheckout),
+            _ => AuthState.guest(failure: failure),
+          },
       };
 
   AuthState _signedIn(User user) =>

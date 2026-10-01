@@ -121,3 +121,27 @@ Restyle `login_page.dart`, `register_page.dart`, `splash_page.dart`, and `profil
 ## Order
 
 Phase 1, then 2, then 3. Phase 4 waits for the seat feature. Phase 5 can land with phase 1. After each phase, run `flutter test` and check Home, detail, and Profile in English and Khmer.
+
+## Status (2026-10-01)
+
+All five phases landed. `flutter analyze` is clean and `flutter test` passes (176), including rewritten shell, catalog, detail, seat, and login widget tests that run on the dark theme (`test/helpers/localized_app.dart` now pumps `AppTheme.dark`).
+
+- **Theme:** `AppTheme.dark` only (`app_colors.dart` holds the four tokens). Poppins Regular/Medium/SemiBold/Bold are bundled under `assets/fonts` with `OFL.txt`; nothing loads at runtime. Khmer text falls back to the system Khmer font (Poppins has no Khmer glyphs). Shared widgets: `PrimaryButton`, `SearchPill`, `GenreChip`, `Wordmark` in `core/widgets`, `PosterCard` in `catalog/view`.
+- **Home / Explore:** `MovieListBloc` loads both tabs in one pass (`nowShowing`, `comingSoon`), keeps search shared, and filters by `GenreSelected` client-side. `TabChanged` no longer refetches. Genres are the distinct `movie.genre` values returned.
+- **Detail:** `MovieDetailBloc` gained `ShowtimeSelected`; a new date clears it, unknown ids are ignored, so Book Ticket only fires with a real showtime id. The seat route now takes `SeatMapArgs` (a bare `int` still works).
+- **Seat screen:** seats are outline / blue / muted-fill / dim-fill-plus-outline for available / selected / reserved / held. Time chips are the same day's showtimes passed from detail; picking another releases any hold and loads that map. No prices.
+- **Navigation:** bottom bar Home / Explore / Bookings / Profile. Guests get sign-in prompts on Bookings and Profile (and never call `/bookings/my-bookings` or `/profile`); signed-in tabs reload on open. The language toggle lives in Profile.
+
+Deviations:
+
+- ~~Trailer play button copies the link~~ — resolved: `url_launcher` was added on request. The play button opens the trailer in the browser or video app (`core/platform/link_opener.dart`, http/https only); if nothing can open it, the link is copied and the user is told.
+- **Seat-screen date chip** is display-only: the seat map has the chosen day's showtimes but not other days'.
+
+Still to do: a look on a real device or emulator in English and Khmer (screens were checked as rendered test images with the bundled font, English only).
+
+## Splash (2026-10-01)
+
+- **No white flash:** Android (`launch_background`, `NormalTheme`, Android 12+ `values-v31` system splash) and the iOS `LaunchScreen.storyboard` are brand navy `#1A2543`, the same as the Flutter scaffold.
+- **"Admit one" animation** (`features/auth/view/splash_page.dart`, 1.4 s): a projector beam fades in, the ticket emblem (`core/widgets/ticket_emblem.dart`, also used by `Wordmark`) traces its outline, fills blue with a perforation and play glyph, then the name and the `splash.tagline` rise in.
+- **Minimum display 2 s** (`SplashPage.minDisplay`, passed to `App.splashMinDisplay`): the 1.4 s animation plays in full plus a short hold, even when the session restores instantly. A slower restore leaves as soon as it finishes, with no extra wait. A thin progress bar appears only if restoring is still running at 2.4 s, so a normal start never shows a spinner. Root screens (splash, login, home, blocked) now fade into each other instead of sliding.
+- **Accessibility:** with reduced motion the final frame shows at once. The name is read once, as a header; the emblem and beam are decorative; the progress bar is a live region ("Getting things ready…").

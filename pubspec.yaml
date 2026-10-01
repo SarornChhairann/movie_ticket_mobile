@@ -42,6 +42,8 @@ dependencies:
   dio: ^5.11.1
   flutter_secure_storage: ^11.2.0
   stomp_dart_client: ^3.0.1
+  intl: ^0.20.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +76,22 @@ flutter:
 
   assets:
     - assets/translations/
+    # Brand images (AppImages). Listing the folder also bundles each file's
+    # 2.0x/ and 3.0x/ variants. assets/store/ is store artwork, not bundled.
+    - assets/images/brand/
+    - assets/images/placeholders/
+
+  # Bundled so no font is fetched at runtime. OFL licence: assets/fonts/OFL.txt.
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

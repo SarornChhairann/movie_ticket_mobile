@@ -8,13 +8,15 @@ Depends on: sprint 5. Analytics section 3.6, invariant 7. Gap rows G18, G19, G20
 
 ## Acceptance
 
-- [ ] My bookings lists the signed-in user's bookings, newest first, with status chip, movie, date/time, hall, seat codes, total.
-- [ ] Booking detail lists tickets; each ticket opens a QR screen with code and the PNG from `/tickets/{ticketCode}/qr`.
-- [ ] Cancel is offered only for `CONFIRMED` bookings whose show start is outside the window. The server is still the authority.
-- [ ] Cancel inside the window shows the server message (`CANCEL_WINDOW`) and does not change seats.
-- [ ] Successful cancel sets booking `CANCELLED`, tickets `CANCELLED`, seats `AVAILABLE`, and open seat maps receive `RELEASED`.
-- [ ] Guests have no My bookings entry (analytics 3.6: guest lookup is out of the current API). The success screen from sprint 5 is the guest's ticket view.
-- [ ] This sprint does not reverse points or promo usage.
+- [x] My bookings lists the signed-in user's bookings, newest first, with status chip, movie, date/time, hall, seat codes, total.
+- [x] Booking detail lists tickets; each ticket opens a QR screen with code and the PNG from `/tickets/{ticketCode}/qr`.
+- [x] Cancel is offered only for `CONFIRMED` bookings whose show start is outside the window. The server is still the authority.
+- [x] Cancel inside the window shows the server message (`CANCEL_WINDOW`) and does not change seats.
+- [x] Successful cancel sets booking `CANCELLED`, tickets `CANCELLED`, seats `AVAILABLE`, and open seat maps receive `RELEASED`.
+- [x] Guests have no My bookings entry (analytics 3.6: guest lookup is out of the current API). The success screen from sprint 5 is the guest's ticket view.
+- [x] This sprint does not reverse points or promo usage.
+
+*Verified by backend `BookingServiceTest` (owner cancel frees seats and publishes `RELEASED`, stranger → `NOT_OWNER`, guest booking → `NOT_OWNER`, `ALREADY_CANCELLED`, inside window → `CANCEL_WINDOW` with seats still `BOOKED`, window from settings, my-bookings newest first) and `CancelBookingIntegrationTest` on H2 (same rules against real rows, `RELEASED` after commit, ordering by `bookedAt`), plus Flutter tickets bloc/repository/widget tests, the seat map `RELEASED`-unbooks test, and the success-screen guest test. A live walk-through on a device against a running API is still pending. Note: the seat map's polling fallback only refreshes holds, so a cancel shows live only over the STOMP socket (or after reopening the map).*
 
 ## API contract
 

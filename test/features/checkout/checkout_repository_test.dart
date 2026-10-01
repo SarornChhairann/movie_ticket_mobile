@@ -4,7 +4,7 @@ import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_failure.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_repository.dart';
-import 'package:movie_ticket_mobile/features/checkout/model/confirmation.dart';
+import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
 
 import 'checkout_fixtures.dart';
@@ -103,10 +103,10 @@ void main() {
       promoCode: 'SAVE20',
       food: {7: 2},
     );
-    final c = (result as Ok<Confirmation, CheckoutFailure>).value;
+    final c = (result as Ok<BookingSummary, CheckoutFailure>).value;
 
     expect(c.bookingId, 99);
-    expect(c.status, 'CONFIRMED');
+    expect(c.status, BookingStatus.confirmed);
     expect(c.totalAmount, 16.5);
     expect(c.tickets.map((t) => t.seatCode), ['D1', 'D2']);
   });
@@ -115,20 +115,20 @@ void main() {
     adapter.onPost('/bookings/checkout/50',
         (s) => s.reply(402, {'error': 'Card declined.', 'type': 'PAYMENT_REQUIRED', 'code': 'PAYMENT_FAILED'}),
         data: Matchers.any);
-    expect((await repository.confirm(testHold) as Err<Confirmation, CheckoutFailure>).failure,
+    expect((await repository.confirm(testHold) as Err<BookingSummary, CheckoutFailure>).failure,
         const CheckoutFailure.paymentFailed('Card declined.'));
 
     adapter.onPost('/bookings/checkout/50',
         (s) => s.reply(403, {'error': 'This account is banned.', 'type': 'FORBIDDEN', 'code': 'ACCOUNT_BLOCKED'}),
         data: Matchers.any);
-    expect((await repository.confirm(testHold) as Err<Confirmation, CheckoutFailure>).failure,
+    expect((await repository.confirm(testHold) as Err<BookingSummary, CheckoutFailure>).failure,
         const CheckoutFailure.blocked('This account is banned.'));
   });
 
   test('getConfirmation re-reads a booking', () async {
     adapter.onGet('/bookings/confirmation/99', (s) => s.reply(200, bookingJson()));
 
-    final c = (await repository.getConfirmation(99) as Ok<Confirmation, CheckoutFailure>).value;
+    final c = (await repository.getConfirmation(99) as Ok<BookingSummary, CheckoutFailure>).value;
 
     expect(c.tickets.first.code, 'T-1');
   });

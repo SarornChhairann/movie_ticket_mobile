@@ -6,8 +6,10 @@ import '../../features/auth/auth_module.dart';
 import '../../features/catalog/catalog_module.dart';
 import '../../features/checkout/checkout_module.dart';
 import '../../features/profile/profile_module.dart';
+import '../../features/reminders/reminders_module.dart';
 import '../../features/seats/seats_module.dart';
 import '../../features/shell/shell_module.dart';
+import '../../features/tickets/tickets_module.dart';
 import '../network/auth_interceptor.dart';
 import '../network/dio_client.dart';
 import '../network/session_header_interceptor.dart';
@@ -41,4 +43,6 @@ void configureDependencies({required String baseUrl}) {
   registerCatalog(getIt);
   registerSeats(getIt);
   registerCheckout(getIt);
+  registerTickets(getIt);
+  registerReminders(getIt);
 }

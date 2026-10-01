@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_ticket_mobile/core/l10n/app_locales.dart';
+import 'package:movie_ticket_mobile/core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Call from `setUpAll` before pumping [localizedApp].
@@ -10,18 +11,20 @@ Future<void> initTestLocalization() async {
   await EasyLocalization.ensureInitialized();
 }
 
-/// [home] inside EasyLocalization (English) and a MaterialApp.
-Widget localizedApp(Widget home) => EasyLocalization(
+/// [home] inside EasyLocalization ([locale], English by default) and a MaterialApp
+/// with the app's dark theme.
+Widget localizedApp(Widget home, {Locale locale = AppLocales.en}) => EasyLocalization(
       supportedLocales: AppLocales.supported,
       path: AppLocales.path,
       fallbackLocale: AppLocales.en,
-      startLocale: AppLocales.en,
+      startLocale: locale,
       saveLocale: false,
       child: Builder(
         builder: (context) => MaterialApp(
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,
           locale: context.locale,
+          theme: AppTheme.dark,
           home: home,
         ),
       ),
@@ -30,9 +33,9 @@ Widget localizedApp(Widget home) => EasyLocalization(
 /// Pumps [localizedApp] and waits for translations. The asset and the
 /// Localizations delegate load with futures that only complete in real async,
 /// so the first frames are built inside `runAsync`.
-Future<void> pumpLocalized(WidgetTester tester, Widget home) async {
+Future<void> pumpLocalized(WidgetTester tester, Widget home, {Locale locale = AppLocales.en}) async {
   await tester.runAsync(() async {
-    await tester.pumpWidget(localizedApp(home));
+    await tester.pumpWidget(localizedApp(home, locale: locale));
     for (var i = 0; i < 5; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 20));
       await tester.pump();

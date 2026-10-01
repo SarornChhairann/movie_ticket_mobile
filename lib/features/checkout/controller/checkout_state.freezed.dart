@@ -129,7 +129,7 @@ return success(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( Hold hold)?  loading,TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  int? secondsLeft,  CheckoutEffect? effect,  String? message)?  ready,TResult Function( Hold hold,  CheckoutFailure failure)?  failure,TResult Function( Confirmation confirmation)?  success,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( Hold hold)?  loading,TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  int? secondsLeft,  CheckoutEffect? effect,  String? message)?  ready,TResult Function( Hold hold,  CheckoutFailure failure)?  failure,TResult Function( BookingSummary confirmation)?  success,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CheckoutInitial() when initial != null:
 return initial();case CheckoutLoading() when loading != null:
@@ -154,7 +154,7 @@ return success(_that.confirmation);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( Hold hold)  loading,required TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  int? secondsLeft,  CheckoutEffect? effect,  String? message)  ready,required TResult Function( Hold hold,  CheckoutFailure failure)  failure,required TResult Function( Confirmation confirmation)  success,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( Hold hold)  loading,required TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  int? secondsLeft,  CheckoutEffect? effect,  String? message)  ready,required TResult Function( Hold hold,  CheckoutFailure failure)  failure,required TResult Function( BookingSummary confirmation)  success,}) {final _that = this;
 switch (_that) {
 case CheckoutInitial():
 return initial();case CheckoutLoading():
@@ -175,7 +175,7 @@ return success(_that.confirmation);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( Hold hold)?  loading,TResult? Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  int? secondsLeft,  CheckoutEffect? effect,  String? message)?  ready,TResult? Function( Hold hold,  CheckoutFailure failure)?  failure,TResult? Function( Confirmation confirmation)?  success,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( Hold hold)?  loading,TResult? Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  int? secondsLeft,  CheckoutEffect? effect,  String? message)?  ready,TResult? Function( Hold hold,  CheckoutFailure failure)?  failure,TResult? Function( BookingSummary confirmation)?  success,}) {final _that = this;
 switch (_that) {
 case CheckoutInitial() when initial != null:
 return initial();case CheckoutLoading() when loading != null:
@@ -518,7 +518,7 @@ class CheckoutSuccess extends CheckoutState {
   const CheckoutSuccess(this.confirmation): super._();
   
 
- final  Confirmation confirmation;
+ final  BookingSummary confirmation;
 
 /// Create a copy of CheckoutState
 /// with the given fields replaced by the non-null parameter values.
@@ -552,11 +552,11 @@ abstract mixin class $CheckoutSuccessCopyWith<$Res> implements $CheckoutStateCop
   factory $CheckoutSuccessCopyWith(CheckoutSuccess value, $Res Function(CheckoutSuccess) _then) = _$CheckoutSuccessCopyWithImpl;
 @useResult
 $Res call({
- Confirmation confirmation
+ BookingSummary confirmation
 });
 
 
-$ConfirmationCopyWith<$Res> get confirmation;
+$BookingSummaryCopyWith<$Res> get confirmation;
 
 }
 /// @nodoc
@@ -572,7 +572,7 @@ class _$CheckoutSuccessCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? confirmation = null,}) {
   return _then(CheckoutSuccess(
 null == confirmation ? _self.confirmation : confirmation // ignore: cast_nullable_to_non_nullable
-as Confirmation,
+as BookingSummary,
   ));
 }
 
@@ -580,9 +580,9 @@ as Confirmation,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$ConfirmationCopyWith<$Res> get confirmation {
+$BookingSummaryCopyWith<$Res> get confirmation {
   
-  return $ConfirmationCopyWith<$Res>(_self.confirmation, (value) {
+  return $BookingSummaryCopyWith<$Res>(_self.confirmation, (value) {
     return _then(_self.copyWith(confirmation: value));
   });
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand navy (#1A2543): same as AppTheme's scaffold, so launch → Flutter has no flash. -->
+    <color name="splash_navy">#FF1A2543</color>
+</resources>

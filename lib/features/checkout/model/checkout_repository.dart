@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_failure.dart';
+import '../../../core/model/booking_summary.dart';
+import '../../../core/model/dto/booking_detail_dto.dart';
 import '../../../core/network/result.dart';
 import '../../seats/model/seat_map.dart';
 import 'checkout_failure.dart';
-import 'confirmation.dart';
 import 'dto/booking_dtos.dart';
 import 'dto/quote_dtos.dart';
 import 'quote.dart';
@@ -15,7 +16,7 @@ class CheckoutRepository {
   final Dio _dio;
 
   /// Confirms and pays for the seats of [hold]. Never sends a total.
-  Future<Result<Confirmation, CheckoutFailure>> confirm(
+  Future<Result<BookingSummary, CheckoutFailure>> confirm(
     Hold hold, {
     GuestInfo? guest,
     String? promoCode,
@@ -37,16 +38,16 @@ class CheckoutRepository {
           foodItems: selected.isEmpty ? null : selected,
         ).toJson(),
       );
-      return Ok(Confirmation.fromDto(BookingDetailDto.fromJson(response.data!)));
+      return Ok(BookingSummary.fromDto(BookingDetailDto.fromJson(response.data!)));
     } on DioException catch (e) {
       return Err(CheckoutFailure.fromApi(ApiFailure.fromDioException(e)));
     }
   }
 
-  Future<Result<Confirmation, CheckoutFailure>> getConfirmation(int bookingId) async {
+  Future<Result<BookingSummary, CheckoutFailure>> getConfirmation(int bookingId) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('/bookings/confirmation/$bookingId');
-      return Ok(Confirmation.fromDto(BookingDetailDto.fromJson(response.data!)));
+      return Ok(BookingSummary.fromDto(BookingDetailDto.fromJson(response.data!)));
     } on DioException catch (e) {
       return Err(CheckoutFailure.fromApi(ApiFailure.fromDioException(e)));
     }

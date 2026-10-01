@@ -5,33 +5,103 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/controller/auth_bloc.dart';
+import 'features/auth/model/auth_failure.dart';
+import 'features/auth/view/auth_gate.dart';
+import 'features/auth/view/splash_page.dart';
 
 class App extends StatefulWidget {
-  const App({super.key, required this.router, required this.authBloc});
+  const App({
+    super.key,
+    required this.router,
+    required this.authBloc,
+    this.splashMinDisplay = SplashPage.minDisplay,
+  });
 
   final AppRouter router;
   final AuthBloc authBloc;
+
+  /// The splash stays at least this long, even when the session restores at once.
+  final Duration splashMinDisplay;
 
   @override
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> {
+class _AppState extends State<App> with SingleTickerProviderStateMixin {
   final _navigatorKey = GlobalKey<NavigatorState>();
+
+  /// Minimum splash time. Ticker-driven (pauses with the app, testable), and
+  /// [AnimationBehavior.preserve] keeps its length under reduced motion.
+  late final AnimationController _splashHold = AnimationController(
+    vsync: this,
+    duration: widget.splashMinDisplay,
+    animationBehavior: AnimationBehavior.preserve,
+  );
+
+  /// The session resolved while the splash was still holding.
+  bool _splashExitPending = false;
+
+  /// The state before the change the listener is handling.
+  AuthState _previous = const AuthState.unknown();
+
+  @override
+  void initState() {
+    super.initState();
+    _splashHold
+      ..addStatusListener((status) {
+        if (status != AnimationStatus.completed || !_splashExitPending) return;
+        _splashExitPending = false;
+        // Use the latest state: it may have changed again during the hold.
+        _onAuthChanged(widget.authBloc.state);
+      })
+      ..forward();
+  }
 
   @override
   void dispose() {
+    _splashHold.dispose();
     widget.authBloc.close();
     super.dispose();
   }
 
-  /// The screen stack root for each session state.
+  /// Leaving the splash waits for [App.splashMinDisplay]; everything else is immediate.
+  void _onRootChange(AuthState previous, AuthState current) {
+    if (_rootFor(previous) == AppRoutes.splash && !_splashHold.isCompleted) {
+      _splashExitPending = true;
+      return;
+    }
+    _onAuthChanged(current);
+  }
+
+  /// The screen stack root for each session state. Signed in or not, the app
+  /// opens on Home; login is pushed on demand (`requireSignIn`).
   static String _rootFor(AuthState state) => switch (state) {
         AuthUnknownState() => AppRoutes.splash,
-        AuthUnauthenticated() => AppRoutes.login,
         AuthGuest() || AuthAuthenticated() => AppRoutes.shell,
         AuthBlockedState() => AppRoutes.blocked,
       };
+
+  /// Logout or an expired session: drop every signed-in screen back to Home.
+  static bool _signedOut(AuthState previous, AuthState current) =>
+      previous is AuthAuthenticated && current is AuthGuest;
+
+  /// Navigates after the current frame: called straight from the listener, the
+  /// reset pushed the new root but left the old screens underneath (e.g. the
+  /// splash or a signed-in screen still reachable with back).
+  void _onAuthChanged(AuthState current) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resetStack(current));
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  void _resetStack(AuthState current) {
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.pushNamedAndRemoveUntil(_rootFor(current), (_) => false);
+    // Expired mid-use: offer to sign straight back in, with the reason shown.
+    if (current is AuthGuest && current.failure is AuthSessionExpired) {
+      navigator.pushNamed(AppRoutes.login, arguments: const LoginArgs());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,18 +110,22 @@ class _AppState extends State<App> {
       child: MaterialApp(
         navigatorKey: _navigatorKey,
         onGenerateTitle: (context) => 'app.title'.tr(context: context),
-        theme: AppTheme.light,
+        theme: AppTheme.dark,
+        themeMode: ThemeMode.dark,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
         initialRoute: _rootFor(widget.authBloc.state),
         onGenerateRoute: widget.router.onGenerateRoute,
         builder: (context, child) => BlocListener<AuthBloc, AuthState>(
-          // Only a change of session kind resets the stack; submitting/failure
-          // updates on the login screen do not.
-          listenWhen: (previous, current) => _rootFor(previous) != _rootFor(current),
-          listener: (context, state) => _navigatorKey.currentState
-              ?.pushNamedAndRemoveUntil(_rootFor(state), (_) => false),
+          // Reset the stack when the root changes (splash → Home, blocked) or on
+          // sign-out. Signing in does not reset: the login screen pops itself and
+          // the user continues the action that asked for it.
+          listenWhen: (previous, current) {
+            _previous = previous;
+            return _rootFor(previous) != _rootFor(current) || _signedOut(previous, current);
+          },
+          listener: (context, current) => _onRootChange(_previous, current),
           child: child!,
         ),
       ),

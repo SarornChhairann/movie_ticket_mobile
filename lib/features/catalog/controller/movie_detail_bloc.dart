@@ -24,14 +24,25 @@ final class DateSelected extends MovieDetailEvent {
   final DateTime date;
 }
 
+/// A time chip was tapped; Book Ticket uses this id.
+final class ShowtimeSelected extends MovieDetailEvent {
+  const ShowtimeSelected(this.showtimeId);
+
+  final int showtimeId;
+}
+
 @freezed
 sealed class MovieDetailState with _$MovieDetailState {
   const factory MovieDetailState.initial() = MovieDetailInitial;
   const factory MovieDetailState.loading() = MovieDetailLoading;
 
-  /// [refreshing] is true while another date's showtimes load.
-  const factory MovieDetailState.ready(MovieDetail detail, {@Default(false) bool refreshing}) =
-      MovieDetailReady;
+  /// [refreshing] is true while another date's showtimes load. [selectedShowtimeId]
+  /// is always one of [detail]'s slots; a new date clears it.
+  const factory MovieDetailState.ready(
+    MovieDetail detail, {
+    @Default(false) bool refreshing,
+    int? selectedShowtimeId,
+  }) = MovieDetailReady;
 
   const factory MovieDetailState.failure(ApiFailure failure) = MovieDetailFailure;
 }
@@ -40,6 +51,7 @@ class MovieDetailBloc extends Bloc<MovieDetailEvent, MovieDetailState> {
   MovieDetailBloc(this._repository) : super(const MovieDetailState.initial()) {
     on<DetailRequested>(_onDetailRequested);
     on<DateSelected>(_onDateSelected);
+    on<ShowtimeSelected>(_onShowtimeSelected);
   }
 
   final CatalogRepository _repository;
@@ -60,10 +72,20 @@ class MovieDetailBloc extends Bloc<MovieDetailEvent, MovieDetailState> {
     if (current is! MovieDetailReady || movieId == null) {
       return;
     }
-    emit(current.copyWith(refreshing: true));
+    emit(current.copyWith(refreshing: true, selectedShowtimeId: null));
     emit(switch (await _repository.fetchDetail(movieId, date: event.date)) {
       Ok(:final value) => MovieDetailState.ready(value),
       Err(:final failure) => MovieDetailState.failure(failure),
     });
+  }
+
+  void _onShowtimeSelected(ShowtimeSelected event, Emitter<MovieDetailState> emit) {
+    final current = state;
+    if (current is! MovieDetailReady || current.refreshing) return;
+    final exists = current.detail.cinemas
+        .expand((c) => c.halls)
+        .expand((h) => h.slots)
+        .any((slot) => slot.id == event.showtimeId);
+    if (exists) emit(current.copyWith(selectedShowtimeId: event.showtimeId));
   }
 }

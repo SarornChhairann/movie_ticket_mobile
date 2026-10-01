@@ -1,58 +1,55 @@
 import 'package:flutter/material.dart';
 
-/// Seat map color tokens. "held" is a UI state from `seat_holds`, not a seat
-/// status; the only seat statuses are `AVAILABLE` and `BOOKED`.
+import 'app_colors.dart';
+
+/// Seat map tokens. "held" is a UI state from `seat_holds`, not a seat status; the
+/// only seat statuses are `AVAILABLE` and `BOOKED`. Couple seats use the same
+/// states and are drawn wider.
 @immutable
 class SeatColors extends ThemeExtension<SeatColors> {
   const SeatColors({
-    required this.available,
-    required this.held,
+    required this.outline,
     required this.selected,
     required this.booked,
-    required this.couple,
+    required this.heldFill,
+    required this.heldOutline,
   });
 
-  static const light = SeatColors(
-    available: Color(0xFFE0E4EA),
-    held: Color(0xFFF2B84B),
-    selected: Color(0xFF2E7D5B),
-    booked: Color(0xFF9AA0A6),
-    couple: Color(0xFFD9467A),
+  /// Available: white outline on navy. Selected: blue fill. Booked: muted white
+  /// fill. Held by others: dim fill plus a dimmer outline (distinct from booked).
+  static const dark = SeatColors(
+    outline: AppColors.white,
+    selected: AppColors.blue,
+    booked: Color(0x66F5F5F5),
+    heldFill: Color(0x26F5F5F5),
+    heldOutline: Color(0x80F5F5F5),
   );
 
-  final Color available;
-  final Color held;
+  final Color outline;
   final Color selected;
   final Color booked;
-  final Color couple;
+  final Color heldFill;
+  final Color heldOutline;
 
   @override
-  SeatColors copyWith({
-    Color? available,
-    Color? held,
-    Color? selected,
-    Color? booked,
-    Color? couple,
-  }) =>
+  SeatColors copyWith({Color? outline, Color? selected, Color? booked, Color? heldFill, Color? heldOutline}) =>
       SeatColors(
-        available: available ?? this.available,
-        held: held ?? this.held,
+        outline: outline ?? this.outline,
         selected: selected ?? this.selected,
         booked: booked ?? this.booked,
-        couple: couple ?? this.couple,
+        heldFill: heldFill ?? this.heldFill,
+        heldOutline: heldOutline ?? this.heldOutline,
       );
 
   @override
   SeatColors lerp(ThemeExtension<SeatColors>? other, double t) {
-    if (other is! SeatColors) {
-      return this;
-    }
+    if (other is! SeatColors) return this;
     return SeatColors(
-      available: Color.lerp(available, other.available, t)!,
-      held: Color.lerp(held, other.held, t)!,
+      outline: Color.lerp(outline, other.outline, t)!,
       selected: Color.lerp(selected, other.selected, t)!,
       booked: Color.lerp(booked, other.booked, t)!,
-      couple: Color.lerp(couple, other.couple, t)!,
+      heldFill: Color.lerp(heldFill, other.heldFill, t)!,
+      heldOutline: Color.lerp(heldOutline, other.heldOutline, t)!,
     );
   }
 }
