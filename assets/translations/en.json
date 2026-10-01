@@ -1,0 +1,118 @@
+{
+  "app": {
+    "title": "Movie Tickets"
+  },
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading…",
+    "empty": "Nothing here yet.",
+    "error": "Something went wrong"
+  },
+  "shell": {
+    "language": "Language",
+    "connected": "Connected to the ticket server",
+    "offline": "Cannot reach the server. Check your connection.",
+    "nowShowing": "Now showing: {count}",
+    "comingSoon": "Coming soon: {count}",
+    "cinemas": "Cinemas: {count}"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Create account",
+    "guest": "Continue as guest",
+    "logout": "Log out",
+    "signIn": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "name": "Full name",
+    "blocked": "Your account is blocked",
+    "invalid_credentials": "Incorrect email or password.",
+    "sessionExpired": "Your session expired. Please log in again.",
+    "noAccount": "No account? Create one",
+    "haveAccount": "Already have an account? Log in",
+    "backToLogin": "Back to login"
+  },
+  "profile": {
+    "title": "Profile",
+    "points": "Points",
+    "phone": "Phone",
+    "edit": "Edit profile",
+    "save": "Save",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "saved": "Profile saved.",
+    "passwordChanged": "Password changed."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "passwordLength": "Use at least 6 characters.",
+    "passwordMismatch": "Passwords do not match."
+  },
+  "catalog": {
+    "nowShowing": "Now showing",
+    "comingSoon": "Coming soon",
+    "search": "Search movies",
+    "empty": "No movies found.",
+    "duration": "{minutes} min",
+    "releaseDate": "Release date",
+    "director": "Director",
+    "cast": "Cast",
+    "trailer": "Copy trailer link",
+    "trailerCopied": "Trailer link copied.",
+    "showtimes": "Showtimes",
+    "noShowtimes": "No showtimes available."
+  },
+  "seats": {
+    "screen": "SCREEN",
+    "legend": {
+      "available": "Available",
+      "selected": "Selected",
+      "held": "Held",
+      "booked": "Booked",
+      "couple": "Couple"
+    },
+    "noneSelected": "Tap seats to select",
+    "continue": "Continue",
+    "expiresIn": "Hold expires in {time}",
+    "expired": "Your hold expired. Please pick seats again.",
+    "pairError": "Couple seats must be selected in pairs.",
+    "conflict": "Some seats were just taken. Please reselect."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "changeSeats": "Change seats",
+    "food": "Food & drinks",
+    "promo": "Promo code",
+    "applyPromo": "Apply",
+    "base": "Tickets",
+    "morningDiscount": "Morning discount",
+    "weekendSurcharge": "Weekend surcharge",
+    "subtotal": "Subtotal",
+    "promoDiscount": "Promo discount",
+    "tax": "Tax",
+    "serviceFee": "Service fee",
+    "total": "Total",
+    "guestTitle": "Your details",
+    "guestName": "Name",
+    "guestPhone": "Phone",
+    "guestEmail": "Email (optional)",
+    "pay": "Pay"
+  },
+  "pay": {
+    "processing": "Processing…",
+    "success": "Booking confirmed",
+    "failed": "Payment failed",
+    "tryAgain": "Try again",
+    "pickSeats": "Pick seats",
+    "viewTickets": "View tickets",
+    "ticketsSoon": "My tickets is coming in the next update.",
+    "backHome": "Back to home",
+    "ticketCode": "Ticket code",
+    "method": {
+      "card": "Card (demo)"
+    }
+  }
+}
