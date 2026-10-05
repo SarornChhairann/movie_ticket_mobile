@@ -48,6 +48,16 @@ void main() {
     verify(() => bloc.add(any(that: isA<SeatToggled>().having((e) => e.seatId, 'seatId', 1)))).called(1);
   });
 
+  testWidgets('a half-booked couple pair shows both halves as taken and neither is tappable', (tester) async {
+    await pump(tester, ready());
+
+    // B4 (id 14) is booked, so its partner B3 (id 13) is locked too; B1+B2 stay open.
+    expect(find.byKey(const Key('seat.14')), findsNothing);
+    expect(find.byKey(const Key('seat.13')), findsNothing);
+    expect(find.byKey(const Key('seat.11')), findsOneWidget);
+    expect(find.byKey(const Key('seat.12')), findsOneWidget);
+  });
+
   testWidgets('continue is disabled until a seat is selected', (tester) async {
     await pump(tester, ready());
     expect(filledButtonIn(tester, const Key('seats.continue')).onPressed, isNull);
