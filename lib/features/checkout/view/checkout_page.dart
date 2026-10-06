@@ -12,20 +12,29 @@ import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../controller/checkout_bloc.dart';
 import '../model/checkout_failure.dart';
+import '../model/payway.dart';
 import '../model/quote.dart';
 import 'concessions_page.dart';
+import 'pay_sheet.dart';
 
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({super.key});
 
-  static Future<void> _showPaymentFailed(BuildContext context, CheckoutReady state) {
+  static Future<void> _showPaymentFailed(
+    BuildContext context,
+    CheckoutReady state,
+  ) {
     final message = state.message;
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         key: const Key('pay.failedDialog'),
         title: Text('pay.failed'.tr(context: dialogContext)),
-        content: Text(message == null || message.isEmpty ? 'common.error'.tr(context: dialogContext) : message),
+        content: Text(
+          message == null || message.isEmpty
+              ? 'pay.notCompleted'.tr(context: dialogContext)
+              : message,
+        ),
         actions: [
           if (state.holdAlive)
             FilledButton(
@@ -45,8 +54,26 @@ class CheckoutPage extends StatelessWidget {
     );
   }
 
-  static void _backToSeatMap(BuildContext context) =>
-      Navigator.of(context).popUntil((route) => route.settings.name == AppRoutes.seatMap || route.isFirst);
+  /// Closes the pay sheet if it is still up, then opens PayWay's page and hands its
+  /// outcome back to the bloc.
+  static Future<void> _openPayway(
+    BuildContext context,
+    PaywayLaunch launch,
+  ) async {
+    final bloc = context.read<CheckoutBloc>();
+    final navigator = Navigator.of(context)
+      ..popUntil((route) => route is PageRoute);
+    final outcome = await navigator.pushNamed<PaywayOutcome>(
+      AppRoutes.payway,
+      arguments: launch,
+    );
+    bloc.add(PaywayFinished(outcome ?? const PaywayOutcome.dismissed()));
+  }
+
+  static void _backToSeatMap(BuildContext context) => Navigator.of(context)
+      .popUntil(
+        (route) => route.settings.name == AppRoutes.seatMap || route.isFirst,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +82,11 @@ class CheckoutPage extends StatelessWidget {
           current is CheckoutSuccess ||
           (current is CheckoutReady &&
               current.effect != null &&
-              (previous is! CheckoutReady || previous.effect != current.effect || previous.message != current.message)) ||
-          (current is CheckoutFailureState && current.failure is CheckoutHoldExpired),
+              (previous is! CheckoutReady ||
+                  previous.effect != current.effect ||
+                  previous.message != current.message)) ||
+          (current is CheckoutFailureState &&
+              current.failure is CheckoutHoldExpired),
       listener: (context, state) {
         final messenger = ScaffoldMessenger.of(context);
         if (state is CheckoutSuccess) {
@@ -68,40 +98,62 @@ class CheckoutPage extends StatelessWidget {
           );
           return;
         }
-        if (state is CheckoutReady && state.effect == CheckoutEffect.paymentFailed) {
+        if (state is CheckoutReady &&
+            state.effect == CheckoutEffect.paywayStarted &&
+            state.payway != null) {
+          _openPayway(context, state.payway!);
+          return;
+        }
+        if (state is CheckoutReady &&
+            state.effect == CheckoutEffect.paymentFailed) {
+          Navigator.of(context).popUntil((route) => route is PageRoute);
           _showPaymentFailed(context, state);
           return;
         }
-        if (state is CheckoutFailureState || (state is CheckoutReady && state.effect == CheckoutEffect.holdExpired)) {
-          messenger.showSnackBar(SnackBar(content: Text('seats.expired'.tr(context: context))));
+        if (state is CheckoutFailureState ||
+            (state is CheckoutReady &&
+                state.effect == CheckoutEffect.holdExpired)) {
+          messenger.showSnackBar(
+            SnackBar(content: Text('seats.expired'.tr(context: context))),
+          );
           _backToSeatMap(context);
           return;
         }
         final message = (state as CheckoutReady).message;
-        messenger.showSnackBar(SnackBar(
-          content: Text(message == null || message.isEmpty ? 'common.error'.tr(context: context) : message),
-        ));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              message == null || message.isEmpty
+                  ? 'common.error'.tr(context: context)
+                  : message,
+            ),
+          ),
+        );
       },
       builder: (context, state) => Scaffold(
         appBar: AppBar(title: Text('checkout.title'.tr(context: context))),
         body: switch (state) {
-          CheckoutInitial() || CheckoutLoading() || CheckoutSuccess() => const LoadingView(),
+          CheckoutInitial() ||
+          CheckoutLoading() ||
+          CheckoutSuccess() => const LoadingView(),
           CheckoutReady() => _ReadyBody(state: state),
           CheckoutFailureState(:final hold, :final failure) => ErrorView(
-              message: switch (failure) {
-                CheckoutPromoInvalid(:final message) ||
-                CheckoutSeatConflict(:final message) ||
-                CheckoutPaymentFailed(:final message) ||
-                CheckoutBlocked(:final message) ||
-                CheckoutUnknown(:final message) =>
-                  message,
-                CheckoutNetwork() => 'shell.offline'.tr(context: context),
-                CheckoutHoldExpired() || CheckoutPairInvalid() => '',
-              },
-              onRetry: () => context.read<CheckoutBloc>().add(QuoteRequested(hold)),
-            ),
+            message: switch (failure) {
+              CheckoutPromoInvalid(:final message) ||
+              CheckoutSeatConflict(:final message) ||
+              CheckoutPaymentFailed(:final message) ||
+              CheckoutBlocked(:final message) ||
+              CheckoutUnknown(:final message) => message,
+              CheckoutNetwork() => 'shell.offline'.tr(context: context),
+              CheckoutHoldExpired() || CheckoutPairInvalid() => '',
+            },
+            onRetry: () =>
+                context.read<CheckoutBloc>().add(QuoteRequested(hold)),
+          ),
         },
-        bottomNavigationBar: state is CheckoutReady ? _PayBar(state: state) : null,
+        bottomNavigationBar: state is CheckoutReady
+            ? _PayBar(state: state)
+            : null,
       ),
     );
   }
@@ -123,13 +175,22 @@ class _ReadyBody extends StatelessWidget {
           children: [
             Text(quote.movieTitle, style: textTheme.titleLarge),
             Text(
-              context.showLine(hallName: quote.hallName, showDate: quote.showDate, showTime: quote.showTime),
+              context.showLine(
+                hallName: quote.hallName,
+                showDate: quote.showDate,
+                showTime: quote.showTime,
+              ),
               style: textTheme.bodySmall,
             ),
             const SizedBox(height: Space.x1),
             Row(
               children: [
-                Expanded(child: Text(quote.seatCodes.join(', '), key: const Key('checkout.seats'))),
+                Expanded(
+                  child: Text(
+                    quote.seatCodes.join(', '),
+                    key: const Key('checkout.seats'),
+                  ),
+                ),
                 TextButton(
                   key: const Key('checkout.changeSeats'),
                   onPressed: () => Navigator.of(context).pop(),
@@ -138,7 +199,10 @@ class _ReadyBody extends StatelessWidget {
               ],
             ),
             if (state.secondsLeft != null)
-              HoldLabel(secondsLeft: state.secondsLeft!, textKey: const Key('checkout.countdown')),
+              HoldLabel(
+                secondsLeft: state.secondsLeft!,
+                textKey: const Key('checkout.countdown'),
+              ),
             if (quote.foodItems.isNotEmpty) ...[
               const SizedBox(height: Space.x2),
               _FoodCard(state: state),
@@ -147,14 +211,6 @@ class _ReadyBody extends StatelessWidget {
             _PromoField(applied: quote.promoCode, busy: state.quoting),
             const Divider(height: Space.x4),
             _PriceLines(quote: quote),
-            const Divider(height: Space.x4),
-            ListTile(
-              key: const Key('pay.method'),
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.credit_card),
-              title: Text('pay.method.card'.tr(context: context)),
-              trailing: const Icon(Icons.radio_button_checked),
-            ),
             if (state.requiresGuest) ...[
               const Divider(height: Space.x4),
               _GuestForm(guest: state.guest),
@@ -162,7 +218,13 @@ class _ReadyBody extends StatelessWidget {
             const SizedBox(height: Space.x4),
           ],
         ),
-        if (state.quoting) const Positioned(top: 0, left: 0, right: 0, child: LinearProgressIndicator()),
+        if (state.quoting)
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: LinearProgressIndicator(),
+          ),
       ],
     );
   }
@@ -181,9 +243,14 @@ class _FoodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final menu = state.quote.foodItems;
-    final chosen = [for (final item in menu) if ((state.food[item.id] ?? 0) > 0) item];
+    final chosen = [
+      for (final item in menu)
+        if ((state.food[item.id] ?? 0) > 0) item,
+    ];
     final units = state.food.values.fold(0, (sum, q) => sum + q);
-    void open() => Navigator.of(context).pushNamed(AppRoutes.concessions, arguments: context.read<CheckoutBloc>());
+    void open() => Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.concessions, arguments: context.read<CheckoutBloc>());
     return Material(
       key: const Key('checkout.foodCard'),
       color: AppColors.navyRaised,
@@ -202,11 +269,17 @@ class _FoodCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('checkout.foodTitle'.tr(context: context), style: textTheme.titleMedium),
+                        Text(
+                          'checkout.foodTitle'.tr(context: context),
+                          style: textTheme.titleMedium,
+                        ),
                         Text(
                           chosen.isEmpty
                               ? 'checkout.foodHint'.tr(context: context)
-                              : 'checkout.foodCount'.plural(units, context: context),
+                              : 'checkout.foodCount'.plural(
+                                  units,
+                                  context: context,
+                                ),
                           style: textTheme.bodySmall,
                         ),
                       ],
@@ -215,7 +288,12 @@ class _FoodCard extends StatelessWidget {
                   TextButton(
                     key: const Key('checkout.foodAction'),
                     onPressed: open,
-                    child: Text((chosen.isEmpty ? 'checkout.foodBrowse' : 'checkout.foodEdit').tr(context: context)),
+                    child: Text(
+                      (chosen.isEmpty
+                              ? 'checkout.foodBrowse'
+                              : 'checkout.foodEdit')
+                          .tr(context: context),
+                    ),
                   ),
                 ],
               ),
@@ -225,16 +303,26 @@ class _FoodCard extends StatelessWidget {
                   children: [
                     for (final item in menu.take(_previewCount))
                       Padding(
-                        padding: const EdgeInsetsDirectional.only(end: Space.x1),
+                        padding: const EdgeInsetsDirectional.only(
+                          end: Space.x1,
+                        ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(Space.x1),
-                          child: SizedBox.square(dimension: Space.x6 + Space.x1, child: FoodImage(url: item.imageUrl)),
+                          child: SizedBox.square(
+                            dimension: Space.x6 + Space.x1,
+                            child: FoodImage(url: item.imageUrl),
+                          ),
                         ),
                       ),
                   ],
                 )
               else
-                for (final item in chosen) _ChosenLine(item: item, quantity: state.food[item.id]!, quote: state.quote),
+                for (final item in chosen)
+                  _ChosenLine(
+                    item: item,
+                    quantity: state.food[item.id]!,
+                    quote: state.quote,
+                  ),
             ],
           ),
         ),
@@ -244,7 +332,11 @@ class _FoodCard extends StatelessWidget {
 }
 
 class _ChosenLine extends StatelessWidget {
-  const _ChosenLine({required this.item, required this.quantity, required this.quote});
+  const _ChosenLine({
+    required this.item,
+    required this.quantity,
+    required this.quote,
+  });
 
   final FoodItem item;
   final int quantity;
@@ -253,7 +345,9 @@ class _ChosenLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The server's line; missing while a re-quote for a new item is pending.
-    final line = quote.foodLines.where((l) => l.foodItemId == item.id).firstOrNull;
+    final line = quote.foodLines
+        .where((l) => l.foodItemId == item.id)
+        .firstOrNull;
     return Padding(
       key: Key('food.${item.id}.line'),
       padding: const EdgeInsets.symmetric(vertical: Space.x0_5),
@@ -261,10 +355,19 @@ class _ChosenLine extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(Space.x0_5),
-            child: SizedBox.square(dimension: Space.x4, child: FoodImage(url: item.imageUrl)),
+            child: SizedBox.square(
+              dimension: Space.x4,
+              child: FoodImage(url: item.imageUrl),
+            ),
           ),
           const SizedBox(width: Space.x1),
-          Expanded(child: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           Text('×$quantity', key: Key('food.${item.id}.lineQty')),
           const SizedBox(width: Space.x2),
           if (line != null) CrossfadeText(context.money(line.lineTotal)),
@@ -315,7 +418,10 @@ class _PromoFieldState extends State<_PromoField> {
             key: const Key('checkout.promo'),
             controller: _controller,
             textCapitalization: TextCapitalization.characters,
-            decoration: InputDecoration(labelText: 'checkout.promo'.tr(context: context), isDense: true),
+            decoration: InputDecoration(
+              labelText: 'checkout.promo'.tr(context: context),
+              isDense: true,
+            ),
           ),
         ),
         const SizedBox(width: Space.x1),
@@ -324,7 +430,8 @@ class _PromoFieldState extends State<_PromoField> {
           onPressed: widget.busy
               ? null
               : () {
-                  if (_controller.text.trim().isNotEmpty) bloc.add(PromoApplied(_controller.text));
+                  if (_controller.text.trim().isNotEmpty)
+                    bloc.add(PromoApplied(_controller.text));
                 },
           child: Text('checkout.applyPromo'.tr(context: context)),
         ),
@@ -341,15 +448,25 @@ class _PriceLines extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget line(String key, num amount, {bool negative = false, bool bold = false}) {
+    Widget line(
+      String key,
+      num amount, {
+      bool negative = false,
+      bool bold = false,
+    }) {
       final style = bold ? Theme.of(context).textTheme.titleMedium : null;
       return Padding(
         key: Key('line.$key'),
         padding: const EdgeInsets.symmetric(vertical: Space.x0_5),
         child: Row(
           children: [
-            Expanded(child: Text('checkout.$key'.tr(context: context), style: style)),
-            CrossfadeText('${negative ? '−' : ''}${context.money(amount)}', style: style),
+            Expanded(
+              child: Text('checkout.$key'.tr(context: context), style: style),
+            ),
+            CrossfadeText(
+              '${negative ? '−' : ''}${context.money(amount)}',
+              style: style,
+            ),
           ],
         ),
       );
@@ -358,10 +475,13 @@ class _PriceLines extends StatelessWidget {
     return Column(
       children: [
         line('base', quote.baseAmount),
-        if (quote.morningDiscount != 0) line('morningDiscount', quote.morningDiscount, negative: true),
-        if (quote.weekendSurcharge != 0) line('weekendSurcharge', quote.weekendSurcharge),
+        if (quote.morningDiscount != 0)
+          line('morningDiscount', quote.morningDiscount, negative: true),
+        if (quote.weekendSurcharge != 0)
+          line('weekendSurcharge', quote.weekendSurcharge),
         line('subtotal', quote.subtotal),
-        if (quote.discountAmount != 0) line('promoDiscount', quote.discountAmount, negative: true),
+        if (quote.discountAmount != 0)
+          line('promoDiscount', quote.discountAmount, negative: true),
         line('tax', quote.taxAmount),
         line('serviceFee', quote.serviceFee),
         if (quote.foodTotal != 0) line('food', quote.foodTotal),
@@ -382,34 +502,48 @@ class _GuestForm extends StatelessWidget {
     final bloc = context.read<CheckoutBloc>();
     String? err(String? key) => key?.tr(context: context);
     return Column(
+      spacing: 10,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('checkout.guestTitle'.tr(context: context), style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          'checkout.guestTitle'.tr(context: context),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         TextFormField(
           key: const Key('guest.name'),
           initialValue: guest.name,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(labelText: 'checkout.guestName'.tr(context: context)),
+          decoration: InputDecoration(
+            labelText: 'checkout.guestName'.tr(context: context),
+          ),
           validator: (v) => err(Validators.required(v)),
-          onChanged: (v) => bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(name: v))),
+          onChanged: (v) =>
+              bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(name: v))),
         ),
         TextFormField(
           key: const Key('guest.phone'),
           initialValue: guest.phone,
           keyboardType: TextInputType.phone,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(labelText: 'checkout.guestPhone'.tr(context: context)),
+          decoration: InputDecoration(
+            labelText: 'checkout.guestPhone'.tr(context: context),
+          ),
           validator: (v) => err(Validators.required(v)),
-          onChanged: (v) => bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(phone: v))),
+          onChanged: (v) =>
+              bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(phone: v))),
         ),
         TextFormField(
           key: const Key('guest.email'),
           initialValue: guest.email,
           keyboardType: TextInputType.emailAddress,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(labelText: 'checkout.guestEmail'.tr(context: context)),
-          validator: (v) => (v == null || v.trim().isEmpty) ? null : err(Validators.email(v)),
-          onChanged: (v) => bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(email: v))),
+          decoration: InputDecoration(
+            labelText: 'checkout.guestEmail'.tr(context: context),
+          ),
+          validator: (v) =>
+              (v == null || v.trim().isEmpty) ? null : err(Validators.email(v)),
+          onChanged: (v) =>
+              bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(email: v))),
         ),
       ],
     );
@@ -444,7 +578,10 @@ class _PayBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('checkout.total'.tr(context: context), style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      'checkout.total'.tr(context: context),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     CrossfadeText(
                       context.money(state.quote.totalAmount),
                       textKey: const Key('checkout.stickyTotal'),
@@ -455,7 +592,7 @@ class _PayBar extends StatelessWidget {
               ),
               FilledButton(
                 key: const Key('checkout.pay'),
-                onPressed: state.canPay ? () => context.read<CheckoutBloc>().add(const ConfirmRequested()) : null,
+                onPressed: state.canPay ? () => PaySheet.show(context) : null,
                 child: state.submitting
                     ? Row(
                         mainAxisSize: MainAxisSize.min,

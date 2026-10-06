@@ -4,9 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/bloc/debounce.dart';
 import '../../../core/network/result.dart';
+import '../../../core/platform/link_opener.dart';
 import '../../seats/model/seat_map.dart';
 import '../model/checkout_failure.dart';
 import '../model/checkout_repository.dart';
+import '../model/payway.dart';
 import 'checkout_event.dart';
 import 'checkout_state.dart';
 
@@ -14,8 +16,12 @@ export 'checkout_event.dart';
 export 'checkout_state.dart';
 
 class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
-  CheckoutBloc(this._repository, {DateTime Function()? clock, this._tick = const Duration(seconds: 1)})
-      : _clock = clock ?? DateTime.now,
+  CheckoutBloc(
+    this._repository, {
+    DateTime Function()? clock,
+    this._tick = const Duration(seconds: 1),
+    this._canOpenLink = canOpenAppLink,
+  })  : _clock = clock ?? DateTime.now,
         super(const CheckoutState.initial()) {
     on<QuoteRequested>(_onQuoteRequested);
     on<PromoApplied>(_onPromoApplied);
@@ -24,7 +30,8 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     on<FoodRequoteRequested>(_onFoodRequote, transformer: debounce(foodDebounce));
     on<GuestEdited>(_onGuestEdited);
     on<HoldTicked>(_onHoldTicked);
-    on<ConfirmRequested>(_onConfirmRequested);
+    on<PaymentStartRequested>(_onPaymentStartRequested);
+    on<PaywayFinished>(_onPaywayFinished);
   }
 
   static const foodDebounce = Duration(milliseconds: 300);
@@ -32,6 +39,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
   final CheckoutRepository _repository;
   final DateTime Function() _clock;
   final Duration _tick;
+  final CanOpenLink _canOpenLink;
   Timer? _ticker;
 
   Future<void> _onQuoteRequested(QuoteRequested event, Emitter<CheckoutState> emit) async {
@@ -77,39 +85,75 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     final s = state;
     if (s is! CheckoutReady) return;
     final left = _secondsLeft(s.hold);
-    if (left <= 0) {
+    // While the PayWay page is open it owns the expiry: it closes the transaction first.
+    if (left <= 0 && s.payway == null) {
       _ticker?.cancel();
       emit(s.copyWith(secondsLeft: 0, effect: CheckoutEffect.holdExpired, message: null));
       return;
     }
-    emit(s.copyWith(secondsLeft: left, effect: null));
+    emit(s.copyWith(secondsLeft: left > 0 ? left : 0, effect: null));
   }
 
-  Future<void> _onConfirmRequested(ConfirmRequested event, Emitter<CheckoutState> emit) async {
+  Future<void> _onPaymentStartRequested(PaymentStartRequested event, Emitter<CheckoutState> emit) async {
     final s = state;
     if (s is! CheckoutReady || !s.canPay) return; // also drops a second tap while submitting
     emit(s.copyWith(submitting: true, effect: null, message: null));
-    final result = await _repository.confirm(
+    final result = await _repository.startPayway(
       s.hold,
       guest: s.requiresGuest ? s.guest : null,
       promoCode: s.quote.promoCode,
       food: s.food,
     );
-    final current = state;
-    if (current is! CheckoutReady) return;
     switch (result) {
       case Ok(:final value):
-        _ticker?.cancel();
-        emit(CheckoutState.success(value));
+        final canOpenAba = value.abaDeeplink.isNotEmpty && await _canOpenLink(value.abaDeeplink);
+        final current = state;
+        if (current is! CheckoutReady) return;
+        emit(current.copyWith(
+          payway: PaywayLaunch(session: value, canOpenAba: canOpenAba, holdExpiresAt: s.hold.expiresAt),
+          effect: CheckoutEffect.paywayStarted,
+        ));
       case Err(failure: CheckoutPaymentFailed(:final message)):
         // The hold is kept: show the message and refresh the quote for a retry.
+        final current = state;
+        if (current is! CheckoutReady) return;
         emit(current.copyWith(submitting: false, effect: CheckoutEffect.paymentFailed, message: message));
         await _requote(emit);
       case Err(failure: CheckoutHoldExpired() || CheckoutSeatConflict()):
         _ticker?.cancel();
+        final current = state;
+        if (current is! CheckoutReady) return;
         emit(current.copyWith(submitting: false, effect: CheckoutEffect.holdExpired));
       case Err(:final failure):
+        final current = state;
+        if (current is! CheckoutReady) return;
         emit(current.copyWith(submitting: false, effect: CheckoutEffect.error, message: _messageOf(failure)));
+    }
+  }
+
+  Future<void> _onPaywayFinished(PaywayFinished event, Emitter<CheckoutState> emit) async {
+    final s = state;
+    if (s is! CheckoutReady) return;
+    final idle = s.copyWith(submitting: false, payway: null, effect: null, message: null);
+    switch (event.outcome) {
+      case PaywayOutcomeApproved(:final confirmation):
+        _ticker?.cancel();
+        emit(CheckoutState.success(confirmation));
+      case PaywayOutcomeDeclined() || PaywayOutcomeCancelled():
+        // Seats are still available and the hold is kept: the failed dialog offers a retry.
+        emit(idle.copyWith(secondsLeft: _secondsLeft(s.hold), effect: CheckoutEffect.paymentFailed));
+        await _requote(emit);
+      case PaywayOutcomeHoldExpired():
+        _ticker?.cancel();
+        emit(idle.copyWith(secondsLeft: 0, effect: CheckoutEffect.holdExpired));
+      case PaywayOutcomeDismissed():
+        final left = _secondsLeft(s.hold);
+        if (left <= 0) {
+          _ticker?.cancel();
+          emit(idle.copyWith(secondsLeft: 0, effect: CheckoutEffect.holdExpired));
+        } else {
+          emit(idle.copyWith(secondsLeft: left));
+        }
     }
   }
 

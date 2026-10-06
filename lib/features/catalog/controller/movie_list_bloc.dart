@@ -34,6 +34,25 @@ final class GenreSelected extends MovieListEvent {
   final String? genre;
 }
 
+/// Language filter on the loaded movies; `null` is All. No API call.
+final class LanguageSelected extends MovieListEvent {
+  const LanguageSelected(this.language);
+
+  final String? language;
+}
+
+/// Rating filter on the loaded movies; `null` is All. No API call.
+final class RatingSelected extends MovieListEvent {
+  const RatingSelected(this.rating);
+
+  final String? rating;
+}
+
+/// Sets genre, language, and rating back to All. Keeps the search; no API call.
+final class MovieFiltersCleared extends MovieListEvent {
+  const MovieFiltersCleared();
+}
+
 final class RefreshRequested extends MovieListEvent {
   const RefreshRequested();
 }
@@ -47,15 +66,24 @@ sealed class MovieListState with _$MovieListState {
     @Default(MovieTab.nowShowing) MovieTab tab,
     @Default('') String search,
     String? genre,
+    String? language,
+    String? rating,
   }) = MovieListInitial;
 
-  const factory MovieListState.loading({required MovieTab tab, required String search, String? genre}) =
-      MovieListLoading;
+  const factory MovieListState.loading({
+    required MovieTab tab,
+    required String search,
+    String? genre,
+    String? language,
+    String? rating,
+  }) = MovieListLoading;
 
   const factory MovieListState.ready({
     required MovieTab tab,
     required String search,
     String? genre,
+    String? language,
+    String? rating,
     required List<Movie> nowShowing,
     required List<Movie> comingSoon,
   }) = MovieListReady;
@@ -64,16 +92,22 @@ sealed class MovieListState with _$MovieListState {
     required MovieTab tab,
     required String search,
     String? genre,
+    String? language,
+    String? rating,
     required ApiFailure failure,
   }) = MovieListFailure;
 
-  /// [t]'s movies after the genre filter; empty until loaded.
+  /// [t]'s movies after genre, then language, then rating (each an exact trim
+  /// match; null is All). Empty until loaded.
   List<Movie> moviesFor(MovieTab t) {
     final s = this;
     if (s is! MovieListReady) return const [];
     final all = t == MovieTab.nowShowing ? s.nowShowing : s.comingSoon;
-    final g = genre;
-    return g == null ? all : all.where((m) => m.genre?.trim() == g).toList();
+    bool matches(String? value, String? selected) => selected == null || value?.trim() == selected;
+    return [
+      for (final m in all)
+        if (matches(m.genre, genre) && matches(m.language, language) && matches(m.rating, rating)) m,
+    ];
   }
 
   /// Explore's list.
@@ -81,13 +115,22 @@ sealed class MovieListState with _$MovieListState {
 
   /// Distinct genres on the loaded movies, sorted; the selected one is kept
   /// even if a new search no longer returns it, so it can be cleared.
-  List<String> get genres {
+  List<String> get genres => _choices((m) => m.genre, genre);
+
+  List<String> get languages => _choices((m) => m.language, language);
+
+  List<String> get ratings => _choices((m) => m.rating, rating);
+
+  /// Movie filters that are not All (for the tune badge).
+  int get activeFilterCount => [genre, language, rating].where((v) => v != null).length;
+
+  List<String> _choices(String? Function(Movie) field, String? selected) {
     final s = this;
-    if (s is! MovieListReady) return genre == null ? const [] : [genre!];
     final set = <String>{
-      for (final m in [...s.nowShowing, ...s.comingSoon])
-        if (m.genre != null && m.genre!.trim().isNotEmpty) m.genre!.trim(),
-      ?genre,
+      if (s is MovieListReady)
+        for (final m in [...s.nowShowing, ...s.comingSoon])
+          if (field(m) != null && field(m)!.trim().isNotEmpty) field(m)!.trim(),
+      ?selected,
     };
     return set.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
   }
@@ -97,6 +140,9 @@ class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
   MovieListBloc(this._repository) : super(const MovieListState.initial()) {
     on<TabChanged>((event, emit) => emit(state.copyWith(tab: event.tab)));
     on<GenreSelected>((event, emit) => emit(state.copyWith(genre: event.genre)));
+    on<LanguageSelected>((event, emit) => emit(state.copyWith(language: event.language)));
+    on<RatingSelected>((event, emit) => emit(state.copyWith(rating: event.rating)));
+    on<MovieFiltersCleared>((_, emit) => emit(state.copyWith(genre: null, language: null, rating: null)));
     on<SearchChanged>(
       (event, emit) => _load(emit, search: event.query),
       transformer: debounce(searchDebounce),
@@ -113,18 +159,30 @@ class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
   Future<void> _load(Emitter<MovieListState> emit, {String? search}) async {
     final q = search ?? state.search;
     if (state is! MovieListReady) {
-      emit(MovieListState.loading(tab: state.tab, search: q, genre: state.genre));
+      emit(MovieListState.loading(
+          tab: state.tab, search: q, genre: state.genre, language: state.language, rating: state.rating));
     }
     final (now, soon) = await (
       _repository.fetchMovies(MovieTab.nowShowing, search: q),
       _repository.fetchMovies(MovieTab.comingSoon, search: q),
     ).wait;
-    // Tab and genre are read now: they may have changed while loading.
+    // Tab and filters are read now: they may have changed while loading.
     emit(switch ((now, soon)) {
-      (Ok(value: final n), Ok(value: final c)) =>
-        MovieListState.ready(tab: state.tab, search: q, genre: state.genre, nowShowing: n, comingSoon: c),
-      (Err(:final failure), _) || (_, Err(:final failure)) =>
-        MovieListState.failure(tab: state.tab, search: q, genre: state.genre, failure: failure),
+      (Ok(value: final n), Ok(value: final c)) => MovieListState.ready(
+          tab: state.tab,
+          search: q,
+          genre: state.genre,
+          language: state.language,
+          rating: state.rating,
+          nowShowing: n,
+          comingSoon: c),
+      (Err(:final failure), _) || (_, Err(:final failure)) => MovieListState.failure(
+          tab: state.tab,
+          search: q,
+          genre: state.genre,
+          language: state.language,
+          rating: state.rating,
+          failure: failure),
     });
   }
 }

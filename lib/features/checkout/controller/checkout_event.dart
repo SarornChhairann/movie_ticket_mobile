@@ -1,4 +1,5 @@
 import '../../seats/model/seat_map.dart';
+import '../model/payway.dart';
 import '../model/quote.dart';
 
 sealed class CheckoutEvent {
@@ -41,9 +42,17 @@ final class GuestEdited extends CheckoutEvent {
   final GuestInfo guest;
 }
 
-/// Pay. Ignored while a confirm is already running, so a double tap submits once.
-final class ConfirmRequested extends CheckoutEvent {
-  const ConfirmRequested();
+/// **Process payment** on the pay sheet: starts the ABA KHQR payment. Ignored while
+/// one is already running, so a double tap starts once.
+final class PaymentStartRequested extends CheckoutEvent {
+  const PaymentStartRequested();
+}
+
+/// The PayWay web view closed with [outcome].
+final class PaywayFinished extends CheckoutEvent {
+  const PaywayFinished(this.outcome);
+
+  final PaywayOutcome outcome;
 }
 
 final class HoldTicked extends CheckoutEvent {

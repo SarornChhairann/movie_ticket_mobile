@@ -4,12 +4,20 @@ import '../../../core/model/booking_summary.dart';
 import '../../../core/validation/validators.dart';
 import '../../seats/model/seat_map.dart';
 import '../model/checkout_failure.dart';
+import '../model/payway.dart';
 import '../model/quote.dart';
 
 part 'checkout_state.freezed.dart';
 
 /// One-shot outcomes consumed by a `BlocListener`.
-enum CheckoutEffect { holdExpired, error, paymentFailed }
+enum CheckoutEffect {
+  holdExpired,
+  error,
+  paymentFailed,
+
+  /// PayWay checkout created: open the web view for [CheckoutReady.payway].
+  paywayStarted,
+}
 
 @freezed
 sealed class CheckoutState with _$CheckoutState {
@@ -30,8 +38,11 @@ sealed class CheckoutState with _$CheckoutState {
     @Default(GuestInfo()) GuestInfo guest,
     @Default(false) bool quoting,
 
-    /// A confirm is in flight.
+    /// A payment is being started or its PayWay page is open.
     @Default(false) bool submitting,
+
+    /// The open PayWay payment, while its web view is up.
+    PaywayLaunch? payway,
     int? secondsLeft,
     CheckoutEffect? effect,
 

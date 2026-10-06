@@ -7,7 +7,9 @@ import '../../../core/network/result.dart';
 import '../../seats/model/seat_map.dart';
 import 'checkout_failure.dart';
 import 'dto/booking_dtos.dart';
+import 'dto/payway_dtos.dart';
 import 'dto/quote_dtos.dart';
+import 'payway.dart';
 import 'quote.dart';
 
 class CheckoutRepository {
@@ -39,6 +41,54 @@ class CheckoutRepository {
         ).toJson(),
       );
       return Ok(BookingSummary.fromDto(BookingDetailDto.fromJson(response.data!)));
+    } on DioException catch (e) {
+      return Err(CheckoutFailure.fromApi(ApiFailure.fromDioException(e)));
+    }
+  }
+
+  /// Starts an ABA KHQR payment for the seats of [hold] (`POST /bookings/payway/{id}`).
+  /// Same body as [confirm]; the server charges its own total. Nothing is booked yet.
+  Future<Result<PaywaySession, CheckoutFailure>> startPayway(
+    Hold hold, {
+    GuestInfo? guest,
+    String? promoCode,
+    Map<int, int> food = const {},
+  }) async {
+    final selected = _foodJson(food);
+    String? blankToNull(String? v) => (v == null || v.trim().isEmpty) ? null : v.trim();
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/bookings/payway/${hold.showtimeId}',
+        data: ConfirmRequestDto(
+          seatIds: hold.seatIds.toList()..sort(),
+          guestName: blankToNull(guest?.name),
+          guestPhone: blankToNull(guest?.phone),
+          guestEmail: blankToNull(guest?.email),
+          promoCode: blankToNull(promoCode),
+          paymentMethod: 'ABA_KHQR',
+          foodItems: selected.isEmpty ? null : selected,
+        ).toJson(),
+      );
+      return Ok(PaywaySession.fromDto(PaywayStartResponseDto.fromJson(response.data!)));
+    } on DioException catch (e) {
+      return Err(CheckoutFailure.fromApi(ApiFailure.fromDioException(e)));
+    }
+  }
+
+  /// One poll: the server asks PayWay and, on `APPROVED`, books the seats.
+  Future<Result<PaywayStatus, CheckoutFailure>> pollPayway(String tranId) =>
+      _paywayStatus(() => _dio.get<Map<String, dynamic>>('/bookings/payway/$tranId'));
+
+  /// Closes a pending payment (the customer left, or the hold ended).
+  Future<Result<PaywayStatus, CheckoutFailure>> closePayway(String tranId) =>
+      _paywayStatus(() => _dio.post<Map<String, dynamic>>('/bookings/payway/$tranId/close'));
+
+  Future<Result<PaywayStatus, CheckoutFailure>> _paywayStatus(
+    Future<Response<Map<String, dynamic>>> Function() call,
+  ) async {
+    try {
+      final response = await call();
+      return Ok(PaywayStatus.fromDto(PaywayStatusDto.fromJson(response.data!)));
     } on DioException catch (e) {
       return Err(CheckoutFailure.fromApi(ApiFailure.fromDioException(e)));
     }

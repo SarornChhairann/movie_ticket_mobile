@@ -71,5 +71,26 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- PayWay checkout: canLaunchUrl may only ask about schemes listed here (ABA Mobile). -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>abamobilebank</string>
+		<string>abamobile</string>
+	</array>
+	<!-- PayWay return_deeplink cinekh://payway/return brings the customer back from ABA Mobile. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.chhairann.movie_ticket.payway</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cinekh</string>
+			</array>
+		</dict>
+	</array>
+	<!-- The app only needs to resume on that link; it is not a Flutter route. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 </dict>
 </plist>

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MovieListState {
 
- MovieTab get tab; String get search; String? get genre;
+ MovieTab get tab; String get search; String? get genre; String? get language; String? get rating;
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $MovieListStateCopyWith<MovieListState> get copyWith => _$MovieListStateCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as MovieListState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListState&&(identical(other.tab, _this.tab) || other.tab == _this.tab)&&(identical(other.search, _this.search) || other.search == _this.search)&&(identical(other.genre, _this.genre) || other.genre == _this.genre));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListState&&(identical(other.tab, _this.tab) || other.tab == _this.tab)&&(identical(other.search, _this.search) || other.search == _this.search)&&(identical(other.genre, _this.genre) || other.genre == _this.genre)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.rating, _this.rating) || other.rating == _this.rating));
 }
 
 
 @override
 int get hashCode {
   final _this = this as MovieListState;
-  return Object.hash(runtimeType,_this.tab,_this.search,_this.genre);
+  return Object.hash(runtimeType,_this.tab,_this.search,_this.genre,_this.language,_this.rating);
 }
 
 @override
 String toString() {
   final _this = this as MovieListState;
-  return 'MovieListState(tab: ${_this.tab}, search: ${_this.search}, genre: ${_this.genre})';
+  return 'MovieListState(tab: ${_this.tab}, search: ${_this.search}, genre: ${_this.genre}, language: ${_this.language}, rating: ${_this.rating})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $MovieListStateCopyWith<$Res>  {
   factory $MovieListStateCopyWith(MovieListState value, $Res Function(MovieListState) _then) = _$MovieListStateCopyWithImpl;
 @useResult
 $Res call({
- MovieTab tab, String search, String? genre
+ MovieTab tab, String search, String? genre, String? language, String? rating
 });
 
 
@@ -68,11 +68,13 @@ class _$MovieListStateCopyWithImpl<$Res>
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,}) {
   return _then(_self.copyWith(
 tab: null == tab ? _self.tab : tab // ignore: cast_nullable_to_non_nullable
 as MovieTab,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
+as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -164,13 +166,13 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( MovieTab tab,  String search,  String? genre)?  initial,TResult Function( MovieTab tab,  String search,  String? genre)?  loading,TResult Function( MovieTab tab,  String search,  String? genre,  List<Movie> nowShowing,  List<Movie> comingSoon)?  ready,TResult Function( MovieTab tab,  String search,  String? genre,  ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  initial,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  loading,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon)?  ready,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case MovieListInitial() when initial != null:
-return initial(_that.tab,_that.search,_that.genre);case MovieListLoading() when loading != null:
-return loading(_that.tab,_that.search,_that.genre);case MovieListReady() when ready != null:
-return ready(_that.tab,_that.search,_that.genre,_that.nowShowing,_that.comingSoon);case MovieListFailure() when failure != null:
-return failure(_that.tab,_that.search,_that.genre,_that.failure);case _:
+return initial(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListLoading() when loading != null:
+return loading(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListReady() when ready != null:
+return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon);case MovieListFailure() when failure != null:
+return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.failure);case _:
   return orElse();
 
 }
@@ -188,13 +190,13 @@ return failure(_that.tab,_that.search,_that.genre,_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( MovieTab tab,  String search,  String? genre)  initial,required TResult Function( MovieTab tab,  String search,  String? genre)  loading,required TResult Function( MovieTab tab,  String search,  String? genre,  List<Movie> nowShowing,  List<Movie> comingSoon)  ready,required TResult Function( MovieTab tab,  String search,  String? genre,  ApiFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)  initial,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)  loading,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon)  ready,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case MovieListInitial():
-return initial(_that.tab,_that.search,_that.genre);case MovieListLoading():
-return loading(_that.tab,_that.search,_that.genre);case MovieListReady():
-return ready(_that.tab,_that.search,_that.genre,_that.nowShowing,_that.comingSoon);case MovieListFailure():
-return failure(_that.tab,_that.search,_that.genre,_that.failure);}
+return initial(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListLoading():
+return loading(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListReady():
+return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon);case MovieListFailure():
+return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -208,13 +210,13 @@ return failure(_that.tab,_that.search,_that.genre,_that.failure);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( MovieTab tab,  String search,  String? genre)?  initial,TResult? Function( MovieTab tab,  String search,  String? genre)?  loading,TResult? Function( MovieTab tab,  String search,  String? genre,  List<Movie> nowShowing,  List<Movie> comingSoon)?  ready,TResult? Function( MovieTab tab,  String search,  String? genre,  ApiFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  initial,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  loading,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon)?  ready,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case MovieListInitial() when initial != null:
-return initial(_that.tab,_that.search,_that.genre);case MovieListLoading() when loading != null:
-return loading(_that.tab,_that.search,_that.genre);case MovieListReady() when ready != null:
-return ready(_that.tab,_that.search,_that.genre,_that.nowShowing,_that.comingSoon);case MovieListFailure() when failure != null:
-return failure(_that.tab,_that.search,_that.genre,_that.failure);case _:
+return initial(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListLoading() when loading != null:
+return loading(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListReady() when ready != null:
+return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon);case MovieListFailure() when failure != null:
+return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.failure);case _:
   return null;
 
 }
@@ -226,12 +228,14 @@ return failure(_that.tab,_that.search,_that.genre,_that.failure);case _:
 
 
 class MovieListInitial extends MovieListState {
-  const MovieListInitial({this.tab = MovieTab.nowShowing, this.search = '', this.genre}): super._();
+  const MovieListInitial({this.tab = MovieTab.nowShowing, this.search = '', this.genre, this.language, this.rating}): super._();
   
 
 @override@JsonKey() final  MovieTab tab;
 @override@JsonKey() final  String search;
 @override final  String? genre;
+@override final  String? language;
+@override final  String? rating;
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +247,18 @@ $MovieListInitialCopyWith<MovieListInitial> get copyWith => _$MovieListInitialCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListInitial&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListInitial&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.language, language) || other.language == language)&&(identical(other.rating, rating) || other.rating == rating));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,tab,search,genre);
+    return Object.hash(runtimeType,tab,search,genre,language,rating);
 }
 
 @override
 String toString() {
-    return 'MovieListState.initial(tab: $tab, search: $search, genre: $genre)';
+    return 'MovieListState.initial(tab: $tab, search: $search, genre: $genre, language: $language, rating: $rating)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class $MovieListInitialCopyWith<$Res> implements $MovieListStateC
   factory $MovieListInitialCopyWith(MovieListInitial value, $Res Function(MovieListInitial) _then) = _$MovieListInitialCopyWithImpl;
 @override @useResult
 $Res call({
- MovieTab tab, String search, String? genre
+ MovieTab tab, String search, String? genre, String? language, String? rating
 });
 
 
@@ -282,11 +286,13 @@ class _$MovieListInitialCopyWithImpl<$Res>
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,}) {
   return _then(MovieListInitial(
 tab: null == tab ? _self.tab : tab // ignore: cast_nullable_to_non_nullable
 as MovieTab,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
+as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -298,12 +304,14 @@ as String?,
 
 
 class MovieListLoading extends MovieListState {
-  const MovieListLoading({required this.tab, required this.search, this.genre}): super._();
+  const MovieListLoading({required this.tab, required this.search, this.genre, this.language, this.rating}): super._();
   
 
 @override final  MovieTab tab;
 @override final  String search;
 @override final  String? genre;
+@override final  String? language;
+@override final  String? rating;
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
@@ -315,18 +323,18 @@ $MovieListLoadingCopyWith<MovieListLoading> get copyWith => _$MovieListLoadingCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListLoading&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListLoading&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.language, language) || other.language == language)&&(identical(other.rating, rating) || other.rating == rating));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,tab,search,genre);
+    return Object.hash(runtimeType,tab,search,genre,language,rating);
 }
 
 @override
 String toString() {
-    return 'MovieListState.loading(tab: $tab, search: $search, genre: $genre)';
+    return 'MovieListState.loading(tab: $tab, search: $search, genre: $genre, language: $language, rating: $rating)';
 }
 
 
@@ -337,7 +345,7 @@ abstract mixin class $MovieListLoadingCopyWith<$Res> implements $MovieListStateC
   factory $MovieListLoadingCopyWith(MovieListLoading value, $Res Function(MovieListLoading) _then) = _$MovieListLoadingCopyWithImpl;
 @override @useResult
 $Res call({
- MovieTab tab, String search, String? genre
+ MovieTab tab, String search, String? genre, String? language, String? rating
 });
 
 
@@ -354,11 +362,13 @@ class _$MovieListLoadingCopyWithImpl<$Res>
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,}) {
   return _then(MovieListLoading(
 tab: null == tab ? _self.tab : tab // ignore: cast_nullable_to_non_nullable
 as MovieTab,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
+as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -370,12 +380,14 @@ as String?,
 
 
 class MovieListReady extends MovieListState {
-  const MovieListReady({required this.tab, required this.search, this.genre, required  List<Movie> nowShowing, required  List<Movie> comingSoon}): _nowShowing = nowShowing,_comingSoon = comingSoon,super._();
+  const MovieListReady({required this.tab, required this.search, this.genre, this.language, this.rating, required  List<Movie> nowShowing, required  List<Movie> comingSoon}): _nowShowing = nowShowing,_comingSoon = comingSoon,super._();
   
 
 @override final  MovieTab tab;
 @override final  String search;
 @override final  String? genre;
+@override final  String? language;
+@override final  String? rating;
  final  List<Movie> _nowShowing;
  List<Movie> get nowShowing {
   if (_nowShowing is EqualUnmodifiableListView) return _nowShowing;
@@ -401,18 +413,18 @@ $MovieListReadyCopyWith<MovieListReady> get copyWith => _$MovieListReadyCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListReady&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&const DeepCollectionEquality().equals(other.nowShowing, _nowShowing)&&const DeepCollectionEquality().equals(other.comingSoon, _comingSoon));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListReady&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.language, language) || other.language == language)&&(identical(other.rating, rating) || other.rating == rating)&&const DeepCollectionEquality().equals(other.nowShowing, _nowShowing)&&const DeepCollectionEquality().equals(other.comingSoon, _comingSoon));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,tab,search,genre,const DeepCollectionEquality().hash(_nowShowing),const DeepCollectionEquality().hash(_comingSoon));
+    return Object.hash(runtimeType,tab,search,genre,language,rating,const DeepCollectionEquality().hash(_nowShowing),const DeepCollectionEquality().hash(_comingSoon));
 }
 
 @override
 String toString() {
-    return 'MovieListState.ready(tab: $tab, search: $search, genre: $genre, nowShowing: $nowShowing, comingSoon: $comingSoon)';
+    return 'MovieListState.ready(tab: $tab, search: $search, genre: $genre, language: $language, rating: $rating, nowShowing: $nowShowing, comingSoon: $comingSoon)';
 }
 
 
@@ -423,7 +435,7 @@ abstract mixin class $MovieListReadyCopyWith<$Res> implements $MovieListStateCop
   factory $MovieListReadyCopyWith(MovieListReady value, $Res Function(MovieListReady) _then) = _$MovieListReadyCopyWithImpl;
 @override @useResult
 $Res call({
- MovieTab tab, String search, String? genre, List<Movie> nowShowing, List<Movie> comingSoon
+ MovieTab tab, String search, String? genre, String? language, String? rating, List<Movie> nowShowing, List<Movie> comingSoon
 });
 
 
@@ -440,11 +452,13 @@ class _$MovieListReadyCopyWithImpl<$Res>
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? nowShowing = null,Object? comingSoon = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,Object? nowShowing = null,Object? comingSoon = null,}) {
   return _then(MovieListReady(
 tab: null == tab ? _self.tab : tab // ignore: cast_nullable_to_non_nullable
 as MovieTab,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
+as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as String?,nowShowing: null == nowShowing ? _self._nowShowing : nowShowing // ignore: cast_nullable_to_non_nullable
 as List<Movie>,comingSoon: null == comingSoon ? _self._comingSoon : comingSoon // ignore: cast_nullable_to_non_nullable
 as List<Movie>,
@@ -458,12 +472,14 @@ as List<Movie>,
 
 
 class MovieListFailure extends MovieListState {
-  const MovieListFailure({required this.tab, required this.search, this.genre, required this.failure}): super._();
+  const MovieListFailure({required this.tab, required this.search, this.genre, this.language, this.rating, required this.failure}): super._();
   
 
 @override final  MovieTab tab;
 @override final  String search;
 @override final  String? genre;
+@override final  String? language;
+@override final  String? rating;
  final  ApiFailure failure;
 
 /// Create a copy of MovieListState
@@ -476,18 +492,18 @@ $MovieListFailureCopyWith<MovieListFailure> get copyWith => _$MovieListFailureCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListFailure&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListFailure&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.language, language) || other.language == language)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,tab,search,genre,failure);
+    return Object.hash(runtimeType,tab,search,genre,language,rating,failure);
 }
 
 @override
 String toString() {
-    return 'MovieListState.failure(tab: $tab, search: $search, genre: $genre, failure: $failure)';
+    return 'MovieListState.failure(tab: $tab, search: $search, genre: $genre, language: $language, rating: $rating, failure: $failure)';
 }
 
 
@@ -498,7 +514,7 @@ abstract mixin class $MovieListFailureCopyWith<$Res> implements $MovieListStateC
   factory $MovieListFailureCopyWith(MovieListFailure value, $Res Function(MovieListFailure) _then) = _$MovieListFailureCopyWithImpl;
 @override @useResult
 $Res call({
- MovieTab tab, String search, String? genre, ApiFailure failure
+ MovieTab tab, String search, String? genre, String? language, String? rating, ApiFailure failure
 });
 
 
@@ -515,11 +531,13 @@ class _$MovieListFailureCopyWithImpl<$Res>
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? failure = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,Object? failure = null,}) {
   return _then(MovieListFailure(
 tab: null == tab ? _self.tab : tab // ignore: cast_nullable_to_non_nullable
 as MovieTab,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
 as String,genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
+as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as String?,failure: null == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
 as ApiFailure,
   ));

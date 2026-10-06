@@ -6,6 +6,7 @@ import 'package:movie_ticket_mobile/features/checkout/controller/checkout_bloc.d
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_failure.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_repository.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
+import 'package:movie_ticket_mobile/features/checkout/model/payway.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
 
 import 'checkout_fixtures.dart';
@@ -164,7 +165,7 @@ void main() {
     });
   });
 
-  group('ConfirmRequested', () {
+  group('PaymentStartRequested', () {
     const confirmation = BookingSummary(
       bookingId: 99,
       status: BookingStatus.confirmed,
@@ -174,81 +175,128 @@ void main() {
       tickets: [TicketPass(code: 'T-1', seatCode: 'D1', status: 'ACTIVE')],
     );
     const guest = GuestInfo(name: 'Dara', phone: '012');
+    const session = PaywaySession(
+      bookingId: 99,
+      tranId: 'CK2RT1',
+      amount: 12.5,
+      checkoutUrl: 'https://checkout-sandbox.payway.com.kh/abc',
+      abaDeeplink: 'abamobilebank://ababank.com?type=payway',
+    );
+    final launch = PaywayLaunch(session: session, canOpenAba: true, holdExpiresAt: testHold.expiresAt);
 
-    void stubConfirm(Result<BookingSummary, CheckoutFailure> result) => when(() => repository.confirm(
+    void stubStart(Result<PaywaySession, CheckoutFailure> result) => when(() => repository.startPayway(
           any(),
           guest: any(named: 'guest'),
           promoCode: any(named: 'promoCode'),
           food: any(named: 'food'),
-          paymentMethod: any(named: 'paymentMethod'),
         )).thenAnswer((_) async => result);
 
+    CheckoutBloc buildWith({bool canOpen = true}) => CheckoutBloc(repository,
+        clock: () => testNow, tick: const Duration(hours: 1), canOpenLink: (_) async => canOpen);
+
     blocTest<CheckoutBloc, CheckoutState>(
-      'success replaces the form with the confirmation',
-      setUp: () => stubConfirm(const Ok(confirmation)),
-      build: build,
+      'starts the payment once and opens PayWay with the deeplink check',
+      setUp: () => stubStart(const Ok(session)),
+      build: buildWith,
       seed: () => ready(guest: guest, food: {8: 1}),
-      act: (bloc) => bloc.add(const ConfirmRequested()),
+      act: (bloc) => bloc
+        ..add(const PaymentStartRequested())
+        ..add(const PaymentStartRequested()),
       expect: () => [
         ready(guest: guest, food: {8: 1}).copyWith(submitting: true),
-        const CheckoutState.success(confirmation),
+        ready(guest: guest, food: {8: 1})
+            .copyWith(submitting: true, payway: launch, effect: CheckoutEffect.paywayStarted),
       ],
-      verify: (_) => verify(() => repository.confirm(testHold, guest: guest, promoCode: null, food: {8: 1})).called(1),
+      verify: (_) =>
+          verify(() => repository.startPayway(testHold, guest: guest, promoCode: null, food: {8: 1})).called(1),
     );
 
     blocTest<CheckoutBloc, CheckoutState>(
-      'a double tap submits once',
-      setUp: () => stubConfirm(const Ok(confirmation)),
-      build: build,
+      'no ABA app: the launch says so',
+      setUp: () => stubStart(const Ok(session)),
+      build: () => buildWith(canOpen: false),
       seed: () => ready(guest: guest),
-      act: (bloc) => bloc
-        ..add(const ConfirmRequested())
-        ..add(const ConfirmRequested()),
-      verify: (_) => verify(() => repository.confirm(
-            any(),
-            guest: any(named: 'guest'),
-            promoCode: any(named: 'promoCode'),
-            food: any(named: 'food'),
-          )).called(1),
+      act: (bloc) => bloc.add(const PaymentStartRequested()),
+      skip: 1,
+      expect: () => [
+        ready(guest: guest).copyWith(
+            submitting: true, payway: launch.copyWith(canOpenAba: false), effect: CheckoutEffect.paywayStarted),
+      ],
     );
 
     blocTest<CheckoutBloc, CheckoutState>(
-      'an invalid guest form never confirms',
+      'an invalid guest form never starts a payment',
       build: build,
       seed: ready,
-      act: (bloc) => bloc.add(const ConfirmRequested()),
+      act: (bloc) => bloc.add(const PaymentStartRequested()),
       expect: () => const <CheckoutState>[],
-      verify: (_) => verifyNever(() => repository.confirm(any(), guest: any(named: 'guest'))),
+      verify: (_) => verifyNever(() => repository.startPayway(any(), guest: any(named: 'guest'))),
     );
 
     blocTest<CheckoutBloc, CheckoutState>(
-      'payment failure keeps the hold, shows the message, and re-quotes',
+      'PayWay refusing the purchase keeps the hold, shows the message, and re-quotes',
       setUp: () {
-        stubConfirm(const Err(CheckoutFailure.paymentFailed('Card declined.')));
+        stubStart(const Err(CheckoutFailure.paymentFailed('Wrong hash')));
         stubQuote(Ok(testQuote()));
       },
       build: build,
       seed: () => ready(guest: guest),
-      act: (bloc) => bloc.add(const ConfirmRequested()),
+      act: (bloc) => bloc.add(const PaymentStartRequested()),
       expect: () => [
         ready(guest: guest).copyWith(submitting: true),
-        ready(guest: guest).copyWith(effect: CheckoutEffect.paymentFailed, message: 'Card declined.'),
+        ready(guest: guest).copyWith(effect: CheckoutEffect.paymentFailed, message: 'Wrong hash'),
         ready(guest: guest).copyWith(quoting: true),
         ready(guest: guest),
       ],
-      verify: (_) => verify(() => repository.quote(testHold, promoCode: null, food: const {})).called(1),
     );
 
     blocTest<CheckoutBloc, CheckoutState>(
-      'losing the hold at confirm goes back to the seat map',
-      setUp: () => stubConfirm(const Err(CheckoutFailure.seatConflict('Seats were taken.'))),
+      'HOLD_EXPIRED at start goes back to the seat map',
+      setUp: () => stubStart(const Err(CheckoutFailure.holdExpired())),
       build: build,
       seed: () => ready(guest: guest),
-      act: (bloc) => bloc.add(const ConfirmRequested()),
+      act: (bloc) => bloc.add(const PaymentStartRequested()),
       expect: () => [
         ready(guest: guest).copyWith(submitting: true),
         ready(guest: guest).copyWith(effect: CheckoutEffect.holdExpired),
       ],
+    );
+
+    blocTest<CheckoutBloc, CheckoutState>(
+      'approved from the web view is the success screen',
+      build: build,
+      seed: () => ready(guest: guest).copyWith(submitting: true, payway: launch),
+      act: (bloc) => bloc.add(const PaywayFinished(PaywayOutcome.approved(confirmation))),
+      expect: () => [const CheckoutState.success(confirmation)],
+    );
+
+    blocTest<CheckoutBloc, CheckoutState>(
+      'declined from the web view is the payment-failed dialog with the hold kept',
+      setUp: () => stubQuote(Ok(testQuote())),
+      build: build,
+      seed: () => ready(guest: guest).copyWith(submitting: true, payway: launch),
+      act: (bloc) => bloc.add(const PaywayFinished(PaywayOutcome.declined())),
+      expect: () => [
+        ready(guest: guest).copyWith(effect: CheckoutEffect.paymentFailed),
+        ready(guest: guest).copyWith(quoting: true),
+        ready(guest: guest),
+      ],
+    );
+
+    blocTest<CheckoutBloc, CheckoutState>(
+      'closing the web view returns to checkout ready to pay again',
+      build: build,
+      seed: () => ready(guest: guest).copyWith(submitting: true, payway: launch),
+      act: (bloc) => bloc.add(const PaywayFinished(PaywayOutcome.dismissed())),
+      expect: () => [ready(guest: guest)],
+    );
+
+    blocTest<CheckoutBloc, CheckoutState>(
+      'the hold ending inside the web view goes back to the seat map',
+      build: build,
+      seed: () => ready(guest: guest).copyWith(submitting: true, payway: launch),
+      act: (bloc) => bloc.add(const PaywayFinished(PaywayOutcome.holdExpired())),
+      expect: () => [ready(guest: guest).copyWith(secondsLeft: 0, effect: CheckoutEffect.holdExpired)],
     );
 
     test('pay is blocked while submitting', () {

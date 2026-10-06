@@ -2,10 +2,13 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/core/widgets/primary_button.dart';
 import 'package:movie_ticket_mobile/features/checkout/controller/checkout_bloc.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
 import 'package:movie_ticket_mobile/core/router/app_router.dart';
 import 'package:movie_ticket_mobile/features/checkout/view/checkout_page.dart';
+import 'package:movie_ticket_mobile/features/checkout/view/pay_sheet.dart';
 
 import '../../helpers/localized_app.dart';
 import 'checkout_fixtures.dart';
@@ -14,12 +17,15 @@ class _MockCheckoutBloc extends MockBloc<CheckoutEvent, CheckoutState> implement
 
 void main() {
   setUpAll(() async {
+    registerFallbackValue(const PromoCleared());
     TestWidgetsFlutterBinding.ensureInitialized();
     await initTestLocalization();
   });
 
+  late _MockCheckoutBloc bloc;
+
   Future<void> pump(WidgetTester tester, CheckoutState state, {RouteFactory? onGenerateRoute}) async {
-    final bloc = _MockCheckoutBloc();
+    bloc = _MockCheckoutBloc();
     whenListen(bloc, const Stream<CheckoutState>.empty(), initialState: state);
     tester.view.physicalSize = const Size(1080, 4200);
     addTearDown(tester.view.resetPhysicalSize);
@@ -130,5 +136,53 @@ void main() {
   testWidgets('food card is hidden when the menu is empty', (tester) async {
     await pump(tester, ready(quote: testQuote().copyWith(foodItems: const [])));
     expect(find.byKey(const Key('checkout.foodCard')), findsNothing);
+  });
+
+  testWidgets('checkout lists no payment method', (tester) async {
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+
+    expect(find.byKey(const Key('pay.method')), findsNothing);
+    expect(find.byKey(const Key('pay.abaKhqr')), findsNothing, reason: 'the method lives on the pay sheet');
+    expect(find.text('Card (demo)'), findsNothing);
+  });
+
+  testWidgets('Pay opens the sheet with the server total and the ABA KHQR tile', (tester) async {
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+
+    await tester.tap(find.byKey(const Key('checkout.pay')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('pay.sheetTitle')), findsOneWidget);
+    expect(find.text('Payment'), findsOneWidget);
+    final total = tester.widget<Text>(find.byKey(const Key('pay.sheetTotal')));
+    expect(total.data, '\$12.50');
+    final tile = find.byKey(const Key('pay.abaKhqr'));
+    expect(find.descendant(of: tile, matching: find.text('ABA KHQR')), findsOneWidget);
+    expect(find.descendant(of: tile, matching: find.text('Pay with another bank partner')), findsOneWidget);
+    verifyNever(() => bloc.add(any()));
+  });
+
+  testWidgets('Process payment starts the payment once', (tester) async {
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+    await tester.tap(find.byKey(const Key('checkout.pay')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('pay.process')));
+    await tester.pump();
+
+    verify(() => bloc.add(any(that: isA<PaymentStartRequested>()))).called(1);
+  });
+
+  testWidgets('Process payment is disabled while the purchase request is in flight', (tester) async {
+    bloc = _MockCheckoutBloc();
+    whenListen(bloc, const Stream<CheckoutState>.empty(),
+        initialState: ready(guest: const GuestInfo(name: 'Dara', phone: '012')).copyWith(submitting: true));
+    await pumpLocalized(
+      tester,
+      BlocProvider<CheckoutBloc>.value(value: bloc, child: const Scaffold(body: PaySheet())),
+    );
+
+    final button = tester.widget<PrimaryButton>(find.byKey(const Key('pay.process')));
+    expect(button.onPressed, isNull);
   });
 }

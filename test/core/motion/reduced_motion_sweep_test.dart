@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
+import 'package:movie_ticket_mobile/features/catalog/controller/hall_list_bloc.dart' hide RefreshRequested;
 import 'package:movie_ticket_mobile/features/catalog/controller/movie_detail_bloc.dart';
 import 'package:movie_ticket_mobile/features/catalog/controller/movie_list_bloc.dart';
+import 'package:movie_ticket_mobile/features/catalog/model/hall.dart';
 import 'package:movie_ticket_mobile/features/catalog/model/movie.dart';
 import 'package:movie_ticket_mobile/features/catalog/view/movie_detail_page.dart';
 import 'package:movie_ticket_mobile/features/catalog/view/movie_home_view.dart';
@@ -25,6 +27,8 @@ import '../../helpers/localized_app.dart';
 class _Auth extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
 class _List extends MockBloc<MovieListEvent, MovieListState> implements MovieListBloc {}
+
+class _Halls extends MockBloc<HallListEvent, HallListState> implements HallListBloc {}
 
 class _Detail extends MockBloc<MovieDetailEvent, MovieDetailState> implements MovieDetailBloc {}
 
@@ -53,14 +57,22 @@ void main() {
   ];
   const nowShowing = [Movie(id: 1, title: 'Dune', comingSoon: false)];
 
-  Future<void> pumpReduced(WidgetTester tester, Widget screen) async {
+  const halls = [
+    Hall(id: 1, name: 'Legend Sen Sok · Atmos', type: 'ATMOS', totalSeats: 60, dolby: true, cinemaId: 'c1', cinemaName: 'Legend'),
+  ];
+
+  Future<void> pumpReduced(WidgetTester tester, Widget screen,
+      {HallListState hallState = const HallListState.ready(halls)}) async {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await pumpLocalized(
       tester,
-      BlocProvider<AuthBloc>.value(
-        value: mock(_Auth(), const AuthState.guest()),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: mock(_Auth(), const AuthState.guest())),
+          BlocProvider<HallListBloc>.value(value: mock(_Halls(), hallState)),
+        ],
         child: Builder(
           builder: (context) =>
               MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: true), child: screen),
@@ -85,6 +97,9 @@ void main() {
       ),
     );
     expect(find.byKey(const Key('carousel')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('hall.1')), 300,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.byKey(const Key('hall.1')), findsOneWidget, reason: 'the final hall list shows under reduced motion');
     expectStill(tester, 'Home');
 
     await tester.pump(const Duration(seconds: 12));
@@ -98,6 +113,7 @@ void main() {
         value: mock(_List(), const MovieListState.loading(tab: MovieTab.nowShowing, search: '')),
         child: Scaffold(body: MovieHomeView(header: const SizedBox(), onSeeAll: (_) {})),
       ),
+      hallState: const HallListState.loading(),
     );
     expect(find.byKey(const Key('home.skeleton')), findsOneWidget);
     expectStill(tester, 'Home skeleton');

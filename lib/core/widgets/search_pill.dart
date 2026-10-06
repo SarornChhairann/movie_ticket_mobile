@@ -13,6 +13,7 @@ class SearchPill extends StatelessWidget {
     this.filterTooltip,
     this.controller,
     this.fieldKey,
+    this.filterCount = 0,
   });
 
   final String hint;
@@ -21,6 +22,9 @@ class SearchPill extends StatelessWidget {
   final String? filterTooltip;
   final TextEditingController? controller;
   final Key? fieldKey;
+
+  /// Active filters; a badge on the filter button when above zero.
+  final int filterCount;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +53,12 @@ class SearchPill extends StatelessWidget {
               key: const Key('search.filter'),
               tooltip: filterTooltip,
               onPressed: onFilter,
-              icon: const Icon(Icons.tune, color: AppColors.white),
+              icon: Badge(
+                key: filterCount > 0 ? const Key('search.filter.count') : null,
+                isLabelVisible: filterCount > 0,
+                label: Text('$filterCount'),
+                child: const Icon(Icons.tune, color: AppColors.white),
+              ),
             ),
           ),
         ],

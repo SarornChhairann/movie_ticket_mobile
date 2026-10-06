@@ -91,7 +91,7 @@ The client maps unknown codes to a generic failure and still shows the server's 
 
 ## Backend gap register
 
-Verified against `Ticket-Management-System` source on 2026-10-01. Each row is closed by the named sprint; ✅ marks rows already closed (all of G1–G23 as of sprint 7; G23 accepted for v1). Re-check a row before closing it — the code may have moved.
+Verified against `Ticket-Management-System` source on 2026-10-01. Each row is closed by the named sprint; ✅ marks rows already closed (all of G1–G23 as of sprint 7; G23 accepted for v1). G24 is open for sprint 10. Re-check a row before closing it — the code may have moved.
 
 | # | Area | Current backend | Target | Sprint |
 | --- | --- | --- | --- | --- |
@@ -118,6 +118,7 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | G21 | Reminder duplicate ✅ | Silently returns `{ok:true}` | 409 `REMINDER_EXISTS` | 7 |
 | G22 | Reminder email ✅ | Sends synchronously and throws 409 when mail is not configured, so the row is rolled back in dev | Persist first; email is best-effort (log on failure) | 7 |
 | G23 | Ticket QR access ✅ | `/tickets/{code}/qr` is public to anyone holding a code | Accepted for v1 (code is the bearer secret). Note in sprint 6, revisit after v1 | 6 |
+| G24 | Public halls | Halls exist only on `GET /admin/halls` (`ROLE_ADMIN`). Home has no hall section | Public `GET /api/halls` and `GET /api/halls/{id}/showtimes`. Customer app never calls `/admin/**` | 10 |
 
 ## Sequence
 
@@ -132,6 +133,8 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | 6 | `sprint-06-tickets-cancel` | My bookings, QR, cancel window | G18, G19, G20, G23 |
 | 7 | `sprint-07-loyalty-reminders` | Points, coming-soon reminder, locale pass | G21, G22 |
 | 8 | `sprint-08-motion-carousel` | Motion system, journey transitions, coming-soon hero carousel | — (UX only, no backend) |
+| 10 | `sprint-10-home-halls` | Home hall list under the movie rail, hall schedule, existing seat map | G24 |
+| 11 | `sprint-11-home-filters` | Home filter sheet: movie language and rating, hall city, type, Dolby, ScreenX | — (client filter on data already loaded) |
 
 ## Per-feature build order (Flutter)
 

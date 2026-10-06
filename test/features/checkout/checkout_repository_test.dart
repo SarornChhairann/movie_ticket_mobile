@@ -5,6 +5,7 @@ import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_failure.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_repository.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
+import 'package:movie_ticket_mobile/features/checkout/model/payway.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
 
 import 'checkout_fixtures.dart';
@@ -133,5 +134,81 @@ void main() {
     final c = (await repository.getConfirmation(99) as Ok<BookingSummary, CheckoutFailure>).value;
 
     expect(c.tickets.first.code, 'T-1');
+  });
+
+  group('PayWay', () {
+    test('start sends the confirm body and maps the checkout page', () async {
+      adapter.onPost(
+        '/bookings/payway/50',
+        (s) => s.reply(200, {
+          'bookingId': 99,
+          'tranId': 'CK2RT1',
+          'amount': 16.5,
+          'checkoutUrl': 'https://checkout-sandbox.payway.com.kh/abc',
+          'abaDeeplink': 'abamobilebank://ababank.com?type=payway',
+        }),
+        data: {
+          'seatIds': [1, 2],
+          'guestName': 'Dara',
+          'guestPhone': '012',
+          'paymentMethod': 'ABA_KHQR',
+          'foodItems': {'7': 2},
+        },
+      );
+
+      final result = await repository.startPayway(testHold,
+          guest: const GuestInfo(name: 'Dara', phone: '012'), food: {7: 2});
+      final session = (result as Ok<PaywaySession, CheckoutFailure>).value;
+
+      expect(session.tranId, 'CK2RT1');
+      expect(session.amount, 16.5);
+      expect(session.checkoutUrl, 'https://checkout-sandbox.payway.com.kh/abc');
+      expect(session.abaDeeplink, 'abamobilebank://ababank.com?type=payway');
+    });
+
+    test('poll maps each status; APPROVED carries the confirmation', () async {
+      adapter.onGet('/bookings/payway/T1', (s) => s.reply(200, {'status': 'PENDING'}));
+      adapter.onGet('/bookings/payway/T2', (s) => s.reply(200, {'status': 'DECLINED'}));
+      adapter.onGet('/bookings/payway/T3', (s) => s.reply(200, {'status': 'CANCELLED'}));
+      adapter.onGet(
+        '/bookings/payway/T4',
+        (s) => s.reply(200, {
+          'status': 'APPROVED',
+          'confirmation': {
+            'id': 99,
+            'showtime': {'id': 50, 'movieTitle': 'Dune', 'hallName': 'Hall 1'},
+            'totalAmount': 16.5,
+            'status': 'CONFIRMED',
+            'tickets': [
+              {'id': 1, 'ticketCode': 'T-1', 'status': 'ACTIVE', 'seatCode': 'D1', 'seatType': 'NORMAL'},
+            ],
+          },
+        }),
+      );
+
+      PaywayStatus status(Result<PaywayStatus, CheckoutFailure> r) => (r as Ok<PaywayStatus, CheckoutFailure>).value;
+      expect(status(await repository.pollPayway('T1')), const PaywayStatus.pending());
+      expect(status(await repository.pollPayway('T2')), const PaywayStatus.declined());
+      expect(status(await repository.pollPayway('T3')), const PaywayStatus.cancelled());
+      final approved = status(await repository.pollPayway('T4')) as PaywayApproved;
+      expect(approved.confirmation.bookingId, 99);
+      expect(approved.confirmation.tickets.single.code, 'T-1');
+    });
+
+    test('close posts to the close route', () async {
+      adapter.onPost('/bookings/payway/T1/close', (s) => s.reply(200, {'status': 'CANCELLED'}));
+
+      final result = await repository.closePayway('T1');
+      expect((result as Ok<PaywayStatus, CheckoutFailure>).value, const PaywayStatus.cancelled());
+    });
+
+    test('402 PAYMENT_FAILED on start is a payment failure', () async {
+      adapter.onPost('/bookings/payway/50',
+          (s) => s.reply(402, {'error': 'Wrong hash', 'type': 'PAYMENT_REQUIRED', 'code': 'PAYMENT_FAILED'}),
+          data: Matchers.any);
+
+      final result = await repository.startPayway(testHold);
+      expect((result as Err<PaywaySession, CheckoutFailure>).failure, const CheckoutFailure.paymentFailed('Wrong hash'));
+    });
   });
 }

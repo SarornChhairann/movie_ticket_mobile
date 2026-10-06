@@ -74,13 +74,20 @@
     "nowInCinemas": "កំពុងបញ្ចាំងនៅរោងកុន",
     "seeAll": "មើលទាំងអស់",
     "allGenres": "ទាំងអស់",
-    "filter": "ប្រភេទ",
+    "filter": "តម្រង",
     "bookTicket": "កក់សំបុត្រ",
     "readMore": "អានបន្ថែម",
     "readLess": "បង្ហាញតិច",
     "selectDate": "ជ្រើសកាលបរិច្ឆេទ",
     "selectTime": "ជ្រើសម៉ោង",
-    "trailerOpenFailed": "មិនអាចបើកវីដេអូណែនាំបានទេ។ តំណត្រូវបានចម្លងជំនួសវិញ។"
+    "trailerOpenFailed": "មិនអាចបើកវីដេអូណែនាំបានទេ។ តំណត្រូវបានចម្លងជំនួសវិញ។",
+    "genre": "ប្រភេទរឿង",
+    "language": "ភាសា",
+    "rating": "ចំណាត់ថ្នាក់",
+    "city": "ទីក្រុង",
+    "hallType": "ប្រភេទសាល",
+    "clear": "សម្អាត",
+    "done": "រួចរាល់"
   },
   "seats": {
     "screen": "អេក្រង់",
@@ -146,9 +153,17 @@
     "viewTickets": "មើលសំបុត្រ",
     "backHome": "ត្រឡប់ទៅទំព័រដើម",
     "ticketCode": "លេខកូដសំបុត្រ",
-    "method": {
-      "card": "កាត (សាកល្បង)"
-    }
+    "title": "ការទូទាត់",
+    "process": "ដំណើរការការទូទាត់",
+    "abaKhqr": {
+      "title": "ABA KHQR",
+      "subtitle": "បង់តាមធនាគារដៃគូផ្សេង"
+    },
+    "checking": "កំពុងរង់ចាំការទូទាត់…",
+    "closeConfirm": "ចាកចេញពីការទូទាត់? កៅអីនៅតែត្រូវបានរក្សាទុករហូតដល់ម៉ោងកំណត់ចប់។",
+    "stay": "នៅបន្ត",
+    "leave": "ចាកចេញ",
+    "notCompleted": "ការទូទាត់មិនបានបញ្ចប់ទេ។"
   },
   "tickets": {
     "title": "ការកក់របស់ខ្ញុំ",
@@ -191,7 +206,20 @@
   },
   "home": {
     "comingSoon": "ឆាប់ៗនេះ",
-    "comingSoonCount": "{index} នៃ {count}"
+    "comingSoonCount": "{index} នៃ {count}",
+    "halls": {
+      "title": "សាលភាពយន្ត",
+      "empty": "មិនទាន់មានសាលនៅឡើយទេ",
+      "searchEmpty": "គ្មានសាលត្រូវនឹងការស្វែងរករបស់អ្នកទេ",
+      "seats": "{count} កៅអី",
+      "type": {
+        "atmos": "Atmos",
+        "standard": "ស្តង់ដារ"
+      },
+      "dolby": "Dolby Atmos",
+      "screenX": "ScreenX",
+      "filterEmpty": "គ្មានសាលត្រូវនឹងតម្រងទាំងនេះទេ"
+    }
   },
   "release": {
     "inDays": {
@@ -204,5 +232,13 @@
   },
   "a11y": {
     "carouselItem": "ឆាប់ៗនេះ {index} នៃ {count}, {title}, {release}។ ចុចពីរដងដើម្បីបើក។"
+  },
+  "hall": {
+    "schedule": {
+      "empty": "គ្មានម៉ោងបញ្ចាំងនៅថ្ងៃនេះទេ",
+      "amenities": "សេវាកម្ម",
+      "normalPrice": "កៅអី {price}",
+      "couplePrice": "កៅអីគូ {price}"
+    }
   }
 }

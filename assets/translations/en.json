@@ -74,13 +74,20 @@
     "nowInCinemas": "Now in Cinemas",
     "seeAll": "See all",
     "allGenres": "All",
-    "filter": "Genres",
+    "filter": "Filter",
     "bookTicket": "Book Ticket",
     "readMore": "Read more",
     "readLess": "Show less",
     "selectDate": "Select date",
     "selectTime": "Select time",
-    "trailerOpenFailed": "Couldn't open the trailer. The link was copied instead."
+    "trailerOpenFailed": "Couldn't open the trailer. The link was copied instead.",
+    "genre": "Genre",
+    "language": "Language",
+    "rating": "Rating",
+    "city": "City",
+    "hallType": "Type",
+    "clear": "Clear",
+    "done": "Done"
   },
   "seats": {
     "screen": "SCREEN",
@@ -146,9 +153,17 @@
     "viewTickets": "View tickets",
     "backHome": "Back to home",
     "ticketCode": "Ticket code",
-    "method": {
-      "card": "Card (demo)"
-    }
+    "title": "Payment",
+    "process": "Process payment",
+    "abaKhqr": {
+      "title": "ABA KHQR",
+      "subtitle": "Pay with another bank partner"
+    },
+    "checking": "Waiting for payment…",
+    "closeConfirm": "Leave payment? The seats stay held until the timer ends.",
+    "stay": "Stay",
+    "leave": "Leave",
+    "notCompleted": "The payment was not completed."
   },
   "tickets": {
     "title": "My bookings",
@@ -191,7 +206,20 @@
   },
   "home": {
     "comingSoon": "Coming soon",
-    "comingSoonCount": "{index} of {count}"
+    "comingSoonCount": "{index} of {count}",
+    "halls": {
+      "title": "Halls",
+      "empty": "No halls yet",
+      "searchEmpty": "No halls match your search",
+      "seats": "{count} seats",
+      "type": {
+        "atmos": "Atmos",
+        "standard": "Standard"
+      },
+      "dolby": "Dolby Atmos",
+      "screenX": "ScreenX",
+      "filterEmpty": "No halls match these filters"
+    }
   },
   "release": {
     "inDays": {
@@ -204,5 +232,13 @@
   },
   "a11y": {
     "carouselItem": "Coming soon, {index} of {count}, {title}, {release}. Double-tap to open."
+  },
+  "hall": {
+    "schedule": {
+      "empty": "No showtimes on this date",
+      "amenities": "Amenities",
+      "normalPrice": "Seat {price}",
+      "couplePrice": "Couple {price}"
+    }
   }
 }

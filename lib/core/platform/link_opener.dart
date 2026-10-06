@@ -16,3 +16,29 @@ Future<bool> openExternalLink(String url) async {
     return false;
   }
 }
+
+/// Whether the device has an app for [url] (any scheme). Used to ask about the
+/// ABA Mobile deeplink; the scheme must be declared in the platform manifests.
+typedef CanOpenLink = Future<bool> Function(String url);
+
+/// Default [CanOpenLink].
+Future<bool> canOpenAppLink(String url) async {
+  final uri = Uri.tryParse(url.trim());
+  if (uri == null || uri.scheme.isEmpty) return false;
+  try {
+    return await canLaunchUrl(uri);
+  } on Exception {
+    return false;
+  }
+}
+
+/// Hands an app deeplink (e.g. `abamobilebank://...`) to the app that owns it.
+Future<bool> openAppLink(String url) async {
+  final uri = Uri.tryParse(url.trim());
+  if (uri == null || uri.scheme.isEmpty) return false;
+  try {
+    return await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } on Exception {
+    return false;
+  }
+}

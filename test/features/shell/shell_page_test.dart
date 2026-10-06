@@ -9,6 +9,7 @@ import 'package:movie_ticket_mobile/core/motion/poster_hero.dart';
 import 'package:movie_ticket_mobile/core/router/app_router.dart';
 import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
 import 'package:movie_ticket_mobile/features/auth/view/auth_gate.dart';
+import 'package:movie_ticket_mobile/features/catalog/controller/hall_list_bloc.dart' hide RefreshRequested;
 import 'package:movie_ticket_mobile/features/catalog/controller/movie_list_bloc.dart';
 import 'package:movie_ticket_mobile/features/catalog/model/catalog_repository.dart';
 import 'package:movie_ticket_mobile/features/catalog/model/movie.dart';
@@ -30,6 +31,8 @@ class _MockProfileBloc extends MockBloc<ProfileEvent, ProfileState> implements P
 
 class _MockMyBookingsBloc extends MockBloc<tickets.MyBookingsEvent, tickets.MyBookingsState>
     implements tickets.MyBookingsBloc {}
+
+class _MockHallListBloc extends MockBloc<HallListEvent, HallListState> implements HallListBloc {}
 
 class _MockCatalogRepository extends Mock implements CatalogRepository {}
 
@@ -69,6 +72,8 @@ void main() {
 
     final authBloc = _MockAuthBloc();
     whenListen(authBloc, const Stream<AuthState>.empty(), initialState: auth);
+    final hallListBloc = _MockHallListBloc();
+    whenListen(hallListBloc, const Stream<HallListState>.empty(), initialState: const HallListState.ready([]));
     final cubit = _MockShellCubit();
     whenListen(cubit, const Stream<ShellState>.empty(),
         initialState: const ShellState.ready(HomeSummary(nowShowingCount: 2, comingSoonCount: 1, cinemaCount: 1)));
@@ -89,6 +94,7 @@ void main() {
           BlocProvider<AuthBloc>.value(value: authBloc),
           BlocProvider<ShellCubit>.value(value: cubit),
           BlocProvider<MovieListBloc>.value(value: movieListBloc),
+          BlocProvider<HallListBloc>.value(value: hallListBloc),
           BlocProvider<ProfileBloc>.value(value: profileBloc),
           BlocProvider<tickets.MyBookingsBloc>.value(value: myBookingsBloc),
         ],

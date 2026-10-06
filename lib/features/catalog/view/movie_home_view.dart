@@ -8,14 +8,17 @@ import '../../../core/motion/poster_hero.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/skeleton.dart';
+import '../controller/hall_list_bloc.dart' as hall_list;
 import '../controller/movie_list_bloc.dart';
 import '../model/movie.dart';
 import 'catalog_filters.dart';
 import 'coming_soon_carousel.dart';
+import 'hall_list_section.dart';
+import 'home_section_header.dart';
 import 'poster_card.dart';
 
 /// Home body below the greeting: search, the coming-soon carousel, genre chips,
-/// and the "Now in Cinemas" rail.
+/// the "Now in Cinemas" rail, and the Halls list.
 class MovieHomeView extends StatelessWidget {
   const MovieHomeView({super.key, required this.header, required this.onSeeAll, this.today = DateTime.now});
 
@@ -31,8 +34,12 @@ class MovieHomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<MovieListBloc>();
+    final halls = context.read<hall_list.HallListBloc>();
     return RefreshIndicator(
-      onRefresh: () async => bloc.add(const RefreshRequested()),
+      onRefresh: () async {
+        bloc.add(const RefreshRequested());
+        halls.add(const hall_list.RefreshRequested());
+      },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: Space.x3),
@@ -40,7 +47,7 @@ class MovieHomeView extends StatelessWidget {
           header,
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: Space.screen),
-            child: CatalogSearch(),
+            child: CatalogSearch(includeHalls: true),
           ),
           BlocBuilder<MovieListBloc, MovieListState>(
             builder: (context, state) => switch (state) {
@@ -50,10 +57,10 @@ class MovieHomeView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SectionHeader(titleKey: 'home.comingSoon'),
+                      HomeSectionHeader(titleKey: 'home.comingSoon'),
                       ComingSoonCarouselSkeleton(),
                       SizedBox(height: Space.x2 + 40),
-                      _SectionHeader(titleKey: 'catalog.nowInCinemas'),
+                      HomeSectionHeader(titleKey: 'catalog.nowInCinemas'),
                       _RailSkeleton(),
                     ],
                   ),
@@ -65,6 +72,8 @@ class MovieHomeView extends StatelessWidget {
               MovieListReady() => EntranceScope(child: _Loaded(state: state, onSeeAll: onSeeAll, today: today)),
             },
           ),
+          // Its own builder, so a movie failure keeps the halls and the other way round.
+          const HallListSection(),
         ],
       ),
     );
@@ -97,7 +106,7 @@ class _Loaded extends StatelessWidget {
                   key: const Key('section.comingSoon'),
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionHeader(
+                    HomeSectionHeader(
                       titleKey: 'home.comingSoon',
                       seeAllKey: const Key('home.comingSoon.seeAll'),
                       onSeeAll: () => onSeeAll(MovieTab.comingSoon),
@@ -112,7 +121,7 @@ class _Loaded extends StatelessWidget {
         const SizedBox(height: Space.x2),
         const GenreChipRow(),
         const SizedBox(height: Space.x1),
-        _SectionHeader(
+        HomeSectionHeader(
           titleKey: 'catalog.nowInCinemas',
           seeAllKey: const Key('catalog.nowInCinemas.seeAll'),
           onSeeAll: () => onSeeAll(MovieTab.nowShowing),
@@ -125,31 +134,6 @@ class _Loaded extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.titleKey, this.seeAllKey, this.onSeeAll});
-
-  final String titleKey;
-  final Key? seeAllKey;
-  final VoidCallback? onSeeAll;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.screen, Space.x2, Space.x1, Space.x1),
-      child: SizedBox(
-        height: 40,
-        child: Row(
-          children: [
-            Expanded(child: Text(titleKey.tr(context: context), style: Theme.of(context).textTheme.titleMedium)),
-            if (onSeeAll != null)
-              TextButton(key: seeAllKey, onPressed: onSeeAll, child: Text('catalog.seeAll'.tr(context: context))),
-          ],
-        ),
-      ),
     );
   }
 }

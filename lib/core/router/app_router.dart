@@ -12,10 +12,16 @@ import '../../features/auth/view/login_page.dart';
 import '../../features/auth/view/register_page.dart';
 import '../../features/auth/view/splash_page.dart';
 import '../../features/catalog/controller/movie_detail_bloc.dart';
+import '../../features/catalog/controller/hall_list_bloc.dart' as hall_list;
+import '../../features/catalog/controller/hall_schedule_bloc.dart' as hall_schedule;
 import '../../features/catalog/controller/movie_list_bloc.dart';
+import '../../features/catalog/view/hall_schedule_page.dart';
 import '../../features/catalog/view/movie_detail_page.dart';
 import '../../features/checkout/controller/checkout_bloc.dart';
+import '../../features/checkout/controller/payway_bloc.dart';
+import '../../features/checkout/model/payway.dart';
 import '../../features/checkout/view/checkout_page.dart';
+import '../../features/checkout/view/payway_page.dart';
 import '../../features/checkout/view/concessions_page.dart';
 import '../../features/checkout/view/pay_success_page.dart';
 import '../../features/catalog/model/movie.dart';
@@ -51,6 +57,9 @@ abstract final class AppRoutes {
   /// Argument: a `SeatMapArgs` (from movie detail) or a bare showtime id (`int`).
   static const seatMap = '/showtimes/seats';
 
+  /// Argument: the hall id (`int`).
+  static const hallSchedule = '/halls/schedule';
+
   /// Argument: the active `Hold`.
   static const checkout = '/checkout';
 
@@ -59,6 +68,9 @@ abstract final class AppRoutes {
 
   /// Argument: the confirmed `BookingSummary`.
   static const paySuccess = '/checkout/success';
+
+  /// Argument: [PaywayLaunch]. Pops with a [PaywayOutcome].
+  static const payway = '/checkout/payway';
 
   /// Signed-in only.
   static const myBookings = '/bookings';
@@ -129,6 +141,11 @@ class AppRouter {
           ],
           child: MovieDetailPage(heroSource: _detailArgs(settings).heroSource),
         ),
+      AppRoutes.hallSchedule => BlocProvider(
+          create: (_) => _getIt<hall_schedule.HallScheduleBloc>()
+            ..add(hall_schedule.ScheduleRequested(settings.arguments! as int)),
+          child: const HallSchedulePage(),
+        ),
       AppRoutes.seatMap => switch (settings.arguments) {
           final SeatMapArgs args => BlocProvider(
               create: (_) => _getIt<SeatMapBloc>()..add(LoadRequested(args.showtimeId)),
@@ -147,6 +164,12 @@ class AppRouter {
           value: settings.arguments! as CheckoutBloc,
           child: const ConcessionsPage(),
         ),
+      AppRoutes.payway => switch (settings.arguments! as PaywayLaunch) {
+          final launch => BlocProvider(
+              create: (_) => _getIt<PaywayBloc>(param1: launch)..add(const PaywayOpened()),
+              child: const PaywayPage(),
+            ),
+        },
       AppRoutes.paySuccess => PaySuccessPage(confirmation: settings.arguments! as BookingSummary),
       AppRoutes.myBookings => BlocProvider(
           create: (_) => _getIt<tickets.MyBookingsBloc>()..add(const tickets.LoadRequested()),
@@ -168,6 +191,8 @@ class AppRouter {
           providers: [
             BlocProvider(create: (_) => _getIt<ShellCubit>()..pingRequested()),
             BlocProvider(create: (_) => _getIt<MovieListBloc>()..add(const RefreshRequested())),
+            // Home's Halls section; loads and fails apart from the movies.
+            BlocProvider(create: (_) => _getIt<hall_list.HallListBloc>()..add(const hall_list.LoadRequested())),
             // Lazy: created (and loaded by the shell) only when a signed-in user
             // opens Bookings or Profile, so a guest never calls these endpoints.
             BlocProvider(create: (_) => _getIt<ProfileBloc>()),
@@ -176,6 +201,9 @@ class AppRouter {
           child: const ShellPage(),
         ),
     };
+    if (settings.name == AppRoutes.payway) {
+      return buildMotionRoute<PaywayOutcome>(settings, motionFor(settings.name), (_) => page);
+    }
     if (settings.name == AppRoutes.login) {
       // Login opens over the current screen like a sheet; closing it returns to
       // exactly where the shopper was.
@@ -192,7 +220,8 @@ class AppRouter {
   /// The journey table (sprint 8, 1.2): how each screen enters and leaves.
   static RouteMotion motionFor(String? name) => switch (name) {
         AppRoutes.splash || AppRoutes.blocked || AppRoutes.shell || null => RouteMotion.fade,
-        AppRoutes.login => RouteMotion.sheet,
+        // Over the current screen; closing returns exactly there.
+        AppRoutes.login || AppRoutes.payway => RouteMotion.sheet,
         // The poster Hero carries the continuity; the page itself fades.
         AppRoutes.movieDetail => RouteMotion.container,
         // An outcome, not a place.
