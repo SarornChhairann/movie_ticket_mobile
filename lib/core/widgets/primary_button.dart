@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme/spacing.dart';
+import 'app_button.dart';
 
-/// Full-width pill action. Shows a spinner and ignores taps while [loading].
+/// Full-width pill action: [AppButton.primary] under its sprint-8 name.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({super.key, required this.label, required this.onPressed, this.loading = false, this.icon});
 
@@ -12,15 +12,6 @@ class PrimaryButton extends StatelessWidget {
   final Widget? icon;
 
   @override
-  Widget build(BuildContext context) {
-    final child = loading
-        ? const SizedBox.square(dimension: Space.x2 + 4, child: CircularProgressIndicator(strokeWidth: 2.5))
-        : Text(label);
-    return SizedBox(
-      width: double.infinity,
-      child: icon == null || loading
-          ? FilledButton(onPressed: loading ? null : onPressed, child: child)
-          : FilledButton.icon(onPressed: onPressed, icon: icon!, label: child),
-    );
-  }
+  Widget build(BuildContext context) =>
+      AppButton.primary(label: label, onPressed: onPressed, loading: loading, icon: icon);
 }

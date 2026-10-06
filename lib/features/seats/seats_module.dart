@@ -9,5 +9,5 @@ void registerSeats(GetIt getIt) {
   getIt
     ..registerLazySingleton(() => SeatRealtime(baseUrl: getIt<Dio>().options.baseUrl))
     ..registerLazySingleton(() => SeatRepository(getIt(), getIt(), getIt()))
-    ..registerFactory(() => SeatMapBloc(getIt()));
+    ..registerFactory(() => SeatMapBloc(getIt(), tracker: getIt()));
 }

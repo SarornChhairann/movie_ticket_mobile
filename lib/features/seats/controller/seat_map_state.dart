@@ -48,6 +48,17 @@ sealed class SeatMapState with _$SeatMapState {
 
     /// The extend call is running.
     @Default(false) bool extending,
+
+    /// The server no longer had the hold when the app came back (sprint 16).
+    @Default(false) bool holdLost,
+
+    /// Best seats' picks, left to right, while they light up one by one
+    /// (sprint 17); empty once the hold answers.
+    @Default(<int>[]) List<int> revealOrder,
+
+    /// Codes of seats in the pending selection that someone else just took
+    /// (sprint 17); shown once with **Pick next best**.
+    @Default(<String>[]) List<String> justTaken,
     SeatMapEffect? effect,
 
     /// Server message for [SeatMapEffect.conflict].

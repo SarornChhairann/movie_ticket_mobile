@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/telemetry/journey_tracker.dart';
 import '../../../core/bloc/debounce.dart';
 import '../../../core/network/api_failure.dart';
 import '../../../core/network/result.dart';
@@ -26,6 +27,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     this._canOpenLink = canOpenAppLink,
     this._cache,
     this._holds,
+    this._tracker = const NoopJourneyTracker(),
   })  : _clock = clock ?? DateTime.now,
         super(const CheckoutState.initial()) {
     on<QuoteRequested>(_onQuoteRequested);
@@ -40,8 +42,9 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     on<CheckoutHoldExtendRequested>(_onHoldExtendRequested);
   }
 
-  static const foodDebounce = Duration(milliseconds: 300);
+  static const foodDebounce = Debounce.requote;
 
+  final JourneyTracker _tracker;
   final CheckoutRepository _repository;
   final DateTime Function() _clock;
   final Duration _tick;
@@ -61,6 +64,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
       case Ok(:final value):
         _ticker?.cancel();
         _ticker = Timer.periodic(_tick, (_) => add(const HoldTicked()));
+        _tracker.track(JourneyEvent(JourneyEventName.checkoutViewed, {'showtimeId': event.hold.showtimeId}));
         emit(CheckoutState.ready(hold: event.hold, quote: value, secondsLeft: _secondsLeft(event.hold)));
       case Err(:final failure):
         emit(CheckoutState.failure(event.hold, failure));
@@ -121,6 +125,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         final canOpenAba = value.abaDeeplink.isNotEmpty && await _canOpenLink(value.abaDeeplink);
         final current = state;
         if (current is! CheckoutReady) return;
+        _tracker.track(JourneyEvent(JourneyEventName.payStarted, {'showtimeId': s.hold.showtimeId}));
         emit(current.copyWith(
           payway: PaywayLaunch(
             session: value,
@@ -159,6 +164,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     switch (result) {
       case Ok(:final value):
         final hold = current.hold.copyWith(expiresAt: value.expiresAt, extended: true);
+        _tracker.track(JourneyEvent(JourneyEventName.holdExtended, {'step': 'checkout'}));
         emit(current.copyWith(
           hold: hold,
           extending: false,
@@ -189,6 +195,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     switch (event.outcome) {
       case PaywayOutcomeApproved(:final confirmation):
         _ticker?.cancel();
+        _tracker.track(JourneyEvent(JourneyEventName.paySucceeded, {'showtimeId': s.hold.showtimeId}));
         // A guest finds it again under Bookings; the account copy works offline.
         await _cache?.put(
           s.requiresGuest ? BookingOwner.guest : BookingOwner.account,
@@ -197,6 +204,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         );
         emit(CheckoutState.success(confirmation));
       case PaywayOutcomeDeclined() || PaywayOutcomeCancelled():
+        _tracker.track(JourneyEvent(JourneyEventName.payFailed, {'showtimeId': s.hold.showtimeId}));
         // Seats are still available and the hold is kept: the failed dialog offers a retry.
         emit(idle.copyWith(secondsLeft: _secondsLeft(s.hold), effect: CheckoutEffect.paymentFailed));
         await _requote(emit);

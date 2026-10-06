@@ -126,12 +126,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( SeatMapData data,  Set<int> heldByOthers,  Set<int> booked,  Set<int> selected,  Hold? hold,  bool holding,  int? secondsLeft,  int? partySize,  bool partyAsked,  bool extending,  SeatMapEffect? effect,  String? message)?  ready,TResult Function( ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( SeatMapData data,  Set<int> heldByOthers,  Set<int> booked,  Set<int> selected,  Hold? hold,  bool holding,  int? secondsLeft,  int? partySize,  bool partyAsked,  bool extending,  bool holdLost,  List<int> revealOrder,  List<String> justTaken,  SeatMapEffect? effect,  String? message)?  ready,TResult Function( ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case SeatMapInitial() when initial != null:
 return initial();case SeatMapLoading() when loading != null:
 return loading();case SeatMapReady() when ready != null:
-return ready(_that.data,_that.heldByOthers,_that.booked,_that.selected,_that.hold,_that.holding,_that.secondsLeft,_that.partySize,_that.partyAsked,_that.extending,_that.effect,_that.message);case SeatMapFailure() when failure != null:
+return ready(_that.data,_that.heldByOthers,_that.booked,_that.selected,_that.hold,_that.holding,_that.secondsLeft,_that.partySize,_that.partyAsked,_that.extending,_that.holdLost,_that.revealOrder,_that.justTaken,_that.effect,_that.message);case SeatMapFailure() when failure != null:
 return failure(_that.failure);case _:
   return orElse();
 
@@ -150,12 +150,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( SeatMapData data,  Set<int> heldByOthers,  Set<int> booked,  Set<int> selected,  Hold? hold,  bool holding,  int? secondsLeft,  int? partySize,  bool partyAsked,  bool extending,  SeatMapEffect? effect,  String? message)  ready,required TResult Function( ApiFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( SeatMapData data,  Set<int> heldByOthers,  Set<int> booked,  Set<int> selected,  Hold? hold,  bool holding,  int? secondsLeft,  int? partySize,  bool partyAsked,  bool extending,  bool holdLost,  List<int> revealOrder,  List<String> justTaken,  SeatMapEffect? effect,  String? message)  ready,required TResult Function( ApiFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case SeatMapInitial():
 return initial();case SeatMapLoading():
 return loading();case SeatMapReady():
-return ready(_that.data,_that.heldByOthers,_that.booked,_that.selected,_that.hold,_that.holding,_that.secondsLeft,_that.partySize,_that.partyAsked,_that.extending,_that.effect,_that.message);case SeatMapFailure():
+return ready(_that.data,_that.heldByOthers,_that.booked,_that.selected,_that.hold,_that.holding,_that.secondsLeft,_that.partySize,_that.partyAsked,_that.extending,_that.holdLost,_that.revealOrder,_that.justTaken,_that.effect,_that.message);case SeatMapFailure():
 return failure(_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -170,12 +170,12 @@ return failure(_that.failure);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( SeatMapData data,  Set<int> heldByOthers,  Set<int> booked,  Set<int> selected,  Hold? hold,  bool holding,  int? secondsLeft,  int? partySize,  bool partyAsked,  bool extending,  SeatMapEffect? effect,  String? message)?  ready,TResult? Function( ApiFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( SeatMapData data,  Set<int> heldByOthers,  Set<int> booked,  Set<int> selected,  Hold? hold,  bool holding,  int? secondsLeft,  int? partySize,  bool partyAsked,  bool extending,  bool holdLost,  List<int> revealOrder,  List<String> justTaken,  SeatMapEffect? effect,  String? message)?  ready,TResult? Function( ApiFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case SeatMapInitial() when initial != null:
 return initial();case SeatMapLoading() when loading != null:
 return loading();case SeatMapReady() when ready != null:
-return ready(_that.data,_that.heldByOthers,_that.booked,_that.selected,_that.hold,_that.holding,_that.secondsLeft,_that.partySize,_that.partyAsked,_that.extending,_that.effect,_that.message);case SeatMapFailure() when failure != null:
+return ready(_that.data,_that.heldByOthers,_that.booked,_that.selected,_that.hold,_that.holding,_that.secondsLeft,_that.partySize,_that.partyAsked,_that.extending,_that.holdLost,_that.revealOrder,_that.justTaken,_that.effect,_that.message);case SeatMapFailure() when failure != null:
 return failure(_that.failure);case _:
   return null;
 
@@ -252,7 +252,7 @@ String toString() {
 
 
 class SeatMapReady extends SeatMapState {
-  const SeatMapReady({required this.data, required  Set<int> heldByOthers, required  Set<int> booked,  Set<int> selected = const <int>{}, this.hold, this.holding = false, this.secondsLeft, this.partySize, this.partyAsked = false, this.extending = false, this.effect, this.message}): _heldByOthers = heldByOthers,_booked = booked,_selected = selected,super._();
+  const SeatMapReady({required this.data, required  Set<int> heldByOthers, required  Set<int> booked,  Set<int> selected = const <int>{}, this.hold, this.holding = false, this.secondsLeft, this.partySize, this.partyAsked = false, this.extending = false, this.holdLost = false,  List<int> revealOrder = const <int>[],  List<String> justTaken = const <String>[], this.effect, this.message}): _heldByOthers = heldByOthers,_booked = booked,_selected = selected,_revealOrder = revealOrder,_justTaken = justTaken,super._();
   
 
  final  SeatMapData data;
@@ -286,6 +286,30 @@ class SeatMapReady extends SeatMapState {
 @JsonKey() final  bool partyAsked;
 /// The extend call is running.
 @JsonKey() final  bool extending;
+/// The server no longer had the hold when the app came back (sprint 16).
+@JsonKey() final  bool holdLost;
+/// Best seats' picks, left to right, while they light up one by one
+/// (sprint 17); empty once the hold answers.
+ final  List<int> _revealOrder;
+/// Best seats' picks, left to right, while they light up one by one
+/// (sprint 17); empty once the hold answers.
+@JsonKey() List<int> get revealOrder {
+  if (_revealOrder is EqualUnmodifiableListView) return _revealOrder;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_revealOrder);
+}
+
+/// Codes of seats in the pending selection that someone else just took
+/// (sprint 17); shown once with **Pick next best**.
+ final  List<String> _justTaken;
+/// Codes of seats in the pending selection that someone else just took
+/// (sprint 17); shown once with **Pick next best**.
+@JsonKey() List<String> get justTaken {
+  if (_justTaken is EqualUnmodifiableListView) return _justTaken;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_justTaken);
+}
+
  final  SeatMapEffect? effect;
 /// Server message for [SeatMapEffect.conflict].
  final  String? message;
@@ -300,18 +324,18 @@ $SeatMapReadyCopyWith<SeatMapReady> get copyWith => _$SeatMapReadyCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is SeatMapReady&&(identical(other.data, data) || other.data == data)&&const DeepCollectionEquality().equals(other.heldByOthers, _heldByOthers)&&const DeepCollectionEquality().equals(other.booked, _booked)&&const DeepCollectionEquality().equals(other.selected, _selected)&&(identical(other.hold, hold) || other.hold == hold)&&(identical(other.holding, holding) || other.holding == holding)&&(identical(other.secondsLeft, secondsLeft) || other.secondsLeft == secondsLeft)&&(identical(other.partySize, partySize) || other.partySize == partySize)&&(identical(other.partyAsked, partyAsked) || other.partyAsked == partyAsked)&&(identical(other.extending, extending) || other.extending == extending)&&(identical(other.effect, effect) || other.effect == effect)&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is SeatMapReady&&(identical(other.data, data) || other.data == data)&&const DeepCollectionEquality().equals(other.heldByOthers, _heldByOthers)&&const DeepCollectionEquality().equals(other.booked, _booked)&&const DeepCollectionEquality().equals(other.selected, _selected)&&(identical(other.hold, hold) || other.hold == hold)&&(identical(other.holding, holding) || other.holding == holding)&&(identical(other.secondsLeft, secondsLeft) || other.secondsLeft == secondsLeft)&&(identical(other.partySize, partySize) || other.partySize == partySize)&&(identical(other.partyAsked, partyAsked) || other.partyAsked == partyAsked)&&(identical(other.extending, extending) || other.extending == extending)&&(identical(other.holdLost, holdLost) || other.holdLost == holdLost)&&const DeepCollectionEquality().equals(other.revealOrder, _revealOrder)&&const DeepCollectionEquality().equals(other.justTaken, _justTaken)&&(identical(other.effect, effect) || other.effect == effect)&&(identical(other.message, message) || other.message == message));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,data,const DeepCollectionEquality().hash(_heldByOthers),const DeepCollectionEquality().hash(_booked),const DeepCollectionEquality().hash(_selected),hold,holding,secondsLeft,partySize,partyAsked,extending,effect,message);
+    return Object.hash(runtimeType,data,const DeepCollectionEquality().hash(_heldByOthers),const DeepCollectionEquality().hash(_booked),const DeepCollectionEquality().hash(_selected),hold,holding,secondsLeft,partySize,partyAsked,extending,holdLost,const DeepCollectionEquality().hash(_revealOrder),const DeepCollectionEquality().hash(_justTaken),effect,message);
 }
 
 @override
 String toString() {
-    return 'SeatMapState.ready(data: $data, heldByOthers: $heldByOthers, booked: $booked, selected: $selected, hold: $hold, holding: $holding, secondsLeft: $secondsLeft, partySize: $partySize, partyAsked: $partyAsked, extending: $extending, effect: $effect, message: $message)';
+    return 'SeatMapState.ready(data: $data, heldByOthers: $heldByOthers, booked: $booked, selected: $selected, hold: $hold, holding: $holding, secondsLeft: $secondsLeft, partySize: $partySize, partyAsked: $partyAsked, extending: $extending, holdLost: $holdLost, revealOrder: $revealOrder, justTaken: $justTaken, effect: $effect, message: $message)';
 }
 
 
@@ -322,7 +346,7 @@ abstract mixin class $SeatMapReadyCopyWith<$Res> implements $SeatMapStateCopyWit
   factory $SeatMapReadyCopyWith(SeatMapReady value, $Res Function(SeatMapReady) _then) = _$SeatMapReadyCopyWithImpl;
 @useResult
 $Res call({
- SeatMapData data, Set<int> heldByOthers, Set<int> booked, Set<int> selected, Hold? hold, bool holding, int? secondsLeft, int? partySize, bool partyAsked, bool extending, SeatMapEffect? effect, String? message
+ SeatMapData data, Set<int> heldByOthers, Set<int> booked, Set<int> selected, Hold? hold, bool holding, int? secondsLeft, int? partySize, bool partyAsked, bool extending, bool holdLost, List<int> revealOrder, List<String> justTaken, SeatMapEffect? effect, String? message
 });
 
 
@@ -339,7 +363,7 @@ class _$SeatMapReadyCopyWithImpl<$Res>
 
 /// Create a copy of SeatMapState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? data = null,Object? heldByOthers = null,Object? booked = null,Object? selected = null,Object? hold = freezed,Object? holding = null,Object? secondsLeft = freezed,Object? partySize = freezed,Object? partyAsked = null,Object? extending = null,Object? effect = freezed,Object? message = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? data = null,Object? heldByOthers = null,Object? booked = null,Object? selected = null,Object? hold = freezed,Object? holding = null,Object? secondsLeft = freezed,Object? partySize = freezed,Object? partyAsked = null,Object? extending = null,Object? holdLost = null,Object? revealOrder = null,Object? justTaken = null,Object? effect = freezed,Object? message = freezed,}) {
   return _then(SeatMapReady(
 data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as SeatMapData,heldByOthers: null == heldByOthers ? _self._heldByOthers : heldByOthers // ignore: cast_nullable_to_non_nullable
@@ -351,7 +375,10 @@ as bool,secondsLeft: freezed == secondsLeft ? _self.secondsLeft : secondsLeft //
 as int?,partySize: freezed == partySize ? _self.partySize : partySize // ignore: cast_nullable_to_non_nullable
 as int?,partyAsked: null == partyAsked ? _self.partyAsked : partyAsked // ignore: cast_nullable_to_non_nullable
 as bool,extending: null == extending ? _self.extending : extending // ignore: cast_nullable_to_non_nullable
-as bool,effect: freezed == effect ? _self.effect : effect // ignore: cast_nullable_to_non_nullable
+as bool,holdLost: null == holdLost ? _self.holdLost : holdLost // ignore: cast_nullable_to_non_nullable
+as bool,revealOrder: null == revealOrder ? _self._revealOrder : revealOrder // ignore: cast_nullable_to_non_nullable
+as List<int>,justTaken: null == justTaken ? _self._justTaken : justTaken // ignore: cast_nullable_to_non_nullable
+as List<String>,effect: freezed == effect ? _self.effect : effect // ignore: cast_nullable_to_non_nullable
 as SeatMapEffect?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

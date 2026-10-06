@@ -207,7 +207,8 @@ void main() {
       act: (bloc) => bloc.add(const RemoteSeatChanged(
         SeatEvent.change(type: SeatEventType.held, seatIds: {1}, sessionId: 'other'),
       )),
-      expect: () => [ready(heldByOthers: {1})],
+      // Sprint 17: and it says which seat went.
+      expect: () => [ready(heldByOthers: {1}).copyWith(justTaken: ['A1'])],
     );
 
     blocTest<SeatMapBloc, SeatMapState>(
@@ -307,7 +308,8 @@ void main() {
       seed: () => ready().copyWith(partySize: 2, partyAsked: true),
       act: (bloc) => bloc.add(const BestSeatsRequested()),
       expect: () => [
-        ready(selected: {1, 2}).copyWith(partySize: 2, partyAsked: true, holding: true),
+        // The picks light up (in order) before the hold answers.
+        ready(selected: {1, 2}).copyWith(partySize: 2, partyAsked: true, holding: true, revealOrder: [1, 2]),
         ready(selected: {1, 2}, hold: hold).copyWith(partySize: 2, partyAsked: true, secondsLeft: 600),
       ],
     );
@@ -365,6 +367,83 @@ void main() {
       seed: held,
       act: (bloc) => bloc.add(HoldChanged(extended)),
       expect: () => [held().copyWith(hold: extended, secondsLeft: 900)],
+    );
+  });
+
+  group('resume re-check (sprint 16)', () {
+    SeatMapReady held() => ready(selected: {1, 2}, hold: hold).copyWith(secondsLeft: 300);
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'the server lost the hold: selection and hold go, and it says so once',
+      setUp: () => when(() => repository.heldByMe(50)).thenAnswer((_) async => <int>{}),
+      build: build,
+      seed: held,
+      act: (bloc) => bloc
+        ..add(const HoldRecheckRequested())
+        ..add(const HoldLostAcknowledged()),
+      expect: () => [
+        ready().copyWith(holdLost: true),
+        ready(),
+      ],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'the hold is still there: nothing changes',
+      setUp: () => when(() => repository.heldByMe(50)).thenAnswer((_) async => {1, 2, 99}),
+      build: build,
+      seed: held,
+      act: (bloc) => bloc.add(const HoldRecheckRequested()),
+      expect: () => const <SeatMapState>[],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'offline: keep what we know',
+      setUp: () => when(() => repository.heldByMe(50)).thenAnswer((_) async => null),
+      build: build,
+      seed: held,
+      act: (bloc) => bloc.add(const HoldRecheckRequested()),
+      expect: () => const <SeatMapState>[],
+    );
+  });
+
+  group('reveal and realtime clarity (sprint 17)', () {
+    blocTest<SeatMapBloc, SeatMapState>(
+      'a rejected Best seats fades the picks back to the old selection',
+      setUp: () => when(() => repository.hold(any(), any())).thenAnswer((_) async => const Err(
+            ApiFailure.server(status: 400, code: 'SEAT_LIMIT', message: 'Too many.'),
+          )),
+      build: build,
+      seed: () => ready().copyWith(partySize: 2, partyAsked: true),
+      act: (bloc) => bloc.add(const BestSeatsRequested()),
+      expect: () => [
+        ready(selected: {1, 2}).copyWith(partySize: 2, partyAsked: true, holding: true, revealOrder: [1, 2]),
+        ready().copyWith(partySize: 2, partyAsked: true, effect: SeatMapEffect.limit, message: 'Too many.'),
+      ],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'someone takes a seat from the pending selection: it says which',
+      build: build,
+      seed: () => ready(selected: {1, 2}),
+      act: (bloc) => bloc.add(const RemoteSeatChanged(SeatEvent.change(type: SeatEventType.held, seatIds: {2}, sessionId: 'x'))),
+      expect: () => [ready(selected: {1}, heldByOthers: {2}).copyWith(justTaken: ['A2'])],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'a seat taken outside the selection says nothing',
+      build: build,
+      seed: () => ready(selected: {1}),
+      act: (bloc) => bloc.add(const RemoteSeatChanged(SeatEvent.change(type: SeatEventType.held, seatIds: {2}, sessionId: 'x'))),
+      expect: () => [ready(selected: {1}, heldByOthers: {2})],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'Pick next best re-picks for the whole party and clears the notice',
+      setUp: () => when(() => repository.hold(50, {11, 12})).thenAnswer((_) async => Ok(hold)),
+      build: build,
+      seed: () => ready(selected: {1}, heldByOthers: {2}).copyWith(justTaken: ['A2']),
+      act: (bloc) => bloc.add(const PickNextBestRequested()),
+      verify: (_) => verify(() => repository.hold(50, {11, 12})).called(1),
     );
   });
 }

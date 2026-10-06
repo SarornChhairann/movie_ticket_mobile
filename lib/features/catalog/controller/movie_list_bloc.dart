@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../core/telemetry/journey_tracker.dart';
 import '../../../core/bloc/debounce.dart';
 import '../../../core/network/api_failure.dart';
 import '../../../core/network/result.dart';
@@ -137,7 +138,7 @@ sealed class MovieListState with _$MovieListState {
 }
 
 class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
-  MovieListBloc(this._repository) : super(const MovieListState.initial()) {
+  MovieListBloc(this._repository, {this._tracker = const NoopJourneyTracker()}) : super(const MovieListState.initial()) {
     on<TabChanged>((event, emit) => emit(state.copyWith(tab: event.tab)));
     on<GenreSelected>((event, emit) => emit(state.copyWith(genre: event.genre)));
     on<LanguageSelected>((event, emit) => emit(state.copyWith(language: event.language)));
@@ -147,11 +148,15 @@ class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
       (event, emit) => _load(emit, search: event.query),
       transformer: debounce(searchDebounce),
     );
-    on<RefreshRequested>((_, emit) => _load(emit));
+    on<RefreshRequested>((_, emit) {
+      _tracker.track(JourneyEvent(JourneyEventName.homeViewed));
+      return _load(emit);
+    });
   }
 
   static const searchDebounce = Duration(milliseconds: 300);
 
+  final JourneyTracker _tracker;
   final CatalogRepository _repository;
 
   /// Loads both lists. The spinner only shows before the first result; later

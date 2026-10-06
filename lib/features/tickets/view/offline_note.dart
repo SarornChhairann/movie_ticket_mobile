@@ -5,7 +5,10 @@ import '../../../core/theme/spacing.dart';
 
 /// "Offline copy": the screen shows what was saved on the device.
 class OfflineNote extends StatelessWidget {
-  const OfflineNote({super.key});
+  const OfflineNote({super.key, this.savedAt});
+
+  /// When the copy was saved; shown as "Saved on this phone · updated 18:40".
+  final DateTime? savedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,12 @@ class OfflineNote extends StatelessWidget {
           const SizedBox(width: Space.x1),
           Expanded(
             child: Text(
-              'tickets.offline'.tr(context: context),
+              savedAt == null
+                  ? 'tickets.offline'.tr(context: context)
+                  : 'ticket.savedOffline'.tr(
+                      context: context,
+                      namedArgs: {'time': DateFormat.Hm(context.locale.toString()).format(savedAt!)},
+                    ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ),

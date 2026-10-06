@@ -6,6 +6,7 @@ import 'app.dart';
 import 'core/config/env.dart';
 import 'core/di/injection.dart';
 import 'core/l10n/app_locales.dart';
+import 'core/network/connectivity_monitor.dart';
 import 'core/router/app_router.dart';
 import 'core/session/pending_payment_store.dart';
 import 'features/auth/controller/auth_bloc.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
         router: AppRouter(getIt),
         authBloc: getIt<AuthBloc>()..add(const SessionStarted()),
         pendingPayment: pendingPayment,
+        offline: getIt<ConnectivityMonitor>().offline,
       ),
     ),
   );

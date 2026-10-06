@@ -10,6 +10,7 @@ import '../../../core/platform/link_opener.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/spacing.dart';
+import '../../../core/widgets/booking_capsule.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/genre_chip.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -73,6 +74,7 @@ class _DetailScaffold extends StatelessWidget {
       AppRoutes.seatMap,
       arguments: SeatMapArgs(
         showtimeId: showtimeId,
+        posterUrl: state.detail.movie.posterUrl,
         date: state.detail.selectedDate,
         options: [for (final s in _slots) ShowtimeOption(id: s.id, time: s.time, hallName: s.hallName)],
       ),
@@ -172,7 +174,7 @@ class _Banner extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x66000000), Color(0x00000000), Color(0xCC1A2543)],
+                colors: [AppColors.posterShadeTop, AppColors.posterShadeClear, AppColors.posterShadeBottom],
                 stops: [0, 0.45, 1],
               ),
             ),
@@ -185,7 +187,7 @@ class _Banner extends StatelessWidget {
                 child: IconButton.filledTonal(
                   key: const Key('detail.back'),
                   tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  style: IconButton.styleFrom(backgroundColor: const Color(0x661A2543)),
+                  style: IconButton.styleFrom(backgroundColor: AppColors.overlayButton),
                   icon: const BackButtonIcon(),
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
@@ -353,17 +355,24 @@ class _Showtimes extends StatelessWidget {
             children: [
               for (final hall in cinema.halls)
                 for (final slot in hall.slots)
-                  GenreChip(
-                    key: Key('showtime.${slot.id}'),
-                    // One day can have several halls and cinemas, so the hall is on the chip.
-                    label: [
-                      slot.time,
-                      hall.hallName,
-                      if (hall.dolby) 'Dolby Atmos',
-                      if (hall.screenX) 'ScreenX',
-                    ].join(' · '),
-                    selected: slot.id == state.selectedShowtimeId,
-                    onSelected: () => bloc.add(ShowtimeSelected(slot.id)),
+                  // The chosen chip is where the booking capsule grows from (sprint 16).
+                  HeroMode(
+                    enabled: slot.id == state.selectedShowtimeId,
+                    child: Hero(
+                      tag: BookingCapsule.heroTag(slot.id),
+                      child: GenreChip(
+                        key: Key('showtime.${slot.id}'),
+                        // One day can have several halls and cinemas, so the hall is on the chip.
+                        label: [
+                          slot.time,
+                          hall.hallName,
+                          if (hall.dolby) 'Dolby Atmos',
+                          if (hall.screenX) 'ScreenX',
+                        ].join(' · '),
+                        selected: slot.id == state.selectedShowtimeId,
+                        onSelected: () => bloc.add(ShowtimeSelected(slot.id)),
+                      ),
+                    ),
                   ),
             ],
           ),

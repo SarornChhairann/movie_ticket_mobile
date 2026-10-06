@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'motion.dart';
@@ -23,26 +24,84 @@ enum RouteMotion {
   sheet,
 }
 
-/// One builder for every route so all screens move the same way.
-Route<T> buildMotionRoute<T>(RouteSettings settings, RouteMotion motion, WidgetBuilder builder) {
-  if (motion == RouteMotion.sheet) {
-    return MaterialPageRoute<T>(settings: settings, fullscreenDialog: true, builder: builder);
+/// One builder for every route so all screens move the same way. Every route is
+/// a [MotionPageRoute] (a `MaterialPageRoute`), so the theme's [AppPageTransitions]
+/// draws it and Android 14+ gets the predictive back preview (sprint 15).
+Route<T> buildMotionRoute<T>(RouteSettings settings, RouteMotion motion, WidgetBuilder builder) =>
+    MotionPageRoute<T>(settings: settings, motion: motion, builder: builder);
+
+/// A `MaterialPageRoute` that knows its [RouteMotion] and its sprint-8 timing.
+class MotionPageRoute<T> extends MaterialPageRoute<T> {
+  MotionPageRoute({required super.settings, required this.motion, required super.builder})
+      : super(fullscreenDialog: motion == RouteMotion.sheet);
+
+  final RouteMotion motion;
+
+  /// Enter time per motion; exit is [Motion.exitOf] it.
+  static Duration enterOf(RouteMotion motion) => switch (motion) {
+        RouteMotion.container => Motion.extraLong,
+        RouteMotion.fadeThrough || RouteMotion.fade => Motion.medium + Motion.fadeThroughExtra,
+        _ => Motion.long,
+      };
+
+  @override
+  Duration get transitionDuration => motion == RouteMotion.sheet ? super.transitionDuration : enterOf(motion);
+
+  @override
+  Duration get reverseTransitionDuration =>
+      motion == RouteMotion.sheet ? super.reverseTransitionDuration : Motion.exitOf(enterOf(motion));
+}
+
+/// The app's `PageTransitionsBuilder`, set on every platform in `AppTheme`.
+///
+/// A [MotionPageRoute] moves the sprint-8 way. While an Android back gesture is in
+/// progress the platform's predictive back preview takes over, so the user sees
+/// the previous screen before letting go. Sheets keep the platform's own motion.
+class AppPageTransitions extends PageTransitionsBuilder {
+  const AppPageTransitions();
+
+  static const _predictive = PredictiveBackPageTransitionsBuilder();
+  static const _cupertino = CupertinoPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final motion = route is MotionPageRoute<T> ? route.motion : RouteMotion.sharedAxisX;
+    final android = Theme.of(context).platform == TargetPlatform.android;
+    if (motion == RouteMotion.sheet || route.fullscreenDialog) {
+      return (android ? _predictive : _cupertino).buildTransitions(route, context, animation, secondaryAnimation, child);
+    }
+    if (android) {
+      // The predictive-back detector must always be in the tree to catch the
+      // gesture start. While dragging it animates the real values; otherwise it is
+      // handed settled animations and our own transition does the moving.
+      if (route.popGestureInProgress) {
+        return _predictive.buildTransitions(route, context, animation, secondaryAnimation, child);
+      }
+      return _predictive.buildTransitions(
+        route,
+        context,
+        kAlwaysCompleteAnimation,
+        kAlwaysDismissedAnimation,
+        _motion(context, motion, animation, secondaryAnimation, child),
+      );
+    }
+    return _motion(context, motion, animation, secondaryAnimation, child);
   }
-  final enter = switch (motion) {
-    RouteMotion.container => Motion.extraLong,
-    RouteMotion.fadeThrough || RouteMotion.fade => Motion.medium + const Duration(milliseconds: 50),
-    _ => Motion.long,
-  };
-  return PageRouteBuilder<T>(
-    settings: settings,
-    transitionDuration: enter,
-    reverseTransitionDuration: Motion.exitOf(enter),
-    pageBuilder: (context, _, _) => builder(context),
-    transitionsBuilder: (context, animation, secondary, child) {
-      if (context.reduceMotion) return child;
-      return _transition(motion, animation, secondary, child);
-    },
-  );
+
+  static Widget _motion(
+    BuildContext context,
+    RouteMotion motion,
+    Animation<double> animation,
+    Animation<double> secondary,
+    Widget child,
+  ) =>
+      context.reduceMotion ? child : _transition(motion, animation, secondary, child);
 }
 
 Widget _transition(RouteMotion motion, Animation<double> animation, Animation<double> secondary, Widget child) {

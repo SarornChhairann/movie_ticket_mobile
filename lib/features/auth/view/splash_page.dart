@@ -17,13 +17,13 @@ import '../../../core/widgets/ticket_emblem.dart';
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
-  static const introDuration = Duration(milliseconds: 1400);
+  static const introDuration = Motion.splashIntro;
 
   /// The animation plus a short hold on the finished logo.
-  static const minDisplay = Duration(milliseconds: 2000);
+  static const minDisplay = Motion.splashMinDisplay;
 
   /// Only a genuinely slow restore (past [minDisplay]) shows the loading bar.
-  static const progressDelay = Duration(milliseconds: 2400);
+  static const progressDelay = Motion.splashProgressDelay;
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -34,7 +34,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late final AnimationController _glow = AnimationController(vsync: this, duration: glowPeriod);
 
   /// One breath of the glow behind the ticket.
-  static const glowPeriod = Duration(milliseconds: 2600);
+  static const glowPeriod = Motion.splashGlow;
 
   /// Ticker-driven delay before the progress hint; keeps its length under reduced motion.
   late final AnimationController _progressDelay = AnimationController(

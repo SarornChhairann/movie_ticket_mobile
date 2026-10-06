@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../../core/haptics/app_haptics.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/ticket_emblem.dart';
@@ -13,7 +13,7 @@ import '../../../core/widgets/ticket_emblem.dart';
 class TicketIssuedAnimation extends StatefulWidget {
   const TicketIssuedAnimation({super.key, this.size = 132});
 
-  static const duration = Duration(milliseconds: 900);
+  static const duration = Motion.ticketIssue;
 
   /// Ticket width.
   final double size;
@@ -31,7 +31,7 @@ class _TicketIssuedAnimationState extends State<TicketIssuedAnimation> with Sing
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    HapticFeedback.mediumImpact();
+    AppHaptics.success();
     if (context.reduceMotion) {
       _controller.value = 1;
     } else {
@@ -110,7 +110,7 @@ class _TicketIssuedAnimationState extends State<TicketIssuedAnimation> with Sing
                     scale: badge.value,
                     child: const DecoratedBox(
                       decoration: BoxDecoration(color: AppColors.white, shape: BoxShape.circle),
-                      child: Icon(Icons.check_circle, color: Color(0xFF3DBE7A), size: 36),
+                      child: Icon(Icons.check_circle, color: AppColors.success, size: 36),
                     ),
                   ),
                 ),

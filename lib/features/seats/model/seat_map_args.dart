@@ -2,9 +2,12 @@
 /// same day from the detail screen, so the time chips switch between real
 /// showtimes and never invent one.
 class SeatMapArgs {
-  const SeatMapArgs({required this.showtimeId, this.date, this.options = const []});
+  const SeatMapArgs({required this.showtimeId, this.date, this.options = const [], this.posterUrl});
 
   final int showtimeId;
+
+  /// The movie's poster, for the booking capsule (sprint 16).
+  final String? posterUrl;
   final DateTime? date;
   final List<ShowtimeOption> options;
 }

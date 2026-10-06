@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/model/booking_summary.dart';
 import '../../../core/motion/motion.dart';
@@ -9,6 +10,8 @@ import '../../../core/router/app_router.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/widgets/empty_view.dart';
 import '../controller/my_bookings_bloc.dart';
+import 'booking_timeline.dart';
+import 'ticket_wallet_page.dart';
 import 'booking_status_chip.dart';
 import 'my_bookings_page.dart';
 import 'offline_note.dart';
@@ -82,8 +85,10 @@ class BookingDetailPage extends StatelessWidget {
                     key: const Key('tickets.total'),
                     style: textTheme.headlineSmall,
                   ),
+                  const SizedBox(height: Space.x2),
+                  BookingTimeline(booking: booking, now: clock()),
                   const Divider(height: Space.x4),
-                  for (final t in booking.tickets) _TicketTile(booking: booking, ticket: t),
+                  for (final (i, t) in booking.tickets.indexed) _TicketTile(booking: booking, ticket: t, index: i),
                   // Guests cannot cancel (owner only), and offline nothing can be sent.
                   if (!bloc.guest && !offline && booking.canCancelAt(clock())) ...[
                     const SizedBox(height: Space.x3),
@@ -103,10 +108,13 @@ class BookingDetailPage extends StatelessWidget {
 }
 
 class _TicketTile extends StatelessWidget {
-  const _TicketTile({required this.booking, required this.ticket});
+  const _TicketTile({required this.booking, required this.ticket, required this.index});
 
   final BookingSummary booking;
   final TicketPass ticket;
+
+  /// Position in the booking's ticket pager.
+  final int index;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +122,7 @@ class _TicketTile extends StatelessWidget {
     return AnimatedOpacity(
       opacity: ticket.cancelled ? 0.55 : 1,
       duration: context.motion(Motion.medium),
-      child: ListTile(
+      child: AppListTile(
         key: Key('ticket.${ticket.code}'),
         leading: const Icon(Icons.qr_code_2),
         title: Text(ticket.seatCode),
@@ -122,7 +130,13 @@ class _TicketTile extends StatelessWidget {
         trailing: ticket.cancelled
             ? const BookingStatusChip(status: BookingStatus.cancelled)
             : const Icon(Icons.chevron_right),
-        onTap: ticket.cancelled ? null : () => Navigator.of(context).pushNamed(AppRoutes.ticketQr, arguments: ticket),
+        // The ticket card (sprint 18): tap it to turn it to the QR.
+        onTap: ticket.cancelled
+            ? null
+            : () => Navigator.of(context).pushNamed(
+                  AppRoutes.ticketWallet,
+                  arguments: TicketWalletArgs(booking: booking, initialIndex: index),
+                ),
       ),
     );
   }

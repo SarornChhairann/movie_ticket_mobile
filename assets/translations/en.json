@@ -6,7 +6,10 @@
     "retry": "Retry",
     "loading": "Loading…",
     "empty": "Nothing here yet.",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "dismiss": "Dismiss"
   },
   "shell": {
     "language": "Language",
@@ -115,7 +118,23 @@
     "noBlock": "No row has that many seats together. Pick seats yourself or choose fewer.",
     "holdEnding": "Your seats are held for {time} more.",
     "extend": "Extend",
-    "extendDone": "Hold extended."
+    "extendDone": "Hold extended.",
+    "tooltip": "Row {row} · Seat {seat}",
+    "coupleWith": "couple pair with {seat}",
+    "rowSummary": "Row {row}: {count} available — seats {list}",
+    "justTaken": "{seat} was just taken",
+    "pickNext": "Pick next best",
+    "listView": "List view",
+    "mapView": "Map view",
+    "fitHall": "Whole hall",
+    "seatLabel": "Seat {seat}",
+    "state": {
+      "available": "available",
+      "selected": "selected",
+      "held": "held by someone else",
+      "booked": "booked"
+    },
+    "partyShort": "Party size"
   },
   "checkout": {
     "title": "Checkout",
@@ -208,7 +227,8 @@
     "lookupMiss": "No booking matches that reference and phone number.",
     "guestEmpty": "Bookings you make or find on this phone appear here.",
     "signIn": "Sign in",
-    "forget": "Remove from this phone"
+    "forget": "Remove from this phone",
+    "seat": "Seat"
   },
   "loyalty": {
     "points": "Loyalty points",
@@ -268,5 +288,66 @@
       "normalPrice": "Seat {price}",
       "couplePrice": "Couple {price}"
     }
+  },
+  "flow": {
+    "step": {
+      "seats": "Seats",
+      "snacks": "Snacks",
+      "pay": "Pay",
+      "tickets": "Tickets"
+    },
+    "stepOf": "Step {n} of {total}, {name}",
+    "skipSnacks": "Skip snacks",
+    "continue": "Continue",
+    "payAmount": "Pay {amount}",
+    "leave": {
+      "title": {
+        "one": "Release {} seat?",
+        "other": "Release {} seats?"
+      },
+      "body": "Someone else can book them. You can pick seats again.",
+      "keep": "Keep seats",
+      "release": "Release"
+    },
+    "holdLost": "Your seats were released while you were away.",
+    "pickAgain": "Pick seats again",
+    "viewTickets": "View tickets",
+    "summary": {
+      "seats": {
+        "one": "{} seat",
+        "other": "{} seats"
+      },
+      "snacks": {
+        "one": "{} snack",
+        "other": "{} snacks"
+      }
+    }
+  },
+  "upNext": {
+    "title": "Up next",
+    "tonight": "Today {time}",
+    "tomorrow": "Tomorrow {time}",
+    "inTime": "in {duration}",
+    "showTicket": "Show ticket"
+  },
+  "ticket": {
+    "flipHint": "Tap the card to show the QR code",
+    "cancelled": "This ticket was cancelled",
+    "savedOffline": "Saved on this phone · updated {time}",
+    "of": "Ticket {n} of {total}",
+    "timeline": {
+      "booked": "Booked",
+      "paid": "Paid",
+      "showStarts": "Show starts",
+      "used": "Used",
+      "cancelled": "Cancelled",
+      "refundPending": "Refund pending",
+      "refunded": "Refunded"
+    }
+  },
+  "bookings": {
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "browse": "Browse movies"
   }
 }

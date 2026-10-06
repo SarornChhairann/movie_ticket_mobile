@@ -126,12 +126,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( String code)?  loading,TResult Function( String code,  Uint8List png,  bool offline)?  ready,TResult Function( String code,  TicketsFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( String code)?  loading,TResult Function( String code,  Uint8List png,  bool offline,  DateTime? savedAt)?  ready,TResult Function( String code,  TicketsFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TicketInitial() when initial != null:
 return initial();case TicketLoading() when loading != null:
 return loading(_that.code);case TicketReady() when ready != null:
-return ready(_that.code,_that.png,_that.offline);case TicketFailureState() when failure != null:
+return ready(_that.code,_that.png,_that.offline,_that.savedAt);case TicketFailureState() when failure != null:
 return failure(_that.code,_that.failure);case _:
   return orElse();
 
@@ -150,12 +150,12 @@ return failure(_that.code,_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( String code)  loading,required TResult Function( String code,  Uint8List png,  bool offline)  ready,required TResult Function( String code,  TicketsFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( String code)  loading,required TResult Function( String code,  Uint8List png,  bool offline,  DateTime? savedAt)  ready,required TResult Function( String code,  TicketsFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case TicketInitial():
 return initial();case TicketLoading():
 return loading(_that.code);case TicketReady():
-return ready(_that.code,_that.png,_that.offline);case TicketFailureState():
+return ready(_that.code,_that.png,_that.offline,_that.savedAt);case TicketFailureState():
 return failure(_that.code,_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -170,12 +170,12 @@ return failure(_that.code,_that.failure);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( String code)?  loading,TResult? Function( String code,  Uint8List png,  bool offline)?  ready,TResult? Function( String code,  TicketsFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( String code)?  loading,TResult? Function( String code,  Uint8List png,  bool offline,  DateTime? savedAt)?  ready,TResult? Function( String code,  TicketsFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case TicketInitial() when initial != null:
 return initial();case TicketLoading() when loading != null:
 return loading(_that.code);case TicketReady() when ready != null:
-return ready(_that.code,_that.png,_that.offline);case TicketFailureState() when failure != null:
+return ready(_that.code,_that.png,_that.offline,_that.savedAt);case TicketFailureState() when failure != null:
 return failure(_that.code,_that.failure);case _:
   return null;
 
@@ -288,12 +288,13 @@ as String,
 
 
 class TicketReady implements TicketState {
-  const TicketReady({required this.code, required this.png, this.offline = false});
+  const TicketReady({required this.code, required this.png, this.offline = false, this.savedAt});
   
 
  final  String code;
  final  Uint8List png;
 @JsonKey() final  bool offline;
+ final  DateTime? savedAt;
 
 /// Create a copy of TicketState
 /// with the given fields replaced by the non-null parameter values.
@@ -305,18 +306,18 @@ $TicketReadyCopyWith<TicketReady> get copyWith => _$TicketReadyCopyWithImpl<Tick
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is TicketReady&&(identical(other.code, code) || other.code == code)&&const DeepCollectionEquality().equals(other.png, png)&&(identical(other.offline, offline) || other.offline == offline));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is TicketReady&&(identical(other.code, code) || other.code == code)&&const DeepCollectionEquality().equals(other.png, png)&&(identical(other.offline, offline) || other.offline == offline)&&(identical(other.savedAt, savedAt) || other.savedAt == savedAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,code,const DeepCollectionEquality().hash(png),offline);
+    return Object.hash(runtimeType,code,const DeepCollectionEquality().hash(png),offline,savedAt);
 }
 
 @override
 String toString() {
-    return 'TicketState.ready(code: $code, png: $png, offline: $offline)';
+    return 'TicketState.ready(code: $code, png: $png, offline: $offline, savedAt: $savedAt)';
 }
 
 
@@ -327,7 +328,7 @@ abstract mixin class $TicketReadyCopyWith<$Res> implements $TicketStateCopyWith<
   factory $TicketReadyCopyWith(TicketReady value, $Res Function(TicketReady) _then) = _$TicketReadyCopyWithImpl;
 @useResult
 $Res call({
- String code, Uint8List png, bool offline
+ String code, Uint8List png, bool offline, DateTime? savedAt
 });
 
 
@@ -344,12 +345,13 @@ class _$TicketReadyCopyWithImpl<$Res>
 
 /// Create a copy of TicketState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? code = null,Object? png = null,Object? offline = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? code = null,Object? png = null,Object? offline = null,Object? savedAt = freezed,}) {
   return _then(TicketReady(
 code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String,png: null == png ? _self.png : png // ignore: cast_nullable_to_non_nullable
 as Uint8List,offline: null == offline ? _self.offline : offline // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,savedAt: freezed == savedAt ? _self.savedAt : savedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

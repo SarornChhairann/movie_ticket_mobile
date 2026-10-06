@@ -290,7 +290,8 @@ as String,
 /// @nodoc
 mixin _$BookingSummary {
 
- int get bookingId;/// Empty from a server older than sprint 13.
+ int get bookingId;/// The showtime, for the booking capsule's shared element (sprint 16).
+ int? get showtimeId;/// Empty from a server older than sprint 13.
  String get reference; BookingStatus get status; String get movieTitle; String get hallName;/// ISO date and `HH:mm[:ss]` in the cinema's zone; never converted.
  String? get showDate; String? get showTime; num get totalAmount; List<TicketPass> get tickets; String? get bookedAt; RefundState get refund;
 /// Create a copy of BookingSummary
@@ -304,20 +305,20 @@ $BookingSummaryCopyWith<BookingSummary> get copyWith => _$BookingSummaryCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as BookingSummary;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookingSummary&&(identical(other.bookingId, _this.bookingId) || other.bookingId == _this.bookingId)&&(identical(other.reference, _this.reference) || other.reference == _this.reference)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.movieTitle, _this.movieTitle) || other.movieTitle == _this.movieTitle)&&(identical(other.hallName, _this.hallName) || other.hallName == _this.hallName)&&(identical(other.showDate, _this.showDate) || other.showDate == _this.showDate)&&(identical(other.showTime, _this.showTime) || other.showTime == _this.showTime)&&(identical(other.totalAmount, _this.totalAmount) || other.totalAmount == _this.totalAmount)&&const DeepCollectionEquality().equals(other.tickets, _this.tickets)&&(identical(other.bookedAt, _this.bookedAt) || other.bookedAt == _this.bookedAt)&&(identical(other.refund, _this.refund) || other.refund == _this.refund));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookingSummary&&(identical(other.bookingId, _this.bookingId) || other.bookingId == _this.bookingId)&&(identical(other.showtimeId, _this.showtimeId) || other.showtimeId == _this.showtimeId)&&(identical(other.reference, _this.reference) || other.reference == _this.reference)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.movieTitle, _this.movieTitle) || other.movieTitle == _this.movieTitle)&&(identical(other.hallName, _this.hallName) || other.hallName == _this.hallName)&&(identical(other.showDate, _this.showDate) || other.showDate == _this.showDate)&&(identical(other.showTime, _this.showTime) || other.showTime == _this.showTime)&&(identical(other.totalAmount, _this.totalAmount) || other.totalAmount == _this.totalAmount)&&const DeepCollectionEquality().equals(other.tickets, _this.tickets)&&(identical(other.bookedAt, _this.bookedAt) || other.bookedAt == _this.bookedAt)&&(identical(other.refund, _this.refund) || other.refund == _this.refund));
 }
 
 
 @override
 int get hashCode {
   final _this = this as BookingSummary;
-  return Object.hash(runtimeType,_this.bookingId,_this.reference,_this.status,_this.movieTitle,_this.hallName,_this.showDate,_this.showTime,_this.totalAmount,const DeepCollectionEquality().hash(_this.tickets),_this.bookedAt,_this.refund);
+  return Object.hash(runtimeType,_this.bookingId,_this.showtimeId,_this.reference,_this.status,_this.movieTitle,_this.hallName,_this.showDate,_this.showTime,_this.totalAmount,const DeepCollectionEquality().hash(_this.tickets),_this.bookedAt,_this.refund);
 }
 
 @override
 String toString() {
   final _this = this as BookingSummary;
-  return 'BookingSummary(bookingId: ${_this.bookingId}, reference: ${_this.reference}, status: ${_this.status}, movieTitle: ${_this.movieTitle}, hallName: ${_this.hallName}, showDate: ${_this.showDate}, showTime: ${_this.showTime}, totalAmount: ${_this.totalAmount}, tickets: ${_this.tickets}, bookedAt: ${_this.bookedAt}, refund: ${_this.refund})';
+  return 'BookingSummary(bookingId: ${_this.bookingId}, showtimeId: ${_this.showtimeId}, reference: ${_this.reference}, status: ${_this.status}, movieTitle: ${_this.movieTitle}, hallName: ${_this.hallName}, showDate: ${_this.showDate}, showTime: ${_this.showTime}, totalAmount: ${_this.totalAmount}, tickets: ${_this.tickets}, bookedAt: ${_this.bookedAt}, refund: ${_this.refund})';
 }
 
 
@@ -328,7 +329,7 @@ abstract mixin class $BookingSummaryCopyWith<$Res>  {
   factory $BookingSummaryCopyWith(BookingSummary value, $Res Function(BookingSummary) _then) = _$BookingSummaryCopyWithImpl;
 @useResult
 $Res call({
- int bookingId, String reference, BookingStatus status, String movieTitle, String hallName, String? showDate, String? showTime, num totalAmount, List<TicketPass> tickets, String? bookedAt, RefundState refund
+ int bookingId, int? showtimeId, String reference, BookingStatus status, String movieTitle, String hallName, String? showDate, String? showTime, num totalAmount, List<TicketPass> tickets, String? bookedAt, RefundState refund
 });
 
 
@@ -345,10 +346,11 @@ class _$BookingSummaryCopyWithImpl<$Res>
 
 /// Create a copy of BookingSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? bookingId = null,Object? reference = null,Object? status = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? totalAmount = null,Object? tickets = null,Object? bookedAt = freezed,Object? refund = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? bookingId = null,Object? showtimeId = freezed,Object? reference = null,Object? status = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? totalAmount = null,Object? tickets = null,Object? bookedAt = freezed,Object? refund = null,}) {
   return _then(BookingSummary(
 bookingId: null == bookingId ? _self.bookingId : bookingId // ignore: cast_nullable_to_non_nullable
-as int,reference: null == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
+as int,showtimeId: freezed == showtimeId ? _self.showtimeId : showtimeId // ignore: cast_nullable_to_non_nullable
+as int?,reference: null == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as BookingStatus,movieTitle: null == movieTitle ? _self.movieTitle : movieTitle // ignore: cast_nullable_to_non_nullable
 as String,hallName: null == hallName ? _self.hallName : hallName // ignore: cast_nullable_to_non_nullable
@@ -443,10 +445,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bookingId,  String reference,  BookingStatus status,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  num totalAmount,  List<TicketPass> tickets,  String? bookedAt,  RefundState refund)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bookingId,  int? showtimeId,  String reference,  BookingStatus status,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  num totalAmount,  List<TicketPass> tickets,  String? bookedAt,  RefundState refund)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BookingSummary() when $default != null:
-return $default(_that.bookingId,_that.reference,_that.status,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.totalAmount,_that.tickets,_that.bookedAt,_that.refund);case _:
+return $default(_that.bookingId,_that.showtimeId,_that.reference,_that.status,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.totalAmount,_that.tickets,_that.bookedAt,_that.refund);case _:
   return orElse();
 
 }
@@ -464,10 +466,10 @@ return $default(_that.bookingId,_that.reference,_that.status,_that.movieTitle,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bookingId,  String reference,  BookingStatus status,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  num totalAmount,  List<TicketPass> tickets,  String? bookedAt,  RefundState refund)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bookingId,  int? showtimeId,  String reference,  BookingStatus status,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  num totalAmount,  List<TicketPass> tickets,  String? bookedAt,  RefundState refund)  $default,) {final _that = this;
 switch (_that) {
 case _BookingSummary():
-return $default(_that.bookingId,_that.reference,_that.status,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.totalAmount,_that.tickets,_that.bookedAt,_that.refund);case _:
+return $default(_that.bookingId,_that.showtimeId,_that.reference,_that.status,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.totalAmount,_that.tickets,_that.bookedAt,_that.refund);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -484,10 +486,10 @@ return $default(_that.bookingId,_that.reference,_that.status,_that.movieTitle,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bookingId,  String reference,  BookingStatus status,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  num totalAmount,  List<TicketPass> tickets,  String? bookedAt,  RefundState refund)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bookingId,  int? showtimeId,  String reference,  BookingStatus status,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  num totalAmount,  List<TicketPass> tickets,  String? bookedAt,  RefundState refund)?  $default,) {final _that = this;
 switch (_that) {
 case _BookingSummary() when $default != null:
-return $default(_that.bookingId,_that.reference,_that.status,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.totalAmount,_that.tickets,_that.bookedAt,_that.refund);case _:
+return $default(_that.bookingId,_that.showtimeId,_that.reference,_that.status,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.totalAmount,_that.tickets,_that.bookedAt,_that.refund);case _:
   return null;
 
 }
@@ -499,10 +501,12 @@ return $default(_that.bookingId,_that.reference,_that.status,_that.movieTitle,_t
 
 
 class _BookingSummary extends BookingSummary {
-  const _BookingSummary({required this.bookingId, this.reference = '', required this.status, required this.movieTitle, required this.hallName, this.showDate, this.showTime, required this.totalAmount, required  List<TicketPass> tickets, this.bookedAt, this.refund = RefundState.none}): _tickets = tickets,super._();
+  const _BookingSummary({required this.bookingId, this.showtimeId, this.reference = '', required this.status, required this.movieTitle, required this.hallName, this.showDate, this.showTime, required this.totalAmount, required  List<TicketPass> tickets, this.bookedAt, this.refund = RefundState.none}): _tickets = tickets,super._();
   
 
 @override final  int bookingId;
+/// The showtime, for the booking capsule's shared element (sprint 16).
+@override final  int? showtimeId;
 /// Empty from a server older than sprint 13.
 @override@JsonKey() final  String reference;
 @override final  BookingStatus status;
@@ -532,18 +536,18 @@ _$BookingSummaryCopyWith<_BookingSummary> get copyWith => __$BookingSummaryCopyW
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookingSummary&&(identical(other.bookingId, bookingId) || other.bookingId == bookingId)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.status, status) || other.status == status)&&(identical(other.movieTitle, movieTitle) || other.movieTitle == movieTitle)&&(identical(other.hallName, hallName) || other.hallName == hallName)&&(identical(other.showDate, showDate) || other.showDate == showDate)&&(identical(other.showTime, showTime) || other.showTime == showTime)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&const DeepCollectionEquality().equals(other.tickets, _tickets)&&(identical(other.bookedAt, bookedAt) || other.bookedAt == bookedAt)&&(identical(other.refund, refund) || other.refund == refund));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookingSummary&&(identical(other.bookingId, bookingId) || other.bookingId == bookingId)&&(identical(other.showtimeId, showtimeId) || other.showtimeId == showtimeId)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.status, status) || other.status == status)&&(identical(other.movieTitle, movieTitle) || other.movieTitle == movieTitle)&&(identical(other.hallName, hallName) || other.hallName == hallName)&&(identical(other.showDate, showDate) || other.showDate == showDate)&&(identical(other.showTime, showTime) || other.showTime == showTime)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&const DeepCollectionEquality().equals(other.tickets, _tickets)&&(identical(other.bookedAt, bookedAt) || other.bookedAt == bookedAt)&&(identical(other.refund, refund) || other.refund == refund));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,bookingId,reference,status,movieTitle,hallName,showDate,showTime,totalAmount,const DeepCollectionEquality().hash(_tickets),bookedAt,refund);
+    return Object.hash(runtimeType,bookingId,showtimeId,reference,status,movieTitle,hallName,showDate,showTime,totalAmount,const DeepCollectionEquality().hash(_tickets),bookedAt,refund);
 }
 
 @override
 String toString() {
-    return 'BookingSummary(bookingId: $bookingId, reference: $reference, status: $status, movieTitle: $movieTitle, hallName: $hallName, showDate: $showDate, showTime: $showTime, totalAmount: $totalAmount, tickets: $tickets, bookedAt: $bookedAt, refund: $refund)';
+    return 'BookingSummary(bookingId: $bookingId, showtimeId: $showtimeId, reference: $reference, status: $status, movieTitle: $movieTitle, hallName: $hallName, showDate: $showDate, showTime: $showTime, totalAmount: $totalAmount, tickets: $tickets, bookedAt: $bookedAt, refund: $refund)';
 }
 
 
@@ -554,7 +558,7 @@ abstract mixin class _$BookingSummaryCopyWith<$Res> implements $BookingSummaryCo
   factory _$BookingSummaryCopyWith(_BookingSummary value, $Res Function(_BookingSummary) _then) = __$BookingSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- int bookingId, String reference, BookingStatus status, String movieTitle, String hallName, String? showDate, String? showTime, num totalAmount, List<TicketPass> tickets, String? bookedAt, RefundState refund
+ int bookingId, int? showtimeId, String reference, BookingStatus status, String movieTitle, String hallName, String? showDate, String? showTime, num totalAmount, List<TicketPass> tickets, String? bookedAt, RefundState refund
 });
 
 
@@ -571,10 +575,11 @@ class __$BookingSummaryCopyWithImpl<$Res>
 
 /// Create a copy of BookingSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? bookingId = null,Object? reference = null,Object? status = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? totalAmount = null,Object? tickets = null,Object? bookedAt = freezed,Object? refund = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? bookingId = null,Object? showtimeId = freezed,Object? reference = null,Object? status = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? totalAmount = null,Object? tickets = null,Object? bookedAt = freezed,Object? refund = null,}) {
   return _then(_BookingSummary(
 bookingId: null == bookingId ? _self.bookingId : bookingId // ignore: cast_nullable_to_non_nullable
-as int,reference: null == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
+as int,showtimeId: freezed == showtimeId ? _self.showtimeId : showtimeId // ignore: cast_nullable_to_non_nullable
+as int?,reference: null == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as BookingStatus,movieTitle: null == movieTitle ? _self.movieTitle : movieTitle // ignore: cast_nullable_to_non_nullable
 as String,hallName: null == hallName ? _self.hallName : hallName // ignore: cast_nullable_to_non_nullable

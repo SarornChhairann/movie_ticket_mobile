@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/core/navigation/shell_tabs.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/core/motion/motion.dart';
 import 'package:movie_ticket_mobile/core/motion/poster_hero.dart';
@@ -72,7 +73,7 @@ void main() {
   late _MockMyBookingsBloc myBookingsBloc;
   late _MockGuestBookingsBloc guestBookingsBloc;
 
-  Future<void> pump(WidgetTester tester, {AuthState auth = const AuthState.guest()}) async {
+  Future<void> pump(WidgetTester tester, {AuthState auth = const AuthState.guest(), ShellTabs? tabs}) async {
     final repository = _MockCatalogRepository();
     when(() => repository.fetchMovies(MovieTab.nowShowing, search: any(named: 'search')))
         .thenAnswer((_) async => const Ok([dune, heat]));
@@ -116,7 +117,7 @@ void main() {
         child: Navigator(
           observers: [recorder],
           onGenerateRoute: (settings) => switch (settings.name) {
-            '/' => MaterialPageRoute<void>(settings: settings, builder: (_) => const ShellPage()),
+            '/' => MaterialPageRoute<void>(settings: settings, builder: (_) => ShellPage(tabs: tabs)),
             // Stand-in login sheet; closing it is a dismiss.
             AppRoutes.login => MaterialPageRoute<AuthGateResult>(
                 settings: settings,
@@ -276,5 +277,21 @@ void main() {
     await tester.tap(find.byKey(const Key('nav.bookings')));
     await tester.pump();
     verify(() => myBookingsBloc.add(any(that: isA<tickets.RefreshRequested>()))).called(2);
+  });
+
+  testWidgets('a ticket landing opens Bookings with the badge (no flight without a source rect)', (tester) async {
+    final tabs = ShellTabs();
+    addTearDown(tabs.dispose);
+    await pump(tester, tabs: tabs);
+
+    tabs.open(ShellTabIndex.bookings);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<NavigationBar>(find.byKey(const Key('shell.nav'))).selectedIndex, ShellTab.bookings.index);
+    expect(find.byKey(const Key('nav.bookings.badge')), findsWidgets);
+
+    await tester.tap(find.byKey(const Key('nav.home')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('nav.bookings.badge')), findsNothing, reason: 'the badge clears on leaving');
   });
 }

@@ -14,8 +14,8 @@ import 'tickets_failure.dart';
 /// could not be reached.
 typedef BookingList = ({List<BookingSummary> bookings, bool offline});
 
-/// A ticket's QR, and whether it is the device copy.
-typedef TicketQr = ({Uint8List png, bool offline});
+/// A ticket's QR, whether it is the device copy, and when that copy was saved.
+typedef TicketQr = ({Uint8List png, bool offline, DateTime? savedAt});
 
 /// Network first. The [BookingCache] is written on every successful read and
 /// read back only when there is no connection (timeout, refused, DNS) — never
@@ -72,6 +72,11 @@ class TicketsRepository {
     return Ok((bookings: _newestFirst(bookings), offline: offline));
   }
 
+  /// The guest's bookings as saved on this phone, without asking the server
+  /// (Home's Up next must not spend lookups on every visit).
+  Future<List<BookingSummary>> savedGuestBookings() async =>
+      [for (final e in await _cache.entries(BookingOwner.guest)) e.booking];
+
   /// Finds a booking by [reference] + [phone] and keeps it on this phone.
   Future<Result<BookingSummary, TicketsFailure>> lookup(String reference, String phone) =>
       _lookup(reference.trim(), phone.trim());
@@ -108,12 +113,12 @@ class TicketsRepository {
     try {
       final png = await _fetchQr(code);
       await _cache.writeQr(code, png);
-      return Ok((png: png, offline: false));
+      return Ok((png: png, offline: false, savedAt: null));
     } on DioException catch (e) {
       final failure = ApiFailure.fromDioException(e);
       if (failure is ApiFailureNetwork) {
         final cached = await _cache.readQr(code);
-        if (cached != null) return Ok((png: cached, offline: true));
+        if (cached != null) return Ok((png: cached, offline: true, savedAt: await _cache.qrSavedAt(code)));
       }
       return Err(TicketsFailure.fromApi(failure));
     }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -6,7 +7,11 @@ import '../motion/poster_hero.dart';
 import '../motion/transitions.dart';
 
 import '../model/booking_summary.dart';
+import '../telemetry/journey_tracker.dart';
+import '../navigation/shell_tabs.dart';
 import '../session/pending_payment_store.dart';
+import '../../features/_gallery/view/funnel_panel.dart';
+import '../../features/_gallery/view/gallery_page.dart';
 import '../../features/auth/view/auth_gate.dart';
 import '../../features/auth/view/blocked_page.dart';
 import '../../features/auth/view/login_page.dart';
@@ -18,7 +23,9 @@ import '../../features/catalog/controller/hall_schedule_bloc.dart' as hall_sched
 import '../../features/catalog/controller/movie_list_bloc.dart';
 import '../../features/catalog/view/hall_schedule_page.dart';
 import '../../features/catalog/view/movie_detail_page.dart';
+import '../../features/checkout/controller/booking_flow_cubit.dart';
 import '../../features/checkout/controller/checkout_bloc.dart';
+import '../../features/checkout/model/checkout_args.dart';
 import '../../features/checkout/controller/payment_resume_bloc.dart';
 import '../../features/checkout/controller/payway_bloc.dart';
 import '../../features/checkout/model/payway.dart';
@@ -46,6 +53,8 @@ import '../../features/tickets/controller/ticket_bloc.dart';
 import '../../features/tickets/view/booking_detail_page.dart';
 import '../../features/tickets/view/booking_lookup_page.dart';
 import '../../features/tickets/view/my_bookings_page.dart';
+import '../../features/tickets/controller/up_next_cubit.dart';
+import '../../features/tickets/view/ticket_wallet_page.dart';
 import '../../features/tickets/view/ticket_qr_page.dart';
 
 abstract final class AppRoutes {
@@ -92,6 +101,9 @@ abstract final class AppRoutes {
   /// Argument: the `TicketPass`.
   static const ticketQr = '/tickets/qr';
 
+  /// Argument: `TicketWalletArgs` — a booking's tickets as flip cards (sprint 18).
+  static const ticketWallet = '/tickets/wallet';
+
   /// Bottom sheet. Argument: the coming-soon `Movie`; pops `true` when subscribed.
   static const reminderSheet = '/reminders/sheet';
   static const profile = '/profile';
@@ -101,6 +113,9 @@ abstract final class AppRoutes {
 
   /// Argument: the [ProfileBloc] of the profile route.
   static const changePassword = '/profile/password';
+
+  /// Debug builds only: the component gallery (sprint 15).
+  static const gallery = '/_gallery';
 }
 
 /// Builds routes and creates each screen's bloc from GetIt, so widgets never
@@ -157,20 +172,38 @@ class AppRouter {
             ..add(hall_schedule.ScheduleRequested(settings.arguments! as int)),
           child: const HallSchedulePage(),
         ),
+      // A booking flow starts here: the flow cubit lives as long as the seat map
+      // and is handed to checkout through its arguments (sprint 16).
       AppRoutes.seatMap => switch (settings.arguments) {
-          final SeatMapArgs args => BlocProvider(
-              create: (_) => _getIt<SeatMapBloc>()..add(LoadRequested(args.showtimeId)),
+          final SeatMapArgs args => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => _getIt<SeatMapBloc>()..add(LoadRequested(args.showtimeId))),
+                BlocProvider(create: (_) => BookingFlowCubit(posterUrl: args.posterUrl, tracker: _getIt())),
+              ],
               child: SeatMapPage(args: args),
             ),
-          final id => BlocProvider(
-              create: (_) => _getIt<SeatMapBloc>()..add(LoadRequested(id! as int)),
+          final id => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => _getIt<SeatMapBloc>()..add(LoadRequested(id! as int))),
+                BlocProvider(create: (_) => BookingFlowCubit(tracker: _getIt())),
+              ],
               child: const SeatMapPage(),
             ),
         },
-      AppRoutes.checkout => BlocProvider(
-          create: (_) => _getIt<CheckoutBloc>()..add(QuoteRequested(settings.arguments! as Hold)),
-          child: const CheckoutPage(),
-        ),
+      AppRoutes.checkout => switch (settings.arguments) {
+          CheckoutArgs(:final hold, :final flow) when flow != null => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => _getIt<CheckoutBloc>()..add(QuoteRequested(hold))),
+                BlocProvider<BookingFlowCubit>.value(value: flow),
+              ],
+              child: const CheckoutPage(),
+            ),
+          final args => BlocProvider(
+              create: (_) => _getIt<CheckoutBloc>()
+                ..add(QuoteRequested(args is CheckoutArgs ? args.hold : args! as Hold)),
+              child: const CheckoutPage(),
+            ),
+        },
       AppRoutes.concessions => BlocProvider.value(
           value: settings.arguments! as CheckoutBloc,
           child: const ConcessionsPage(),
@@ -181,6 +214,7 @@ class AppRouter {
               child: const PaywayPage(),
             ),
         },
+      AppRoutes.gallery when kDebugMode => GalleryPage(extraSections: [FunnelPanel(tracker: _getIt<JourneyTracker>())]),
       AppRoutes.paymentResume => BlocProvider(
           create: (_) =>
               _getIt<PaymentResumeBloc>(param1: settings.arguments! as PendingPayment)..add(const ResumeStarted()),
@@ -190,7 +224,7 @@ class AppRouter {
           create: (_) => _getIt<BookingLookupBloc>(),
           child: const BookingLookupPage(),
         ),
-      AppRoutes.paySuccess => PaySuccessPage(confirmation: settings.arguments! as BookingSummary),
+      AppRoutes.paySuccess => PaySuccessPage(confirmation: settings.arguments! as BookingSummary, tabs: _getIt<ShellTabs>()),
       AppRoutes.myBookings => BlocProvider(
           create: (_) => _getIt<tickets.MyBookingsBloc>()..add(const tickets.LoadRequested()),
           child: const MyBookingsPage(),
@@ -201,9 +235,13 @@ class AppRouter {
               child: BookingDetailPage(bookingId: bookingId),
             ),
         },
+      AppRoutes.ticketWallet => TicketWalletPage(
+          args: settings.arguments! as TicketWalletArgs,
+          qrBloc: () => _getIt<TicketBloc>(),
+        ),
       AppRoutes.ticketQr => switch (settings.arguments! as TicketPass) {
           final ticket => BlocProvider(
-              create: (_) => _getIt<TicketBloc>()..add(QrRequested(ticket.code)),
+              create: (_) => _getIt<TicketBloc>()..add(QrRequested(ticket.code, source: 'success')),
               child: TicketQrPage(ticket: ticket),
             ),
         },
@@ -219,8 +257,10 @@ class AppRouter {
             BlocProvider(create: (_) => _getIt<tickets.MyBookingsBloc>()),
             // The guest Bookings tab: bookings made or found on this phone.
             BlocProvider(create: (_) => _getIt<tickets.GuestBookingsBloc>()),
+            // Home's Up next card; the shell loads it for the current session.
+            BlocProvider(create: (_) => _getIt<UpNextCubit>()),
           ],
-          child: const ShellPage(),
+          child: ShellPage(tabs: _getIt<ShellTabs>()),
         ),
     };
     if (settings.name == AppRoutes.payway) {
@@ -252,7 +292,7 @@ class AppRouter {
         // An outcome, not a place.
         AppRoutes.paySuccess || AppRoutes.paymentResume => RouteMotion.fadeThrough,
         // A closer look at the same ticket.
-        AppRoutes.ticketQr => RouteMotion.sharedAxisY,
+        AppRoutes.ticketQr || AppRoutes.ticketWallet => RouteMotion.sharedAxisY,
         // Steps forward in a sequence or hierarchy.
         _ => RouteMotion.sharedAxisX,
       };

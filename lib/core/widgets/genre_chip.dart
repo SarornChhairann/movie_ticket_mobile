@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Pill filter chip: blue when selected, raised navy otherwise.
+import 'app_chip.dart';
+
+/// Pill filter chip: [AppChip] under its sprint-8 name.
 class GenreChip extends StatelessWidget {
   const GenreChip({super.key, required this.label, required this.selected, required this.onSelected});
 
@@ -9,11 +11,5 @@ class GenreChip extends StatelessWidget {
   final VoidCallback onSelected;
 
   @override
-  Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onSelected(),
-    );
-  }
+  Widget build(BuildContext context) => AppChip(label: label, selected: selected, onSelected: onSelected);
 }

@@ -306,7 +306,7 @@ class _CarouselCard extends StatelessWidget {
                                 Container(
                                   key: Key('carousel.release.${movie.id}'),
                                   padding: const EdgeInsets.symmetric(horizontal: Space.x1, vertical: 2),
-                                  decoration: const ShapeDecoration(shape: StadiumBorder(), color: AppColors.blue),
+                                  decoration: const ShapeDecoration(shape: StadiumBorder(), color: AppColors.actionFill),
                                   child: Text(release, style: textTheme.labelSmall?.copyWith(color: AppColors.white)),
                                 ),
                               const SizedBox(height: Space.x0_5),
@@ -349,7 +349,6 @@ class _CarouselCard extends StatelessWidget {
                           )
                         : FilledButton.tonalIcon(
                             key: Key('carousel.remind.${movie.id}'),
-                            style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
                             onPressed: onRemind,
                             icon: const Icon(Icons.notifications_active_outlined),
                             label: Text('reminders.submit'.tr(context: context)),
@@ -365,7 +364,8 @@ class _CarouselCard extends StatelessWidget {
   }
 }
 
-/// Page dots; the active one stretches to a pill. Each has a 24 dp tap target.
+/// Page dots; the active one stretches to a pill. Each has a 48 dp tap target
+/// (sprint 19) though the dot itself stays small.
 class _Dots extends StatelessWidget {
   const _Dots({required this.count, required this.focused, required this.onTap});
 
@@ -387,9 +387,8 @@ class _Dots extends StatelessWidget {
               key: Key('carousel.dot.$i'),
               behavior: HitTestBehavior.opaque,
               onTap: () => onTap(i),
-              child: SizedBox(
-                width: 24,
-                height: 24,
+              child: SizedBox.square(
+                dimension: Space.minTarget,
                 child: Center(
                   child: AnimatedContainer(
                     duration: context.motion(Motion.medium),

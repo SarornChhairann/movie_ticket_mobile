@@ -32,8 +32,9 @@ class HoldBanner extends StatelessWidget {
             Icon(Icons.timer_outlined, color: scheme.onTertiaryContainer),
             const SizedBox(width: Space.x1),
             Expanded(
+              // Not a live region: its text changes every second. The countdown
+              // speaks at 60 s and 10 s instead (CountdownPill, sprint 19).
               child: Semantics(
-                liveRegion: true,
                 child: Text(
                   message ?? 'seats.holdEnding'.tr(context: context, namedArgs: {'time': mmss(secondsLeft)}),
                   style: TextStyle(color: scheme.onTertiaryContainer),

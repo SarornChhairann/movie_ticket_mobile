@@ -28,6 +28,7 @@ flutter test --plain-name "test name"                          # single test by 
 dart run build_runner build                                    # after editing freezed/json_serializable classes
 flutter test tool/app_icon/generate_app_icons_test.dart        # regenerate all app icons from TicketEmblem
 flutter test tool/app_icon/generate_brand_images_test.dart    # regenerate assets/images (AppImages) + assets/store
+flutter test --update-goldens test/goldens                     # re-record goldens ON PURPOSE, then review the PNG diff
 ```
 
 Never hand-edit `*.freezed.dart` or `*.g.dart`.
@@ -56,6 +57,16 @@ Features: `shell`, `auth`, `profile`, `catalog`, `seats`, `checkout`, `tickets`,
 - **Dio**: single instance, `baseUrl` from `String.fromEnvironment('API_BASE_URL')`. `AuthInterceptor` adds `Authorization: Bearer` when a token exists; on 401 it refreshes once, and if that fails clears the session — no retry loop.
 - **Session**: tokens in secure storage; guests get one UUID `sessionId` reused for seat hold, release, and confirm.
 - **Errors**: branch on HTTP status (400 bad input, 409 conflict) and the `code` field (e.g. `ACCOUNT_BLOCKED`, seat conflict), never on message text. Show the server's message.
+
+## Design system (sprint 15)
+
+- Tokens: `core/theme/` — `AppColors` (incl. semantic `success`/`warning`/`info`, `actionFill` behind white labels, `link` for blue text), `AppText` type scale (`numeric` = tabular figures), `Space`/`Radii`/`Insets`, and `AppTokens` (`context.tokens`: semantic colours, elevation levels 0–3). Every text pair meets WCAG AA (`test/core/theme/contrast_test.dart`).
+- Components: `core/widgets/` — `AppButton` (primary/tonal/ghost/destructive), `AppChip`, `AppListTile`/`PressableInkWell`, `AppSheet`, `AppDialog.confirm`, `StatusChip`, `EmptyState`, `ErrorState`, `InlineBanner`, `CountdownPill`. `PrimaryButton`, `GenreChip`, `EmptyView`, `ErrorView`, `ErrorBanner` are thin aliases. Build new UI from these.
+- Interaction: buttons get the 0.97 press scale from the theme (`pressScaleBuilder`); other tappables use `Pressable`/`AppListTile`/`PressableInkWell`. Haptics only via `AppHaptics` (selection / light / success / warning / error).
+- Routes are `MotionPageRoute`s drawn by `AppPageTransitions` (predictive back on Android 14+); `AppRouter.motionFor` still decides the motion.
+- `test/architecture/no_inline_styles_test.dart` fails on `Duration(milliseconds`, `Color(0x`, `fontSize:`, or `HapticFeedback.` in any `features/**/view` file.
+- Debug builds have a component gallery at `/_gallery` (Account tab → "Component gallery (debug)").
+- Goldens: `test/goldens/` (components + main screens via `test/helpers/screens.dart`). Khmer goldens fall back to a system font, so they are only stable on the platform that recorded them (macOS here).
 
 ## Domain rules the client must respect
 

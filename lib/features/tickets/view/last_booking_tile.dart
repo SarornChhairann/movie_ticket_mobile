@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/router/app_router.dart';
 import '../controller/my_bookings_bloc.dart';
 import 'booking_status_chip.dart';
@@ -16,7 +17,7 @@ class LastBookingTile extends StatelessWidget {
     final state = context.watch<MyBookingsBloc>().state;
     final last = state is MyBookingsReady ? state.bookings.firstOrNull : null;
     if (last == null) return const SizedBox.shrink();
-    return ListTile(
+    return AppListTile(
       key: const Key('loyalty.lastBooking'),
       leading: const Icon(Icons.history),
       title: Text('loyalty.lastBooking'.tr(context: context)),

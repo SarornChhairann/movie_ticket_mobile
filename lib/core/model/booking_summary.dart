@@ -59,6 +59,9 @@ abstract class BookingSummary with _$BookingSummary {
   const factory BookingSummary({
     required int bookingId,
 
+    /// The showtime, for the booking capsule's shared element (sprint 16).
+    int? showtimeId,
+
     /// Empty from a server older than sprint 13.
     @Default('') String reference,
     required BookingStatus status,
@@ -76,6 +79,7 @@ abstract class BookingSummary with _$BookingSummary {
 
   factory BookingSummary.fromDto(BookingDetailDto dto) => BookingSummary(
         bookingId: dto.id,
+        showtimeId: dto.showtime.id,
         reference: dto.reference ?? '',
         status: BookingStatus.parse(dto.status),
         movieTitle: dto.showtime.movieTitle ?? '',

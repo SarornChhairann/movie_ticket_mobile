@@ -35,3 +35,15 @@ class _PressableState extends State<Pressable> {
     );
   }
 }
+
+/// The same press feedback for Material buttons, set once in the theme
+/// (`ButtonStyle.backgroundBuilder`), so every Filled, Outlined, Text, and Icon
+/// button scales on press without each view wrapping it.
+Widget pressScaleBuilder(BuildContext context, Set<WidgetState> states, Widget? child) {
+  return AnimatedScale(
+    scale: states.contains(WidgetState.pressed) ? 0.97 : 1,
+    duration: context.motion(Motion.short),
+    curve: Motion.decelerate,
+    child: child,
+  );
+}

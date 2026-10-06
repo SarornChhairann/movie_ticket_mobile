@@ -12,7 +12,7 @@ import 'model/payway.dart';
 void registerCheckout(GetIt getIt) {
   getIt
     ..registerLazySingleton(() => CheckoutRepository(getIt()))
-    ..registerFactory(() => CheckoutBloc(getIt(), cache: getIt(), holds: getIt()))
+    ..registerFactory(() => CheckoutBloc(getIt(), cache: getIt(), holds: getIt(), tracker: getIt()))
     ..registerFactoryParam<PaywayBloc, PaywayLaunch, void>(
       (launch, _) => PaywayBloc(
         getIt(),

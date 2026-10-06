@@ -2,6 +2,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:movie_ticket_mobile/core/widgets/sticky_summary_bar.dart';
+import 'package:movie_ticket_mobile/core/widgets/booking_progress.dart';
+import 'package:movie_ticket_mobile/core/widgets/booking_capsule.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
 import 'package:movie_ticket_mobile/features/catalog/controller/hall_list_bloc.dart' hide RefreshRequested;
@@ -209,5 +212,19 @@ void main() {
       home(MovieListState.ready(tab: MovieTab.nowShowing, search: '', nowShowing: nowShowing, comingSoon: comingSoon)),
     );
     expect(tester.getSize(find.byKey(const Key('rail.nowShowing'))).height, skeleton.height);
+  });
+
+  testWidgets('booking flow pieces are still: progress, capsule with timer, summary bar', (tester) async {
+    await pumpReduced(
+      tester,
+      Scaffold(
+        body: const Column(children: [
+          BookingProgress(current: FlowStep.pay, snacksSkipped: true),
+          BookingCapsule(showtimeId: 50, title: 'Dune', line: 'Hall 1 · 19:30', seats: ['D1'], secondsLeft: 45),
+        ]),
+        bottomNavigationBar: StickySummaryBar(summary: const Text('2 seats'), actionLabel: 'Pay', onAction: () {}),
+      ),
+    );
+    expectStill(tester, 'Booking flow');
   });
 }

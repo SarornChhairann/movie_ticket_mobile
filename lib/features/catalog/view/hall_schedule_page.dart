@@ -137,6 +137,7 @@ class _MovieTimes extends StatelessWidget {
       AppRoutes.seatMap,
       arguments: SeatMapArgs(
         showtimeId: showing.id,
+        posterUrl: showings.first.posterUrl,
         date: schedule.selectedDate,
         options: [
           for (final s in schedule.showtimes) ShowtimeOption(id: s.id, time: s.time, hallName: schedule.hall.name),

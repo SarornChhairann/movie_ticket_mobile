@@ -83,6 +83,12 @@ class BookingCache {
 
   Future<bool> hasQr(String ticketCode) async => (await _qrFile(ticketCode)).exists();
 
+  /// When the QR for [ticketCode] was saved, or null when it is not on the device.
+  Future<DateTime?> qrSavedAt(String ticketCode) async {
+    final file = await _qrFile(ticketCode);
+    return await file.exists() ? file.lastModified() : null;
+  }
+
   Future<void> writeQr(String ticketCode, Uint8List png) async {
     final file = await _qrFile(ticketCode);
     await file.parent.create(recursive: true);

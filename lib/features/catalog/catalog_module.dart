@@ -11,8 +11,8 @@ void registerCatalog(GetIt getIt) {
   getIt
     ..registerLazySingleton(() => CatalogRepository(getIt()))
     ..registerLazySingleton(() => HallRepository(getIt()))
-    ..registerFactory(() => MovieListBloc(getIt()))
-    ..registerFactory(() => MovieDetailBloc(getIt()))
+    ..registerFactory(() => MovieListBloc(getIt(), tracker: getIt()))
+    ..registerFactory(() => MovieDetailBloc(getIt(), tracker: getIt()))
     ..registerFactory(() => HallListBloc(getIt()))
     ..registerFactory(() => HallScheduleBloc(getIt()));
 }

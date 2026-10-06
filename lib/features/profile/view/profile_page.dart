@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../_gallery/view/gallery_entry.dart';
+import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/network/api_failure.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -76,44 +78,45 @@ class _ProfileBody extends StatelessWidget {
         ),
         const SizedBox(height: Space.x3),
         Card(
-          child: ListTile(
+          child: AppListTile(
             leading: const Icon(Icons.stars_rounded, color: AppColors.blue),
             title: Text('loyalty.points'.tr(context: context)),
             trailing: Text('${user.points}', key: const Key('profile.points'), style: textTheme.titleLarge),
           ),
         ),
         const SizedBox(height: Space.x1),
-        ListTile(
+        AppListTile(
           leading: const Icon(Icons.phone_outlined),
           title: Text('profile.phone'.tr(context: context)),
           subtitle: Text(user.phone?.isNotEmpty == true ? user.phone! : '—'),
         ),
         const LastBookingTile(),
         const Divider(),
-        ListTile(
+        AppListTile(
           key: const Key('profile.myBookings'),
           leading: const Icon(Icons.confirmation_number_outlined),
           title: Text('tickets.title'.tr(context: context)),
           onTap: () => Navigator.of(context).pushNamed(AppRoutes.myBookings),
         ),
-        ListTile(
+        AppListTile(
           leading: const Icon(Icons.edit_outlined),
           title: Text('profile.edit'.tr(context: context)),
           onTap: () => Navigator.of(context).pushNamed(AppRoutes.editProfile, arguments: profileBloc),
         ),
-        ListTile(
+        AppListTile(
           leading: const Icon(Icons.lock_outline),
           title: Text('profile.changePassword'.tr(context: context)),
           onTap: () =>
               Navigator.of(context).pushNamed(AppRoutes.changePassword, arguments: profileBloc),
         ),
-        ListTile(
+        AppListTile(
           key: const Key('profile.language'),
           leading: const Icon(Icons.translate),
           title: Text('shell.language'.tr(context: context)),
           trailing: const LanguageToggle(),
         ),
-        ListTile(
+        const GalleryEntry(),
+        AppListTile(
           leading: const Icon(Icons.logout),
           title: Text('auth.logout'.tr(context: context)),
           onTap: () => context.read<AuthBloc>().add(const LogoutRequested()),

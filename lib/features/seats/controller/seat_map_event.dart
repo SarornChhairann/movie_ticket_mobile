@@ -63,3 +63,28 @@ final class HoldChanged extends SeatMapEvent {
 
   final Hold hold;
 }
+
+/// The app came back to the front: ask the server whether the hold survived.
+final class HoldRecheckRequested extends SeatMapEvent {
+  const HoldRecheckRequested();
+}
+
+/// The "seats released while you were away" banner was acted on.
+final class HoldLostAcknowledged extends SeatMapEvent {
+  const HoldLostAcknowledged();
+}
+
+/// Load the last showtime again after a failure.
+final class RetryRequested extends SeatMapEvent {
+  const RetryRequested();
+}
+
+/// "F7 was just taken": run Best seats again for the whole party.
+final class PickNextBestRequested extends SeatMapEvent {
+  const PickNextBestRequested();
+}
+
+/// The "just taken" banner was closed.
+final class JustTakenDismissed extends SeatMapEvent {
+  const JustTakenDismissed();
+}

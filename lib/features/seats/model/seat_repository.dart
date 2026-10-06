@@ -80,6 +80,19 @@ class SeatRepository {
     }
   }
 
+  /// Seats this session holds right now, or null on failure.
+  Future<Set<int>?> heldByMe(int showtimeId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/seat-holds/state',
+        queryParameters: {'showtimeId': showtimeId},
+      );
+      return HoldStateDto.fromJson(response.data!).heldByMe.toSet();
+    } on DioException {
+      return null;
+    }
+  }
+
   /// Seats other sessions hold right now, or null on failure.
   Future<Set<int>?> heldByOthers(int showtimeId) async {
     try {

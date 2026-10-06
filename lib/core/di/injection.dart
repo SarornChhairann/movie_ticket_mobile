@@ -11,7 +11,10 @@ import '../../features/reminders/reminders_module.dart';
 import '../../features/seats/seats_module.dart';
 import '../../features/shell/shell_module.dart';
 import '../../features/tickets/tickets_module.dart';
+import '../navigation/shell_tabs.dart';
+import '../telemetry/journey_tracker.dart';
 import '../network/auth_interceptor.dart';
+import '../network/connectivity_monitor.dart';
 import '../network/dio_client.dart';
 import '../network/session_header_interceptor.dart';
 import '../session/pending_payment_store.dart';
@@ -29,6 +32,10 @@ void configureDependencies({required String baseUrl, String? restoredSessionId})
     ..registerLazySingleton<FlutterSecureStorage>(() => const FlutterSecureStorage())
     ..registerLazySingleton(() => TokenStore(getIt()))
     ..registerLazySingleton(() => PendingPaymentStore(getIt()))
+    ..registerLazySingleton(ShellTabs.new)
+    ..registerLazySingleton(ConnectivityMonitor.new)
+    // Funnel events (sprint 19); the debug sink until a vendor is chosen (D5).
+    ..registerLazySingleton<JourneyTracker>(DebugJourneyTracker.new)
     ..registerLazySingleton(() => BookingCache(getIt(), getApplicationDocumentsDirectory))
     ..registerLazySingleton(() => SessionIdProvider(restored: restoredSessionId))
     ..registerLazySingleton(() => SessionHeaderInterceptor(getIt()))
@@ -40,6 +47,7 @@ void configureDependencies({required String baseUrl, String? restoredSessionId})
         baseUrl: baseUrl,
         sessionHeaderInterceptor: getIt(),
         authInterceptor: getIt(),
+        connectivityMonitor: getIt(),
       ),
     );
 

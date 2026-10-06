@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/haptics/app_haptics.dart';
+import '../../../core/bloc/debounce.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/motion/crossfade_text.dart';
 import '../../../core/theme/app_colors.dart';
@@ -18,17 +20,45 @@ import '../model/quote.dart';
 /// The food shop over the checkout bloc's menu and cart. Pushed with the
 /// checkout route's bloc, so popping keeps the quantities. Hold expiry and
 /// re-quote errors are handled by the checkout page's listener underneath,
-/// which pops this route too when the hold runs out.
-class ConcessionsPage extends StatefulWidget {
+/// which pops this route too when the hold runs out. Inside a booking flow the
+/// same [ConcessionsBody] is the Snacks step on the checkout route itself.
+class ConcessionsPage extends StatelessWidget {
   const ConcessionsPage({super.key});
 
-  static const searchDebounce = Duration(milliseconds: 200);
+  static const searchDebounce = Debounce.search;
 
   @override
-  State<ConcessionsPage> createState() => _ConcessionsPageState();
+  Widget build(BuildContext context) {
+    return BlocBuilder<CheckoutBloc, CheckoutState>(
+      builder: (context, state) => Scaffold(
+        appBar: AppBar(
+          title: Text('checkout.foodTitle'.tr(context: context)),
+          actions: [
+            if (state is CheckoutReady && state.secondsLeft != null)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: Space.x2),
+                child: Center(child: HoldLabel(secondsLeft: state.secondsLeft!, textKey: const Key('concessions.countdown'))),
+              ),
+          ],
+        ),
+        body: state is CheckoutReady ? ConcessionsBody(state: state) : const LoadingView(),
+        bottomNavigationBar: state is CheckoutReady ? _DoneBar(state: state) : null,
+      ),
+    );
+  }
 }
 
-class _ConcessionsPageState extends State<ConcessionsPage> {
+/// Search, category tabs, and the food grid for [state]'s menu and cart.
+class ConcessionsBody extends StatefulWidget {
+  const ConcessionsBody({super.key, required this.state});
+
+  final CheckoutReady state;
+
+  @override
+  State<ConcessionsBody> createState() => _ConcessionsBodyState();
+}
+
+class _ConcessionsBodyState extends State<ConcessionsBody> {
   final _search = TextEditingController();
   Timer? _debounce;
   String _query = '';
@@ -50,25 +80,7 @@ class _ConcessionsPageState extends State<ConcessionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CheckoutBloc, CheckoutState>(
-      builder: (context, state) => Scaffold(
-        appBar: AppBar(
-          title: Text('checkout.foodTitle'.tr(context: context)),
-          actions: [
-            if (state is CheckoutReady && state.secondsLeft != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: Space.x2),
-                child: Center(child: HoldLabel(secondsLeft: state.secondsLeft!, textKey: const Key('concessions.countdown'))),
-              ),
-          ],
-        ),
-        body: state is CheckoutReady ? _body(context, state) : const LoadingView(),
-        bottomNavigationBar: state is CheckoutReady ? _DoneBar(state: state) : null,
-      ),
-    );
-  }
-
-  Widget _body(BuildContext context, CheckoutReady state) {
+    final state = widget.state;
     final menu = state.quote.foodItems;
     final results = searchFood(menu, _query);
     // A search miss keeps the tab row of the whole menu.
@@ -194,7 +206,10 @@ class _FoodStepper extends StatelessWidget {
     if (quantity == 0) {
       return FilledButton(
         key: Key('food.${item.id}.add'),
-        onPressed: () => bloc.add(FoodChanged(item.id, 1)),
+        onPressed: () {
+            AppHaptics.selection();
+            bloc.add(FoodChanged(item.id, 1));
+          },
         child: Text('checkout.foodAdd'.tr(context: context)),
       );
     }
@@ -205,13 +220,19 @@ class _FoodStepper extends StatelessWidget {
         IconButton.filledTonal(
           key: Key('food.${item.id}.minus'),
           icon: const Icon(Icons.remove),
-          onPressed: () => bloc.add(FoodChanged(item.id, quantity - 1)),
+          onPressed: () {
+            AppHaptics.selection();
+            bloc.add(FoodChanged(item.id, quantity - 1));
+          },
         ),
         Text('$quantity', key: Key('food.${item.id}.qty'), style: Theme.of(context).textTheme.titleMedium),
         IconButton.filled(
           key: Key('food.${item.id}.plus'),
           icon: const Icon(Icons.add),
-          onPressed: atMax ? null : () => bloc.add(FoodChanged(item.id, quantity + 1)),
+          onPressed: atMax ? null : () {
+            AppHaptics.selection();
+            bloc.add(FoodChanged(item.id, quantity + 1));
+          },
         ),
       ],
     );

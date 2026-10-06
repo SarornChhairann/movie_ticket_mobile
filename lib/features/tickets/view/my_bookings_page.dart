@@ -2,13 +2,16 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/format/cinema_clock.dart';
+import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/model/booking_summary.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/spacing.dart';
-import '../../../core/widgets/empty_view.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/skeleton.dart';
+import '../model/ticket_wallet.dart';
 import '../controller/my_bookings_bloc.dart';
 import '../model/tickets_failure.dart';
 import 'booking_status_chip.dart';
@@ -46,10 +49,16 @@ class MyBookingsEffectListener extends StatelessWidget {
 /// The account's bookings, or — with a [GuestBookingsBloc] above it — the bookings
 /// a guest made or found on this phone, with **Find my booking** and sign-in.
 class MyBookingsPage extends StatelessWidget {
-  const MyBookingsPage({super.key, this.onSignIn});
+  const MyBookingsPage({super.key, this.onSignIn, this.onBrowse, this.clock = CinemaClock.now});
 
   /// Guests only: opens sign-in for the account's bookings.
   final VoidCallback? onSignIn;
+
+  /// The empty state's **Browse movies** (the shell switches to Explore).
+  final VoidCallback? onBrowse;
+
+  /// Cinema wall clock, for Upcoming vs Past.
+  final DateTime Function() clock;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +79,7 @@ class MyBookingsPage extends StatelessWidget {
                 children: [
                   if (offline) const OfflineNote(),
                   if (guest) _GuestHeader(onSignIn: onSignIn),
-                  Expanded(child: _BookingList(bookings: bookings, guest: guest)),
+                  Expanded(child: _BookingList(bookings: bookings, guest: guest, now: clock(), onBrowse: onBrowse)),
                 ],
               ),
             MyBookingsFailure(:final failure) => ErrorView(
@@ -131,11 +140,14 @@ class _GuestHeader extends StatelessWidget {
   }
 }
 
+/// Upcoming (soonest first) and Past (latest first), sprint 18.
 class _BookingList extends StatelessWidget {
-  const _BookingList({required this.bookings, required this.guest});
+  const _BookingList({required this.bookings, required this.guest, required this.now, this.onBrowse});
 
   final List<BookingSummary> bookings;
   final bool guest;
+  final DateTime now;
+  final VoidCallback? onBrowse;
 
   Future<void> _refresh(BuildContext context) {
     final bloc = context.read<MyBookingsBloc>()..add(const RefreshRequested());
@@ -152,32 +164,66 @@ class _BookingList extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: Space.x6),
-                EmptyView(messageKey: guest ? 'tickets.guestEmpty' : 'tickets.empty'),
+                EmptyState(
+                  messageKey: guest ? 'tickets.guestEmpty' : 'tickets.empty',
+                  icon: Icons.local_activity_outlined,
+                  actionLabel: onBrowse == null ? null : 'bookings.browse'.tr(context: context),
+                  onAction: onBrowse,
+                ),
               ],
             )
-          : ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(Space.x2),
-              itemCount: bookings.length,
-              separatorBuilder: (_, _) => const SizedBox(height: Space.x1),
-              itemBuilder: (context, i) => guest
-                  // Only takes it off this phone; the booking itself is unchanged.
-                  ? Dismissible(
-                      key: Key('forget.${bookings[i].bookingId}'),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: Space.x3),
-                        color: Theme.of(context).colorScheme.errorContainer,
-                        child: Text('tickets.forget'.tr(context: context)),
-                      ),
-                      onDismissed: (_) => context.read<MyBookingsBloc>().add(ForgetRequested(bookings[i].bookingId)),
-                      child: _BookingCard(booking: bookings[i]),
-                    )
-                  : _BookingCard(booking: bookings[i]),
-            ),
+          : _grouped(context),
     );
   }
+
+  Widget _grouped(BuildContext context) {
+    final (:upcoming, :past) = groupBookings(bookings, now);
+    final rows = <Widget>[
+      if (upcoming.isNotEmpty) _SectionHeader(key: const Key('bookings.upcoming'), labelKey: 'bookings.upcoming'),
+      for (final b in upcoming) _row(context, b),
+      if (past.isNotEmpty) _SectionHeader(key: const Key('bookings.past'), labelKey: 'bookings.past'),
+      for (final b in past) _row(context, b),
+    ];
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(Space.x2),
+      itemCount: rows.length,
+      separatorBuilder: (_, _) => const SizedBox(height: Space.x1),
+      itemBuilder: (context, i) => rows[i],
+    );
+  }
+
+  Widget _row(BuildContext context, BookingSummary booking) {
+    if (!guest) return _BookingCard(booking: booking);
+    // Only takes it off this phone; the booking itself is unchanged.
+    return Dismissible(
+      key: Key('forget.${booking.bookingId}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: Space.x3),
+        color: Theme.of(context).colorScheme.errorContainer,
+        child: Text('tickets.forget'.tr(context: context)),
+      ),
+      onDismissed: (_) => context.read<MyBookingsBloc>().add(ForgetRequested(booking.bookingId)),
+      child: _BookingCard(booking: booking),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({super.key, required this.labelKey});
+
+  final String labelKey;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: Space.x1),
+        child: Semantics(
+          header: true,
+          child: Text(labelKey.tr(context: context), style: Theme.of(context).textTheme.titleSmall),
+        ),
+      );
 }
 
 class _BookingCard extends StatelessWidget {
@@ -191,7 +237,7 @@ class _BookingCard extends StatelessWidget {
     return Card(
       key: Key('booking.${booking.bookingId}'),
       margin: EdgeInsets.zero,
-      child: InkWell(
+      child: PressableInkWell(
         onTap: () => Navigator.of(context).pushNamed(
           AppRoutes.bookingDetail,
           arguments: (context.read<MyBookingsBloc>(), booking.bookingId),

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import 'auth_interceptor.dart';
+import 'connectivity_monitor.dart';
 import 'session_header_interceptor.dart';
 
 BaseOptions _baseOptions(String baseUrl) => BaseOptions(
@@ -17,11 +18,13 @@ Dio createDio({
   required String baseUrl,
   required SessionHeaderInterceptor sessionHeaderInterceptor,
   required AuthInterceptor authInterceptor,
+  ConnectivityMonitor? connectivityMonitor,
 }) {
   final dio = Dio(_baseOptions(baseUrl));
   dio.interceptors.addAll([
     sessionHeaderInterceptor,
     authInterceptor,
+    ?connectivityMonitor,
     // Method, URL, and status only: headers and bodies carry tokens and passwords.
     if (kDebugMode)
       LogInterceptor(

@@ -24,7 +24,7 @@ Widget localizedApp(Widget home, {Locale locale = AppLocales.en, RouteFactory? o
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,
           locale: context.locale,
-          theme: AppTheme.dark,
+          theme: AppTheme.forLocale(context.locale),
           home: home,
           onGenerateRoute: onGenerateRoute,
         ),

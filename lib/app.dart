@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/router/app_router.dart';
+import 'core/widgets/connectivity_banner.dart';
 import 'core/session/pending_payment_store.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/controller/auth_bloc.dart';
@@ -17,6 +19,7 @@ class App extends StatefulWidget {
     required this.authBloc,
     this.splashMinDisplay = SplashPage.minDisplay,
     this.pendingPayment,
+    this.offline,
   });
 
   final AppRouter router;
@@ -27,6 +30,9 @@ class App extends StatefulWidget {
 
   /// An ABA payment the previous run left open; its resume screen opens over Home once.
   final PendingPayment? pendingPayment;
+
+  /// True after repeated network failures: shows the offline banner app-wide.
+  final ValueListenable<bool>? offline;
 
   @override
   State<App> createState() => _AppState();
@@ -84,10 +90,10 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
   /// The screen stack root for each session state. Signed in or not, the app
   /// opens on Home; login is pushed on demand (`requireSignIn`).
   static String _rootFor(AuthState state) => switch (state) {
-        AuthUnknownState() => AppRoutes.splash,
-        AuthGuest() || AuthAuthenticated() => AppRoutes.shell,
-        AuthBlockedState() => AppRoutes.blocked,
-      };
+    AuthUnknownState() => AppRoutes.splash,
+    AuthGuest() || AuthAuthenticated() => AppRoutes.shell,
+    AuthBlockedState() => AppRoutes.blocked,
+  };
 
   /// Logout or an expired session: drop every signed-in screen back to Home.
   static bool _signedOut(AuthState previous, AuthState current) =>
@@ -124,7 +130,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
       child: MaterialApp(
         navigatorKey: _navigatorKey,
         onGenerateTitle: (context) => 'app.title'.tr(context: context),
-        theme: AppTheme.dark,
+        theme: AppTheme.forLocale(context.locale),
         themeMode: ThemeMode.dark,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
@@ -137,10 +143,13 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
           // the user continues the action that asked for it.
           listenWhen: (previous, current) {
             _previous = previous;
-            return _rootFor(previous) != _rootFor(current) || _signedOut(previous, current);
+            return _rootFor(previous) != _rootFor(current) ||
+                _signedOut(previous, current);
           },
           listener: (context, current) => _onRootChange(_previous, current),
-          child: child!,
+          child: widget.offline == null
+              ? child!
+              : ConnectivityBanner(offline: widget.offline!, child: child!),
         ),
       ),
     );

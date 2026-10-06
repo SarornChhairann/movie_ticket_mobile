@@ -16,7 +16,7 @@ class ReminderSheet extends StatelessWidget {
   final Movie movie;
 
   /// How long the success message stays before the sheet closes.
-  static const confirmHold = Duration(milliseconds: 900);
+  static const confirmHold = Motion.confirmHold;
 
   @override
   Widget build(BuildContext context) {

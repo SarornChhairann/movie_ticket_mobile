@@ -15,8 +15,9 @@ class HomeSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, Space.x2, Space.x1, Space.x1),
+      // 48 dp tall so "See all" is a full touch target (sprint 19).
       child: SizedBox(
-        height: 40,
+        height: Space.minTarget,
         child: Row(
           children: [
             Expanded(child: Text(titleKey.tr(context: context), style: Theme.of(context).textTheme.titleMedium)),

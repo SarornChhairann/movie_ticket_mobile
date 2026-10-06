@@ -15,6 +15,28 @@ abstract final class Motion {
   /// Hero / container transform, carousel paging.
   static const extraLong = Duration(milliseconds: 500);
 
+  /// Fade-through routes run this much longer than [medium] so the outgoing page
+  /// has gone before the new one scales in.
+  static const fadeThroughExtra = Duration(milliseconds: 50);
+
+  /// One pulse of an attention cue (countdown at 60 s, a seat just taken).
+  static const pulse = Duration(milliseconds: 600);
+
+  /// The breathing glow on selected seats (one cycle).
+  static const seatGlow = Duration(milliseconds: 1400);
+
+  /// The ticket-issued animation on the success screen.
+  static const ticketIssue = Duration(milliseconds: 900);
+
+  /// How long a confirmation stays before a sheet closes itself.
+  static const confirmHold = Duration(milliseconds: 900);
+
+  /// Splash: the logo draws in, then holds; the loading bar waits; the glow breathes.
+  static const splashIntro = Duration(milliseconds: 1400);
+  static const splashMinDisplay = Duration(milliseconds: 2000);
+  static const splashProgressDelay = Duration(milliseconds: 2400);
+  static const splashGlow = Duration(milliseconds: 2600);
+
   /// Route enter and hero.
   static const Curve emphasized = Curves.easeInOutCubicEmphasized;
 

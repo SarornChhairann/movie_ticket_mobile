@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/haptics/app_haptics.dart';
+import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/motion/crossfade_text.dart';
 import '../../../core/theme/app_colors.dart';
@@ -60,7 +62,7 @@ class PaySheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(Radii.card),
                     side: const BorderSide(color: AppColors.blue),
                   ),
-                  child: ListTile(
+                  child: AppListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: Space.x2, vertical: Space.x0_5),
                     leading: const KhqrMark(),
                     title: Text('pay.abaKhqr.title'.tr(context: context)),
@@ -75,7 +77,10 @@ class PaySheet extends StatelessWidget {
                   loading: state.submitting,
                   onPressed: state.submitting || !state.canPay
                       ? null
-                      : () => context.read<CheckoutBloc>().add(const PaymentStartRequested()),
+                      : () {
+                          AppHaptics.light();
+                          context.read<CheckoutBloc>().add(const PaymentStartRequested());
+                        },
                 ),
               ],
             ),
@@ -90,7 +95,6 @@ class PaySheet extends StatelessWidget {
 class KhqrMark extends StatelessWidget {
   const KhqrMark({super.key});
 
-  static const _khqrRed = Color(0xFFE1232E);
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +102,14 @@ class KhqrMark extends StatelessWidget {
       width: Space.x6,
       height: Space.x4,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: _khqrRed, borderRadius: BorderRadius.circular(Space.x0_5)),
-      child: const Text(
+      decoration: BoxDecoration(color: AppColors.khqrRed, borderRadius: BorderRadius.circular(Space.x0_5)),
+      child: Text(
         'KHQR',
-        style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w700, fontSize: 12, letterSpacing: 0.5),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
       ),
     );
   }

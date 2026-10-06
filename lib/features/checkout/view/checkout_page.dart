@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/haptics/app_haptics.dart';
+import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/widgets/hold_banner.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/motion/crossfade_text.dart';
@@ -11,12 +13,25 @@ import '../../../core/theme/spacing.dart';
 import '../../../core/validation/validators.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
+import '../../../core/motion/motion.dart';
+import '../../../core/widgets/booking_progress.dart';
+import '../../../core/widgets/sticky_summary_bar.dart';
+import '../../../core/widgets/app_button.dart';
+import '../controller/booking_flow_cubit.dart';
 import '../controller/checkout_bloc.dart';
 import '../model/checkout_failure.dart';
 import '../model/payway.dart';
 import '../model/quote.dart';
 import 'concessions_page.dart';
 import 'pay_sheet.dart';
+import 'flow_header.dart';
+
+part 'checkout_body.dart';
+part 'food_card.dart';
+part 'promo_field.dart';
+part 'checkout_lines.dart';
+part 'guest_form.dart';
+part 'checkout_bottom_bar.dart';
 
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({super.key});
@@ -78,6 +93,27 @@ class CheckoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final flow = maybeFlow(context);
+    final consumer = _consumer(context);
+    if (flow == null) return consumer;
+    // Feed the booking capsule and pick the first step once the quote is in.
+    return BlocListener<CheckoutBloc, CheckoutState>(
+      listenWhen: (previous, current) => current is CheckoutReady,
+      listener: (context, state) {
+        final s = state as CheckoutReady;
+        flow
+          ..quoteChanged(
+            foodCount: s.food.values.fold(0, (sum, q) => sum + q),
+            totalAmount: s.quote.totalAmount,
+            holdExpiresAt: s.hold.expiresAt,
+          )
+          ..enteredCheckout(hasMenu: s.quote.foodItems.isNotEmpty);
+      },
+      child: consumer,
+    );
+  }
+
+  Widget _consumer(BuildContext context) {
     return BlocConsumer<CheckoutBloc, CheckoutState>(
       listenWhen: (previous, current) =>
           current is CheckoutSuccess ||
@@ -91,6 +127,7 @@ class CheckoutPage extends StatelessWidget {
       listener: (context, state) {
         final messenger = ScaffoldMessenger.of(context);
         if (state is CheckoutSuccess) {
+          maybeFlow(context)?.paid();
           // Replace the booking flow with the success screen; back goes home.
           Navigator.of(context).pushNamedAndRemoveUntil(
             AppRoutes.paySuccess,
@@ -108,6 +145,7 @@ class CheckoutPage extends StatelessWidget {
         if (state is CheckoutReady &&
             state.effect == CheckoutEffect.paymentFailed) {
           Navigator.of(context).popUntil((route) => route is PageRoute);
+          AppHaptics.error();
           _showPaymentFailed(context, state);
           return;
         }
@@ -121,6 +159,7 @@ class CheckoutPage extends StatelessWidget {
           return;
         }
         if (state is CheckoutReady && state.effect == CheckoutEffect.holdExtended) {
+          AppHaptics.success();
           messenger.showSnackBar(SnackBar(content: Text('seats.extendDone'.tr(context: context))));
           return;
         }
@@ -135,13 +174,60 @@ class CheckoutPage extends StatelessWidget {
           ),
         );
       },
-      builder: (context, state) => Scaffold(
-        appBar: AppBar(title: Text('checkout.title'.tr(context: context))),
+      builder: (context, state) {
+        final flow = maybeFlow(context);
+        if (flow == null) return _scaffold(context, state, FlowStep.pay, inFlow: false);
+        return BlocBuilder<BookingFlowCubit, BookingFlowState>(
+          bloc: flow,
+          buildWhen: (a, b) => a.step != b.step || a.snacksSkipped != b.snacksSkipped,
+          builder: (context, f) => _scaffold(context, state, f.step, inFlow: true),
+        );
+      },
+    );
+  }
+
+  /// One route, two steps inside a booking flow: Snacks (the food grid) and Pay
+  /// (the quote). Back on Pay returns to Snacks when there is a menu; back on
+  /// Snacks returns to the seat map, which keeps the hold (sprint 16).
+  Widget _scaffold(BuildContext context, CheckoutState state, FlowStep step, {required bool inFlow}) {
+    final ready = state is CheckoutReady ? state : null;
+    final snacks = inFlow && step == FlowStep.snacks && ready != null;
+    final hasMenu = ready != null && ready.quote.foodItems.isNotEmpty;
+    final flow = maybeFlow(context);
+    void onStepTap(FlowStep target) {
+      if (target == FlowStep.seats) {
+        Navigator.of(context).maybePop();
+      } else if (target == FlowStep.snacks) {
+        flow?.stepTo(FlowStep.snacks);
+      }
+    }
+
+    return PopScope<Object?>(
+      canPop: !inFlow || snacks || !hasMenu,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) flow?.stepTo(FlowStep.snacks);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text((snacks ? 'checkout.foodTitle' : 'checkout.title').tr(context: context)),
+        ),
         body: switch (state) {
           CheckoutInitial() ||
           CheckoutLoading() ||
           CheckoutSuccess() => const LoadingView(),
-          CheckoutReady() => _ReadyBody(state: state),
+          CheckoutReady() => Column(
+              children: [
+                FlowHeader(secondsLeft: state.secondsLeft, onStepTap: onStepTap),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: context.motion(Motion.long),
+                    child: snacks
+                        ? KeyedSubtree(key: const ValueKey('snacks'), child: ConcessionsBody(state: state))
+                        : KeyedSubtree(key: const ValueKey('pay'), child: _ReadyBody(state: state, inFlow: inFlow)),
+                  ),
+                ),
+              ],
+            ),
           CheckoutFailureState(:final hold, :final failure) => ErrorView(
             message: switch (failure) {
               CheckoutPromoInvalid(:final message) ||
@@ -158,478 +244,11 @@ class CheckoutPage extends StatelessWidget {
                 context.read<CheckoutBloc>().add(QuoteRequested(hold)),
           ),
         },
-        bottomNavigationBar: state is CheckoutReady
-            ? _PayBar(state: state)
-            : null,
-      ),
-    );
-  }
-}
-
-class _ReadyBody extends StatelessWidget {
-  const _ReadyBody({required this.state});
-
-  final CheckoutReady state;
-
-  @override
-  Widget build(BuildContext context) {
-    final quote = state.quote;
-    final textTheme = Theme.of(context).textTheme;
-    return Stack(
-      children: [
-        ListView(
-          padding: const EdgeInsets.all(Space.x2),
-          children: [
-            Text(quote.movieTitle, style: textTheme.titleLarge),
-            Text(
-              context.showLine(
-                hallName: quote.hallName,
-                showDate: quote.showDate,
-                showTime: quote.showTime,
-              ),
-              style: textTheme.bodySmall,
-            ),
-            const SizedBox(height: Space.x1),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    quote.seatCodes.join(', '),
-                    key: const Key('checkout.seats'),
-                  ),
-                ),
-                TextButton(
-                  key: const Key('checkout.changeSeats'),
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('checkout.changeSeats'.tr(context: context)),
-                ),
-              ],
-            ),
-            if (state.secondsLeft != null)
-              HoldLabel(
-                secondsLeft: state.secondsLeft!,
-                textKey: const Key('checkout.countdown'),
-              ),
-            // Under PayWay's 3-minute minimum Pay is off: extend once, or start over.
-            if (state.holdTooShort && state.holdAlive) ...[
-              const SizedBox(height: Space.x1),
-              HoldBanner(
-                secondsLeft: state.secondsLeft!,
-                extending: state.extending,
-                message: (state.hold.extended ? 'checkout.holdTooShort' : 'checkout.holdExtendToPay')
-                    .tr(context: context),
-                onExtend: state.canExtend
-                    ? () => context.read<CheckoutBloc>().add(const CheckoutHoldExtendRequested())
-                    : null,
-              ),
-            ],
-            if (quote.foodItems.isNotEmpty) ...[
-              const SizedBox(height: Space.x2),
-              _FoodCard(state: state),
-            ],
-            const Divider(height: Space.x4),
-            _PromoField(applied: quote.promoCode, busy: state.quoting),
-            const Divider(height: Space.x4),
-            _PriceLines(quote: quote),
-            if (state.requiresGuest) ...[
-              const Divider(height: Space.x4),
-              _GuestForm(guest: state.guest),
-            ],
-            const SizedBox(height: Space.x4),
-          ],
-        ),
-        if (state.quoting)
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: LinearProgressIndicator(),
-          ),
-      ],
-    );
-  }
-}
-
-/// The food section: a preview row when the cart is empty, the chosen lines
-/// otherwise. The whole card opens the concessions page on the same bloc.
-class _FoodCard extends StatelessWidget {
-  const _FoodCard({required this.state});
-
-  final CheckoutReady state;
-
-  static const _previewCount = 4;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final menu = state.quote.foodItems;
-    final chosen = [
-      for (final item in menu)
-        if ((state.food[item.id] ?? 0) > 0) item,
-    ];
-    final units = state.food.values.fold(0, (sum, q) => sum + q);
-    void open() => Navigator.of(
-      context,
-    ).pushNamed(AppRoutes.concessions, arguments: context.read<CheckoutBloc>());
-    return Material(
-      key: const Key('checkout.foodCard'),
-      color: AppColors.navyRaised,
-      borderRadius: BorderRadius.circular(Radii.card),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: open,
-        child: Padding(
-          padding: const EdgeInsets.all(Space.x2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'checkout.foodTitle'.tr(context: context),
-                          style: textTheme.titleMedium,
-                        ),
-                        Text(
-                          chosen.isEmpty
-                              ? 'checkout.foodHint'.tr(context: context)
-                              : 'checkout.foodCount'.plural(
-                                  units,
-                                  context: context,
-                                ),
-                          style: textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton(
-                    key: const Key('checkout.foodAction'),
-                    onPressed: open,
-                    child: Text(
-                      (chosen.isEmpty
-                              ? 'checkout.foodBrowse'
-                              : 'checkout.foodEdit')
-                          .tr(context: context),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: Space.x1),
-              if (chosen.isEmpty)
-                Row(
-                  children: [
-                    for (final item in menu.take(_previewCount))
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          end: Space.x1,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(Space.x1),
-                          child: SizedBox.square(
-                            dimension: Space.x6 + Space.x1,
-                            child: FoodImage(url: item.imageUrl),
-                          ),
-                        ),
-                      ),
-                  ],
-                )
-              else
-                for (final item in chosen)
-                  _ChosenLine(
-                    item: item,
-                    quantity: state.food[item.id]!,
-                    quote: state.quote,
-                  ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChosenLine extends StatelessWidget {
-  const _ChosenLine({
-    required this.item,
-    required this.quantity,
-    required this.quote,
-  });
-
-  final FoodItem item;
-  final int quantity;
-  final Quote quote;
-
-  @override
-  Widget build(BuildContext context) {
-    // The server's line; missing while a re-quote for a new item is pending.
-    final line = quote.foodLines
-        .where((l) => l.foodItemId == item.id)
-        .firstOrNull;
-    return Padding(
-      key: Key('food.${item.id}.line'),
-      padding: const EdgeInsets.symmetric(vertical: Space.x0_5),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(Space.x0_5),
-            child: SizedBox.square(
-              dimension: Space.x4,
-              child: FoodImage(url: item.imageUrl),
-            ),
-          ),
-          const SizedBox(width: Space.x1),
-          Expanded(
-            child: Text(
-              item.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Text('×$quantity', key: Key('food.${item.id}.lineQty')),
-          const SizedBox(width: Space.x2),
-          if (line != null) CrossfadeText(context.money(line.lineTotal)),
-        ],
-      ),
-    );
-  }
-}
-
-class _PromoField extends StatefulWidget {
-  const _PromoField({required this.applied, required this.busy});
-
-  final String? applied;
-  final bool busy;
-
-  @override
-  State<_PromoField> createState() => _PromoFieldState();
-}
-
-class _PromoFieldState extends State<_PromoField> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bloc = context.read<CheckoutBloc>();
-    final applied = widget.applied;
-    if (applied != null) {
-      return Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: InputChip(
-          key: const Key('checkout.promoApplied'),
-          avatar: const Icon(Icons.local_offer_outlined, size: 18),
-          label: Text(applied),
-          onDeleted: widget.busy ? null : () => bloc.add(const PromoCleared()),
-        ),
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            key: const Key('checkout.promo'),
-            controller: _controller,
-            textCapitalization: TextCapitalization.characters,
-            decoration: InputDecoration(
-              labelText: 'checkout.promo'.tr(context: context),
-              isDense: true,
-            ),
-          ),
-        ),
-        const SizedBox(width: Space.x1),
-        OutlinedButton(
-          key: const Key('checkout.applyPromo'),
-          onPressed: widget.busy
-              ? null
-              : () {
-                  if (_controller.text.trim().isNotEmpty)
-                    bloc.add(PromoApplied(_controller.text));
-                },
-          child: Text('checkout.applyPromo'.tr(context: context)),
-        ),
-      ],
-    );
-  }
-}
-
-/// The server's lines, in analytics 3.4 order. Zero discount/surcharge lines are hidden.
-class _PriceLines extends StatelessWidget {
-  const _PriceLines({required this.quote});
-
-  final Quote quote;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget line(
-      String key,
-      num amount, {
-      bool negative = false,
-      bool bold = false,
-    }) {
-      final style = bold ? Theme.of(context).textTheme.titleMedium : null;
-      return Padding(
-        key: Key('line.$key'),
-        padding: const EdgeInsets.symmetric(vertical: Space.x0_5),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text('checkout.$key'.tr(context: context), style: style),
-            ),
-            CrossfadeText(
-              '${negative ? '−' : ''}${context.money(amount)}',
-              style: style,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        line('base', quote.baseAmount),
-        if (quote.morningDiscount != 0)
-          line('morningDiscount', quote.morningDiscount, negative: true),
-        if (quote.weekendSurcharge != 0)
-          line('weekendSurcharge', quote.weekendSurcharge),
-        line('subtotal', quote.subtotal),
-        if (quote.discountAmount != 0)
-          line('promoDiscount', quote.discountAmount, negative: true),
-        line('tax', quote.taxAmount),
-        line('serviceFee', quote.serviceFee),
-        if (quote.foodTotal != 0) line('food', quote.foodTotal),
-        const Divider(),
-        line('total', quote.totalAmount, bold: true),
-      ],
-    );
-  }
-}
-
-class _GuestForm extends StatelessWidget {
-  const _GuestForm({required this.guest});
-
-  final GuestInfo guest;
-
-  @override
-  Widget build(BuildContext context) {
-    final bloc = context.read<CheckoutBloc>();
-    String? err(String? key) => key?.tr(context: context);
-    return Column(
-      spacing: 10,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'checkout.guestTitle'.tr(context: context),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        TextFormField(
-          key: const Key('guest.name'),
-          initialValue: guest.name,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            labelText: 'checkout.guestName'.tr(context: context),
-          ),
-          validator: (v) => err(Validators.required(v)),
-          onChanged: (v) =>
-              bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(name: v))),
-        ),
-        TextFormField(
-          key: const Key('guest.phone'),
-          initialValue: guest.phone,
-          keyboardType: TextInputType.phone,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            labelText: 'checkout.guestPhone'.tr(context: context),
-          ),
-          validator: (v) => err(Validators.required(v)),
-          onChanged: (v) =>
-              bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(phone: v))),
-        ),
-        TextFormField(
-          key: const Key('guest.email'),
-          initialValue: guest.email,
-          keyboardType: TextInputType.emailAddress,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            labelText: 'checkout.guestEmail'.tr(context: context),
-          ),
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? null : err(Validators.email(v)),
-          onChanged: (v) =>
-              bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(email: v))),
-        ),
-      ],
-    );
-  }
-}
-
-extension on CheckoutBloc {
-  /// The latest guest info, so fast typing in one field never drops another's.
-  GuestInfo guestOr(GuestInfo fallback) {
-    final s = state;
-    return s is CheckoutReady ? s.guest : fallback;
-  }
-}
-
-class _PayBar extends StatelessWidget {
-  const _PayBar({required this.state});
-
-  final CheckoutReady state;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 8,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(Space.x2),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'checkout.total'.tr(context: context),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    CrossfadeText(
-                      context.money(state.quote.totalAmount),
-                      textKey: const Key('checkout.stickyTotal'),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ],
-                ),
-              ),
-              FilledButton(
-                key: const Key('checkout.pay'),
-                onPressed: state.canPay ? () => PaySheet.show(context) : null,
-                child: state.submitting
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox.square(
-                            dimension: Space.x2,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          const SizedBox(width: Space.x1),
-                          Text('pay.processing'.tr(context: context)),
-                        ],
-                      )
-                    : Text('checkout.pay'.tr(context: context)),
-              ),
-            ],
-          ),
-        ),
+        bottomNavigationBar: ready == null
+            ? null
+            : snacks
+                ? _SnacksBar(state: ready)
+                : _PayBar(state: ready),
       ),
     );
   }

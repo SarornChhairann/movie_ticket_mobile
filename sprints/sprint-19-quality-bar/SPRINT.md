@@ -46,3 +46,19 @@ Plan-level DoD in `experience-enhancement/PLAN.md`, plus: manual walk-through of
 ## Out of scope
 
 Choosing and integrating a commercial analytics vendor (D5), A/B testing, crash reporting SDK.
+
+## Status
+
+**In progress (2026-10-07), stopped at the usage limit.** Flutter 537 tests green, analyze clean.
+
+Done in code:
+- `meetsGuideline` (Android/iOS tap targets, labelled targets, text contrast) passes on 8 main screens (Home, Detail, Seats in list mode, Checkout, Success, Bookings, ticket wallet, Profile). Fixed: "See all" and text buttons to 48 dp, carousel dots 48 dp hit areas, "Remind me"/tonal buttons and the release badge contrast, seat tiles' double label, selectable reference/code targets.
+- 200% text in English and Khmer on the same 8 screens: no overflow; 16 goldens (Khmer rendered with the macOS Khmer font; `AppText` lists Khmer fallbacks; Khmer line height via `AppTheme.forLocale`, now also in tests). The summary bar stacks at large text so Pay's amount is never cut.
+- Hold countdown speaks at 60 s and 10 s only (tested); `HoldBanner` is no longer a per-second live region.
+- Telemetry: `JourneyTracker` + `DebugJourneyTracker` (D5 default), 13 events fired from blocs, property whitelist enforced (no PII, tested), full P1 sequence test, `flow_abandoned(step)`, Funnel panel in the gallery.
+- Global offline banner: `ConnectivityMonitor` (2 network failures in a row) + `ConnectivityBanner` over every screen.
+
+Not done yet:
+- Tests for the offline banner/monitor; reduced-motion sweep over the sprint 16–18 widgets (wallet, Up next, mini-map).
+- `cacheWidth` audit of every image; per-screen audit table for all view files; state-matrix table.
+- Device-only: profile run (no frame > 16 ms), cold start ≤ 2.5 s, memory after 5 min, shader warm-up note, TalkBack/VoiceOver walk-throughs.
