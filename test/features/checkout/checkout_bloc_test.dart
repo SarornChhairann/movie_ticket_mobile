@@ -105,6 +105,26 @@ void main() {
   );
 
   blocTest<CheckoutBloc, CheckoutState>(
+    'concessions: Add sets 1, plus stops at stock, minus at 1 removes the key',
+    setUp: () => stubQuote(Ok(testQuote())),
+    build: build,
+    seed: ready,
+    act: (bloc) => bloc
+      ..add(const FoodChanged(7, 1)) // Add
+      ..add(const FoodChanged(7, 2)) // plus
+      ..add(const FoodChanged(7, 3)) // plus past stock 2: clamped, no change
+      ..add(const FoodChanged(7, 1)) // minus
+      ..add(const FoodChanged(7, 0)), // minus at 1: back to Add
+    expect: () => [
+      ready(food: {7: 1}),
+      ready(food: {7: 2}),
+      ready(food: {7: 1}),
+      ready(),
+    ],
+    verify: (bloc) => expect((bloc.state as CheckoutReady).food.containsKey(7), isFalse),
+  );
+
+  blocTest<CheckoutBloc, CheckoutState>(
     'HOLD_EXPIRED on re-quote signals the way back to the seat map',
     setUp: () => stubQuote(const Err(CheckoutFailure.holdExpired())),
     build: build,

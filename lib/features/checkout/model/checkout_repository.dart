@@ -74,7 +74,7 @@ class CheckoutRepository {
           foodItems: selected.isEmpty ? null : selected,
         ).toJson(),
       );
-      return Ok(Quote.fromDto(QuoteResponseDto.fromJson(response.data!)));
+      return Ok(Quote.fromDto(QuoteResponseDto.fromJson(response.data!), baseUrl: _dio.options.baseUrl));
     } on DioException catch (e) {
       return Err(CheckoutFailure.fromApi(ApiFailure.fromDioException(e)));
     }

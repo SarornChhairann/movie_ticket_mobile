@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/motion/crossfade_text.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/validation/validators.dart';
 import '../../../core/widgets/error_view.dart';
@@ -12,6 +13,7 @@ import '../../../core/widgets/loading_view.dart';
 import '../controller/checkout_bloc.dart';
 import '../model/checkout_failure.dart';
 import '../model/quote.dart';
+import 'concessions_page.dart';
 
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({super.key});
@@ -136,15 +138,10 @@ class _ReadyBody extends StatelessWidget {
               ],
             ),
             if (state.secondsLeft != null)
-              Text(
-                'seats.expiresIn'.tr(context: context, namedArgs: {'time': _mmss(state.secondsLeft!)}),
-                key: const Key('checkout.countdown'),
-                style: textTheme.bodySmall,
-              ),
+              HoldLabel(secondsLeft: state.secondsLeft!, textKey: const Key('checkout.countdown')),
             if (quote.foodItems.isNotEmpty) ...[
-              const Divider(height: Space.x4),
-              Text('checkout.food'.tr(context: context), style: textTheme.titleMedium),
-              for (final item in quote.foodItems) _FoodRow(item: item, quantity: state.food[item.id] ?? 0),
+              const SizedBox(height: Space.x2),
+              _FoodCard(state: state),
             ],
             const Divider(height: Space.x4),
             _PromoField(applied: quote.promoCode, busy: state.quoting),
@@ -169,41 +166,108 @@ class _ReadyBody extends StatelessWidget {
       ],
     );
   }
-
-  static String _mmss(int seconds) {
-    final s = seconds < 0 ? 0 : seconds;
-    return '${(s ~/ 60).toString().padLeft(2, '0')}:${(s % 60).toString().padLeft(2, '0')}';
-  }
 }
 
-class _FoodRow extends StatelessWidget {
-  const _FoodRow({required this.item, required this.quantity});
+/// The food section: a preview row when the cart is empty, the chosen lines
+/// otherwise. The whole card opens the concessions page on the same bloc.
+class _FoodCard extends StatelessWidget {
+  const _FoodCard({required this.state});
 
-  final FoodItem item;
-  final int quantity;
+  final CheckoutReady state;
+
+  static const _previewCount = 4;
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<CheckoutBloc>();
-    final atMax = item.maxQuantity != null && quantity >= item.maxQuantity!;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(item.name),
-      subtitle: Text(context.money(item.price)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+    final textTheme = Theme.of(context).textTheme;
+    final menu = state.quote.foodItems;
+    final chosen = [for (final item in menu) if ((state.food[item.id] ?? 0) > 0) item];
+    final units = state.food.values.fold(0, (sum, q) => sum + q);
+    void open() => Navigator.of(context).pushNamed(AppRoutes.concessions, arguments: context.read<CheckoutBloc>());
+    return Material(
+      key: const Key('checkout.foodCard'),
+      color: AppColors.navyRaised,
+      borderRadius: BorderRadius.circular(Radii.card),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: open,
+        child: Padding(
+          padding: const EdgeInsets.all(Space.x2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('checkout.foodTitle'.tr(context: context), style: textTheme.titleMedium),
+                        Text(
+                          chosen.isEmpty
+                              ? 'checkout.foodHint'.tr(context: context)
+                              : 'checkout.foodCount'.plural(units, context: context),
+                          style: textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    key: const Key('checkout.foodAction'),
+                    onPressed: open,
+                    child: Text((chosen.isEmpty ? 'checkout.foodBrowse' : 'checkout.foodEdit').tr(context: context)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Space.x1),
+              if (chosen.isEmpty)
+                Row(
+                  children: [
+                    for (final item in menu.take(_previewCount))
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: Space.x1),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(Space.x1),
+                          child: SizedBox.square(dimension: Space.x6 + Space.x1, child: FoodImage(url: item.imageUrl)),
+                        ),
+                      ),
+                  ],
+                )
+              else
+                for (final item in chosen) _ChosenLine(item: item, quantity: state.food[item.id]!, quote: state.quote),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChosenLine extends StatelessWidget {
+  const _ChosenLine({required this.item, required this.quantity, required this.quote});
+
+  final FoodItem item;
+  final int quantity;
+  final Quote quote;
+
+  @override
+  Widget build(BuildContext context) {
+    // The server's line; missing while a re-quote for a new item is pending.
+    final line = quote.foodLines.where((l) => l.foodItemId == item.id).firstOrNull;
+    return Padding(
+      key: Key('food.${item.id}.line'),
+      padding: const EdgeInsets.symmetric(vertical: Space.x0_5),
+      child: Row(
         children: [
-          IconButton(
-            key: Key('food.${item.id}.minus'),
-            icon: const Icon(Icons.remove_circle_outline),
-            onPressed: quantity > 0 ? () => bloc.add(FoodChanged(item.id, quantity - 1)) : null,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Space.x0_5),
+            child: SizedBox.square(dimension: Space.x4, child: FoodImage(url: item.imageUrl)),
           ),
-          Text('$quantity', key: Key('food.${item.id}.qty')),
-          IconButton(
-            key: Key('food.${item.id}.plus'),
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: atMax ? null : () => bloc.add(FoodChanged(item.id, quantity + 1)),
-          ),
+          const SizedBox(width: Space.x1),
+          Expanded(child: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Text('×$quantity', key: Key('food.${item.id}.lineQty')),
+          const SizedBox(width: Space.x2),
+          if (line != null) CrossfadeText(context.money(line.lineTotal)),
         ],
       ),
     );

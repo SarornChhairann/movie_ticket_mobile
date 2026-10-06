@@ -12,8 +12,8 @@ Future<void> initTestLocalization() async {
 }
 
 /// [home] inside EasyLocalization ([locale], English by default) and a MaterialApp
-/// with the app's dark theme.
-Widget localizedApp(Widget home, {Locale locale = AppLocales.en}) => EasyLocalization(
+/// with the app's dark theme. [onGenerateRoute] answers named pushes from [home].
+Widget localizedApp(Widget home, {Locale locale = AppLocales.en, RouteFactory? onGenerateRoute}) => EasyLocalization(
       supportedLocales: AppLocales.supported,
       path: AppLocales.path,
       fallbackLocale: AppLocales.en,
@@ -26,6 +26,7 @@ Widget localizedApp(Widget home, {Locale locale = AppLocales.en}) => EasyLocaliz
           locale: context.locale,
           theme: AppTheme.dark,
           home: home,
+          onGenerateRoute: onGenerateRoute,
         ),
       ),
     );
@@ -33,9 +34,14 @@ Widget localizedApp(Widget home, {Locale locale = AppLocales.en}) => EasyLocaliz
 /// Pumps [localizedApp] and waits for translations. The asset and the
 /// Localizations delegate load with futures that only complete in real async,
 /// so the first frames are built inside `runAsync`.
-Future<void> pumpLocalized(WidgetTester tester, Widget home, {Locale locale = AppLocales.en}) async {
+Future<void> pumpLocalized(
+  WidgetTester tester,
+  Widget home, {
+  Locale locale = AppLocales.en,
+  RouteFactory? onGenerateRoute,
+}) async {
   await tester.runAsync(() async {
-    await tester.pumpWidget(localizedApp(home, locale: locale));
+    await tester.pumpWidget(localizedApp(home, locale: locale, onGenerateRoute: onGenerateRoute));
     for (var i = 0; i < 5; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 20));
       await tester.pump();

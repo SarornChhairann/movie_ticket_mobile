@@ -2,7 +2,7 @@
     <!-- The app calls the ticket API. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="movie_ticket_mobile"
+        android:label="CineKH"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

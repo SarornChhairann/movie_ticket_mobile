@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_ticket_mobile/features/checkout/controller/checkout_bloc.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
+import 'package:movie_ticket_mobile/core/router/app_router.dart';
 import 'package:movie_ticket_mobile/features/checkout/view/checkout_page.dart';
 
 import '../../helpers/localized_app.dart';
@@ -17,12 +18,16 @@ void main() {
     await initTestLocalization();
   });
 
-  Future<void> pump(WidgetTester tester, CheckoutState state) async {
+  Future<void> pump(WidgetTester tester, CheckoutState state, {RouteFactory? onGenerateRoute}) async {
     final bloc = _MockCheckoutBloc();
     whenListen(bloc, const Stream<CheckoutState>.empty(), initialState: state);
     tester.view.physicalSize = const Size(1080, 4200);
     addTearDown(tester.view.resetPhysicalSize);
-    await pumpLocalized(tester, BlocProvider<CheckoutBloc>.value(value: bloc, child: const CheckoutPage()));
+    await pumpLocalized(
+      tester,
+      BlocProvider<CheckoutBloc>.value(value: bloc, child: const CheckoutPage()),
+      onGenerateRoute: onGenerateRoute,
+    );
   }
 
   CheckoutReady ready({GuestInfo guest = const GuestInfo(), Quote? quote}) =>
@@ -82,5 +87,48 @@ void main() {
     expect(find.descendant(of: find.byKey(const Key('checkout.pay')), matching: find.byType(CircularProgressIndicator)),
         findsOneWidget);
     expect(find.text('Processing…'), findsOneWidget);
+  });
+
+  testWidgets('empty cart: food card previews the menu and opens concessions with the same bloc', (tester) async {
+    RouteSettings? pushed;
+    await pump(
+      tester,
+      ready(),
+      onGenerateRoute: (settings) {
+        pushed = settings;
+        return MaterialPageRoute<void>(settings: settings, builder: (_) => const Scaffold(body: Text('shop')));
+      },
+    );
+
+    expect(find.byKey(const Key('food.7.plus')), findsNothing, reason: 'no stepper rows on checkout');
+    expect(find.text('Browse'), findsOneWidget);
+    expect(find.text('Add popcorn, drinks, or snacks to your order.'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('checkout.foodCard')));
+    await tester.pumpAndSettle();
+    expect(pushed?.name, AppRoutes.concessions);
+    expect(pushed?.arguments, isA<CheckoutBloc>());
+    expect(find.text('shop'), findsOneWidget);
+  });
+
+  testWidgets('chosen food: card lists each line with quantity and the server line total', (tester) async {
+    final quote = testQuote(foodTotal: 6, total: 18.5).copyWith(foodLines: const [
+      FoodLine(foodItemId: 7, name: 'Popcorn', unitPrice: 3, quantity: 2, lineTotal: 6),
+    ]);
+    await pump(tester, ready(quote: quote).copyWith(food: {7: 2}));
+
+    expect(find.text('Edit'), findsOneWidget);
+    expect(find.text('2 items'), findsOneWidget);
+    final line = find.byKey(const Key('food.7.line'));
+    expect(line, findsOneWidget);
+    expect(find.descendant(of: line, matching: find.text('×2')), findsOneWidget);
+    expect(find.descendant(of: line, matching: find.text('\$6.00')), findsOneWidget);
+    expect(find.byKey(const Key('food.8.line')), findsNothing);
+    expect(find.byKey(const Key('line.food')), findsOneWidget, reason: 'price block shows the server food total');
+  });
+
+  testWidgets('food card is hidden when the menu is empty', (tester) async {
+    await pump(tester, ready(quote: testQuote().copyWith(foodItems: const [])));
+    expect(find.byKey(const Key('checkout.foodCard')), findsNothing);
   });
 }

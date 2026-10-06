@@ -16,6 +16,7 @@ import '../../features/catalog/controller/movie_list_bloc.dart';
 import '../../features/catalog/view/movie_detail_page.dart';
 import '../../features/checkout/controller/checkout_bloc.dart';
 import '../../features/checkout/view/checkout_page.dart';
+import '../../features/checkout/view/concessions_page.dart';
 import '../../features/checkout/view/pay_success_page.dart';
 import '../../features/catalog/model/movie.dart';
 import '../../features/reminders/controller/reminder_bloc.dart';
@@ -52,6 +53,9 @@ abstract final class AppRoutes {
 
   /// Argument: the active `Hold`.
   static const checkout = '/checkout';
+
+  /// Argument: the checkout route's `CheckoutBloc` (menu and cart for this hold).
+  static const concessions = '/checkout/concessions';
 
   /// Argument: the confirmed `BookingSummary`.
   static const paySuccess = '/checkout/success';
@@ -138,6 +142,10 @@ class AppRouter {
       AppRoutes.checkout => BlocProvider(
           create: (_) => _getIt<CheckoutBloc>()..add(QuoteRequested(settings.arguments! as Hold)),
           child: const CheckoutPage(),
+        ),
+      AppRoutes.concessions => BlocProvider.value(
+          value: settings.arguments! as CheckoutBloc,
+          child: const ConcessionsPage(),
         ),
       AppRoutes.paySuccess => PaySuccessPage(confirmation: settings.arguments! as BookingSummary),
       AppRoutes.myBookings => BlocProvider(

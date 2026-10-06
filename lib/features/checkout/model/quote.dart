@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../catalog/model/catalog_mapper.dart';
 import 'dto/quote_dtos.dart';
 
 part 'quote.freezed.dart';
@@ -60,7 +61,8 @@ abstract class Quote with _$Quote {
     QuoteUser? user,
   }) = _Quote;
 
-  factory Quote.fromDto(QuoteResponseDto dto) => Quote(
+  /// [baseUrl] resolves food image paths (`/uploads/...`) the same way as posters.
+  factory Quote.fromDto(QuoteResponseDto dto, {String baseUrl = ''}) => Quote(
         movieTitle: dto.showtime.movieTitle ?? '',
         hallName: dto.showtime.hallName ?? '',
         showDate: dto.showtime.showDate,
@@ -94,7 +96,7 @@ abstract class Quote with _$Quote {
                 name: f.name,
                 description: f.description,
                 price: f.price,
-                imageUrl: f.imageUrl,
+                imageUrl: CatalogMapper.imageUrl(f.imageUrl, baseUrl),
                 stockQuantity: f.stockQuantity,
               ),
         ],

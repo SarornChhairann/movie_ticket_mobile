@@ -1,6 +1,6 @@
 {
-    "name": "movie_ticket_mobile",
-    "short_name": "movie_ticket_mobile",
+    "name": "CineKH",
+    "short_name": "CineKH",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1A2543",

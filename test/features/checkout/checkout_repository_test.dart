@@ -40,6 +40,8 @@ void main() {
     expect(quote.foodLines.single.lineTotal, 6);
     expect(quote.totalAmount, 16.5);
     expect(quote.foodItems.map((f) => f.name), ['Popcorn'], reason: 'unavailable food is not listed');
+    expect(quote.foodItems.single.imageUrl, 'http://api.test/uploads/food/popcorn.jpg',
+        reason: 'upload paths resolve against the API host like posters');
     expect(quote.user, isNull);
   });
 

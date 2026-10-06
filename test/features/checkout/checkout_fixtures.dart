@@ -48,7 +48,7 @@ Map<String, dynamic> quoteJson() => {
       'foodTotal': 6.00,
       'totalAmount': 16.50,
       'availableFoodItems': [
-        {'id': 7, 'name': 'Popcorn', 'price': 3.00, 'available': true, 'stockQuantity': 0},
+        {'id': 7, 'name': 'Popcorn', 'price': 3.00, 'available': true, 'stockQuantity': 0, 'imageUrl': '/uploads/food/popcorn.jpg'},
         {'id': 9, 'name': 'Nachos', 'price': 4.00, 'available': false, 'stockQuantity': 0},
       ],
       'user': null,
