@@ -3,10 +3,12 @@ import 'dart:math';
 /// One UUID v4 per app run, shared by guests and signed-in users.
 ///
 /// Sent as `X-Session-Id` so the API can tie seat holds, release, and confirm
-/// to the same client without a servlet session.
+/// to the same client without a servlet session. When the last run was killed
+/// while an ABA payment was open, that run's id is [restored] instead, so this
+/// run can still poll and close the payment (sprint 13; amends contract 1).
 class SessionIdProvider {
-  SessionIdProvider({Random? random})
-      : sessionId = _uuidV4(random ?? Random.secure());
+  SessionIdProvider({Random? random, String? restored})
+      : sessionId = restored ?? _uuidV4(random ?? Random.secure());
 
   final String sessionId;
 

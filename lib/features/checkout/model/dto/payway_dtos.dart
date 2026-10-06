@@ -10,6 +10,7 @@ part 'payway_dtos.g.dart';
 class PaywayStartResponseDto {
   const PaywayStartResponseDto({
     required this.bookingId,
+    this.reference,
     required this.tranId,
     required this.amount,
     required this.checkoutUrl,
@@ -19,6 +20,7 @@ class PaywayStartResponseDto {
   factory PaywayStartResponseDto.fromJson(Map<String, dynamic> json) => _$PaywayStartResponseDtoFromJson(json);
 
   final int bookingId;
+  final String? reference;
   final String tranId;
   final num amount;
   final String checkoutUrl;

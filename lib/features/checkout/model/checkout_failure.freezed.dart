@@ -56,7 +56,7 @@ extension CheckoutFailurePatterns on CheckoutFailure {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CheckoutHoldExpired value)?  holdExpired,TResult Function( CheckoutSeatConflict value)?  seatConflict,TResult Function( CheckoutPromoInvalid value)?  promoInvalid,TResult Function( CheckoutPairInvalid value)?  pairInvalid,TResult Function( CheckoutPaymentFailed value)?  paymentFailed,TResult Function( CheckoutBlocked value)?  blocked,TResult Function( CheckoutNetwork value)?  network,TResult Function( CheckoutUnknown value)?  unknown,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CheckoutHoldExpired value)?  holdExpired,TResult Function( CheckoutSeatConflict value)?  seatConflict,TResult Function( CheckoutPromoInvalid value)?  promoInvalid,TResult Function( CheckoutPairInvalid value)?  pairInvalid,TResult Function( CheckoutPaymentFailed value)?  paymentFailed,TResult Function( CheckoutBlocked value)?  blocked,TResult Function( CheckoutSeatLimit value)?  seatLimit,TResult Function( CheckoutBookingNotFound value)?  bookingNotFound,TResult Function( CheckoutNetwork value)?  network,TResult Function( CheckoutUnknown value)?  unknown,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case CheckoutHoldExpired() when holdExpired != null:
@@ -65,7 +65,9 @@ return seatConflict(_that);case CheckoutPromoInvalid() when promoInvalid != null
 return promoInvalid(_that);case CheckoutPairInvalid() when pairInvalid != null:
 return pairInvalid(_that);case CheckoutPaymentFailed() when paymentFailed != null:
 return paymentFailed(_that);case CheckoutBlocked() when blocked != null:
-return blocked(_that);case CheckoutNetwork() when network != null:
+return blocked(_that);case CheckoutSeatLimit() when seatLimit != null:
+return seatLimit(_that);case CheckoutBookingNotFound() when bookingNotFound != null:
+return bookingNotFound(_that);case CheckoutNetwork() when network != null:
 return network(_that);case CheckoutUnknown() when unknown != null:
 return unknown(_that);case _:
   return orElse();
@@ -85,7 +87,7 @@ return unknown(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CheckoutHoldExpired value)  holdExpired,required TResult Function( CheckoutSeatConflict value)  seatConflict,required TResult Function( CheckoutPromoInvalid value)  promoInvalid,required TResult Function( CheckoutPairInvalid value)  pairInvalid,required TResult Function( CheckoutPaymentFailed value)  paymentFailed,required TResult Function( CheckoutBlocked value)  blocked,required TResult Function( CheckoutNetwork value)  network,required TResult Function( CheckoutUnknown value)  unknown,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CheckoutHoldExpired value)  holdExpired,required TResult Function( CheckoutSeatConflict value)  seatConflict,required TResult Function( CheckoutPromoInvalid value)  promoInvalid,required TResult Function( CheckoutPairInvalid value)  pairInvalid,required TResult Function( CheckoutPaymentFailed value)  paymentFailed,required TResult Function( CheckoutBlocked value)  blocked,required TResult Function( CheckoutSeatLimit value)  seatLimit,required TResult Function( CheckoutBookingNotFound value)  bookingNotFound,required TResult Function( CheckoutNetwork value)  network,required TResult Function( CheckoutUnknown value)  unknown,}){
 final _that = this;
 switch (_that) {
 case CheckoutHoldExpired():
@@ -94,7 +96,9 @@ return seatConflict(_that);case CheckoutPromoInvalid():
 return promoInvalid(_that);case CheckoutPairInvalid():
 return pairInvalid(_that);case CheckoutPaymentFailed():
 return paymentFailed(_that);case CheckoutBlocked():
-return blocked(_that);case CheckoutNetwork():
+return blocked(_that);case CheckoutSeatLimit():
+return seatLimit(_that);case CheckoutBookingNotFound():
+return bookingNotFound(_that);case CheckoutNetwork():
 return network(_that);case CheckoutUnknown():
 return unknown(_that);}
 }
@@ -110,7 +114,7 @@ return unknown(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CheckoutHoldExpired value)?  holdExpired,TResult? Function( CheckoutSeatConflict value)?  seatConflict,TResult? Function( CheckoutPromoInvalid value)?  promoInvalid,TResult? Function( CheckoutPairInvalid value)?  pairInvalid,TResult? Function( CheckoutPaymentFailed value)?  paymentFailed,TResult? Function( CheckoutBlocked value)?  blocked,TResult? Function( CheckoutNetwork value)?  network,TResult? Function( CheckoutUnknown value)?  unknown,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CheckoutHoldExpired value)?  holdExpired,TResult? Function( CheckoutSeatConflict value)?  seatConflict,TResult? Function( CheckoutPromoInvalid value)?  promoInvalid,TResult? Function( CheckoutPairInvalid value)?  pairInvalid,TResult? Function( CheckoutPaymentFailed value)?  paymentFailed,TResult? Function( CheckoutBlocked value)?  blocked,TResult? Function( CheckoutSeatLimit value)?  seatLimit,TResult? Function( CheckoutBookingNotFound value)?  bookingNotFound,TResult? Function( CheckoutNetwork value)?  network,TResult? Function( CheckoutUnknown value)?  unknown,}){
 final _that = this;
 switch (_that) {
 case CheckoutHoldExpired() when holdExpired != null:
@@ -119,7 +123,9 @@ return seatConflict(_that);case CheckoutPromoInvalid() when promoInvalid != null
 return promoInvalid(_that);case CheckoutPairInvalid() when pairInvalid != null:
 return pairInvalid(_that);case CheckoutPaymentFailed() when paymentFailed != null:
 return paymentFailed(_that);case CheckoutBlocked() when blocked != null:
-return blocked(_that);case CheckoutNetwork() when network != null:
+return blocked(_that);case CheckoutSeatLimit() when seatLimit != null:
+return seatLimit(_that);case CheckoutBookingNotFound() when bookingNotFound != null:
+return bookingNotFound(_that);case CheckoutNetwork() when network != null:
 return network(_that);case CheckoutUnknown() when unknown != null:
 return unknown(_that);case _:
   return null;
@@ -138,7 +144,7 @@ return unknown(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  holdExpired,TResult Function( String message)?  seatConflict,TResult Function( String message)?  promoInvalid,TResult Function()?  pairInvalid,TResult Function( String message)?  paymentFailed,TResult Function( String message)?  blocked,TResult Function()?  network,TResult Function( String message)?  unknown,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  holdExpired,TResult Function( String message)?  seatConflict,TResult Function( String message)?  promoInvalid,TResult Function()?  pairInvalid,TResult Function( String message)?  paymentFailed,TResult Function( String message)?  blocked,TResult Function( String message)?  seatLimit,TResult Function( String message)?  bookingNotFound,TResult Function()?  network,TResult Function( String message)?  unknown,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CheckoutHoldExpired() when holdExpired != null:
 return holdExpired();case CheckoutSeatConflict() when seatConflict != null:
@@ -146,7 +152,9 @@ return seatConflict(_that.message);case CheckoutPromoInvalid() when promoInvalid
 return promoInvalid(_that.message);case CheckoutPairInvalid() when pairInvalid != null:
 return pairInvalid();case CheckoutPaymentFailed() when paymentFailed != null:
 return paymentFailed(_that.message);case CheckoutBlocked() when blocked != null:
-return blocked(_that.message);case CheckoutNetwork() when network != null:
+return blocked(_that.message);case CheckoutSeatLimit() when seatLimit != null:
+return seatLimit(_that.message);case CheckoutBookingNotFound() when bookingNotFound != null:
+return bookingNotFound(_that.message);case CheckoutNetwork() when network != null:
 return network();case CheckoutUnknown() when unknown != null:
 return unknown(_that.message);case _:
   return orElse();
@@ -166,7 +174,7 @@ return unknown(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  holdExpired,required TResult Function( String message)  seatConflict,required TResult Function( String message)  promoInvalid,required TResult Function()  pairInvalid,required TResult Function( String message)  paymentFailed,required TResult Function( String message)  blocked,required TResult Function()  network,required TResult Function( String message)  unknown,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  holdExpired,required TResult Function( String message)  seatConflict,required TResult Function( String message)  promoInvalid,required TResult Function()  pairInvalid,required TResult Function( String message)  paymentFailed,required TResult Function( String message)  blocked,required TResult Function( String message)  seatLimit,required TResult Function( String message)  bookingNotFound,required TResult Function()  network,required TResult Function( String message)  unknown,}) {final _that = this;
 switch (_that) {
 case CheckoutHoldExpired():
 return holdExpired();case CheckoutSeatConflict():
@@ -174,7 +182,9 @@ return seatConflict(_that.message);case CheckoutPromoInvalid():
 return promoInvalid(_that.message);case CheckoutPairInvalid():
 return pairInvalid();case CheckoutPaymentFailed():
 return paymentFailed(_that.message);case CheckoutBlocked():
-return blocked(_that.message);case CheckoutNetwork():
+return blocked(_that.message);case CheckoutSeatLimit():
+return seatLimit(_that.message);case CheckoutBookingNotFound():
+return bookingNotFound(_that.message);case CheckoutNetwork():
 return network();case CheckoutUnknown():
 return unknown(_that.message);}
 }
@@ -190,7 +200,7 @@ return unknown(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  holdExpired,TResult? Function( String message)?  seatConflict,TResult? Function( String message)?  promoInvalid,TResult? Function()?  pairInvalid,TResult? Function( String message)?  paymentFailed,TResult? Function( String message)?  blocked,TResult? Function()?  network,TResult? Function( String message)?  unknown,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  holdExpired,TResult? Function( String message)?  seatConflict,TResult? Function( String message)?  promoInvalid,TResult? Function()?  pairInvalid,TResult? Function( String message)?  paymentFailed,TResult? Function( String message)?  blocked,TResult? Function( String message)?  seatLimit,TResult? Function( String message)?  bookingNotFound,TResult? Function()?  network,TResult? Function( String message)?  unknown,}) {final _that = this;
 switch (_that) {
 case CheckoutHoldExpired() when holdExpired != null:
 return holdExpired();case CheckoutSeatConflict() when seatConflict != null:
@@ -198,7 +208,9 @@ return seatConflict(_that.message);case CheckoutPromoInvalid() when promoInvalid
 return promoInvalid(_that.message);case CheckoutPairInvalid() when pairInvalid != null:
 return pairInvalid();case CheckoutPaymentFailed() when paymentFailed != null:
 return paymentFailed(_that.message);case CheckoutBlocked() when blocked != null:
-return blocked(_that.message);case CheckoutNetwork() when network != null:
+return blocked(_that.message);case CheckoutSeatLimit() when seatLimit != null:
+return seatLimit(_that.message);case CheckoutBookingNotFound() when bookingNotFound != null:
+return bookingNotFound(_that.message);case CheckoutNetwork() when network != null:
 return network();case CheckoutUnknown() when unknown != null:
 return unknown(_that.message);case _:
   return null;
@@ -536,6 +548,142 @@ class _$CheckoutBlockedCopyWithImpl<$Res>
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
   return _then(CheckoutBlocked(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CheckoutSeatLimit implements CheckoutFailure {
+  const CheckoutSeatLimit(this.message);
+  
+
+ final  String message;
+
+/// Create a copy of CheckoutFailure
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CheckoutSeatLimitCopyWith<CheckoutSeatLimit> get copyWith => _$CheckoutSeatLimitCopyWithImpl<CheckoutSeatLimit>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckoutSeatLimit&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
+    return 'CheckoutFailure.seatLimit(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CheckoutSeatLimitCopyWith<$Res> implements $CheckoutFailureCopyWith<$Res> {
+  factory $CheckoutSeatLimitCopyWith(CheckoutSeatLimit value, $Res Function(CheckoutSeatLimit) _then) = _$CheckoutSeatLimitCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$CheckoutSeatLimitCopyWithImpl<$Res>
+    implements $CheckoutSeatLimitCopyWith<$Res> {
+  _$CheckoutSeatLimitCopyWithImpl(this._self, this._then);
+
+  final CheckoutSeatLimit _self;
+  final $Res Function(CheckoutSeatLimit) _then;
+
+/// Create a copy of CheckoutFailure
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(CheckoutSeatLimit(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CheckoutBookingNotFound implements CheckoutFailure {
+  const CheckoutBookingNotFound(this.message);
+  
+
+ final  String message;
+
+/// Create a copy of CheckoutFailure
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CheckoutBookingNotFoundCopyWith<CheckoutBookingNotFound> get copyWith => _$CheckoutBookingNotFoundCopyWithImpl<CheckoutBookingNotFound>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckoutBookingNotFound&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
+    return 'CheckoutFailure.bookingNotFound(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CheckoutBookingNotFoundCopyWith<$Res> implements $CheckoutFailureCopyWith<$Res> {
+  factory $CheckoutBookingNotFoundCopyWith(CheckoutBookingNotFound value, $Res Function(CheckoutBookingNotFound) _then) = _$CheckoutBookingNotFoundCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$CheckoutBookingNotFoundCopyWithImpl<$Res>
+    implements $CheckoutBookingNotFoundCopyWith<$Res> {
+  _$CheckoutBookingNotFoundCopyWithImpl(this._self, this._then);
+
+  final CheckoutBookingNotFound _self;
+  final $Res Function(CheckoutBookingNotFound) _then;
+
+/// Create a copy of CheckoutFailure
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(CheckoutBookingNotFound(
 null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,
   ));

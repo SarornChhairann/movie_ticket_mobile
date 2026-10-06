@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/bloc/debounce.dart';
+import '../../../core/network/api_failure.dart';
 import '../../../core/network/result.dart';
 import '../../../core/platform/link_opener.dart';
+import '../../../core/storage/booking_cache.dart';
 import '../../seats/model/seat_map.dart';
+import '../../seats/model/seat_repository.dart';
 import '../model/checkout_failure.dart';
 import '../model/checkout_repository.dart';
 import '../model/payway.dart';
@@ -21,6 +24,8 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     DateTime Function()? clock,
     this._tick = const Duration(seconds: 1),
     this._canOpenLink = canOpenAppLink,
+    this._cache,
+    this._holds,
   })  : _clock = clock ?? DateTime.now,
         super(const CheckoutState.initial()) {
     on<QuoteRequested>(_onQuoteRequested);
@@ -32,6 +37,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     on<HoldTicked>(_onHoldTicked);
     on<PaymentStartRequested>(_onPaymentStartRequested);
     on<PaywayFinished>(_onPaywayFinished);
+    on<CheckoutHoldExtendRequested>(_onHoldExtendRequested);
   }
 
   static const foodDebounce = Duration(milliseconds: 300);
@@ -40,6 +46,12 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
   final DateTime Function() _clock;
   final Duration _tick;
   final CanOpenLink _canOpenLink;
+
+  /// Where a paid booking is kept on the device; null in tests that do not need it.
+  final BookingCache? _cache;
+
+  /// Extends the hold (and tells the seat map); null in tests that do not need it.
+  final SeatRepository? _holds;
   Timer? _ticker;
 
   Future<void> _onQuoteRequested(QuoteRequested event, Emitter<CheckoutState> emit) async {
@@ -110,7 +122,12 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         final current = state;
         if (current is! CheckoutReady) return;
         emit(current.copyWith(
-          payway: PaywayLaunch(session: value, canOpenAba: canOpenAba, holdExpiresAt: s.hold.expiresAt),
+          payway: PaywayLaunch(
+            session: value,
+            canOpenAba: canOpenAba,
+            holdExpiresAt: s.hold.expiresAt,
+            guestPhone: s.requiresGuest ? s.guest.phone.trim() : null,
+          ),
           effect: CheckoutEffect.paywayStarted,
         ));
       case Err(failure: CheckoutPaymentFailed(:final message)):
@@ -131,6 +148,40 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     }
   }
 
+  Future<void> _onHoldExtendRequested(CheckoutHoldExtendRequested event, Emitter<CheckoutState> emit) async {
+    final s = state;
+    final holds = _holds;
+    if (s is! CheckoutReady || holds == null || !s.canExtend) return;
+    emit(s.copyWith(extending: true, effect: null, message: null));
+    final result = await holds.extend(s.hold);
+    final current = state;
+    if (current is! CheckoutReady) return;
+    switch (result) {
+      case Ok(:final value):
+        final hold = current.hold.copyWith(expiresAt: value.expiresAt, extended: true);
+        emit(current.copyWith(
+          hold: hold,
+          extending: false,
+          secondsLeft: _secondsLeft(hold),
+          effect: CheckoutEffect.holdExtended,
+        ));
+      case Err(failure: ApiFailureServer(code: 'HOLD_EXPIRED')):
+        _ticker?.cancel();
+        emit(current.copyWith(extending: false, secondsLeft: 0, effect: CheckoutEffect.holdExpired));
+      case Err(failure: ApiFailureServer(code: 'HOLD_EXTEND_LIMIT', :final message)):
+        emit(current.copyWith(
+          hold: current.hold.copyWith(extended: true),
+          extending: false,
+          effect: CheckoutEffect.error,
+          message: message,
+        ));
+      case Err(failure: ApiFailureServer(:final message)):
+        emit(current.copyWith(extending: false, effect: CheckoutEffect.error, message: message));
+      case Err():
+        emit(current.copyWith(extending: false, effect: CheckoutEffect.error, message: ''));
+    }
+  }
+
   Future<void> _onPaywayFinished(PaywayFinished event, Emitter<CheckoutState> emit) async {
     final s = state;
     if (s is! CheckoutReady) return;
@@ -138,6 +189,12 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     switch (event.outcome) {
       case PaywayOutcomeApproved(:final confirmation):
         _ticker?.cancel();
+        // A guest finds it again under Bookings; the account copy works offline.
+        await _cache?.put(
+          s.requiresGuest ? BookingOwner.guest : BookingOwner.account,
+          confirmation,
+          phone: s.requiresGuest ? s.guest.phone.trim() : null,
+        );
         emit(CheckoutState.success(confirmation));
       case PaywayOutcomeDeclined() || PaywayOutcomeCancelled():
         // Seats are still available and the hold is kept: the failed dialog offers a retry.
@@ -184,6 +241,8 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         CheckoutSeatConflict(:final message) ||
         CheckoutPaymentFailed(:final message) ||
         CheckoutBlocked(:final message) ||
+        CheckoutSeatLimit(:final message) ||
+        CheckoutBookingNotFound(:final message) ||
         CheckoutUnknown(:final message) =>
           message,
         CheckoutHoldExpired() || CheckoutPairInvalid() || CheckoutNetwork() => '',

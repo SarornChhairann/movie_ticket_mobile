@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/router/app_router.dart';
+import 'core/session/pending_payment_store.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/controller/auth_bloc.dart';
 import 'features/auth/model/auth_failure.dart';
@@ -15,6 +16,7 @@ class App extends StatefulWidget {
     required this.router,
     required this.authBloc,
     this.splashMinDisplay = SplashPage.minDisplay,
+    this.pendingPayment,
   });
 
   final AppRouter router;
@@ -22,6 +24,9 @@ class App extends StatefulWidget {
 
   /// The splash stays at least this long, even when the session restores at once.
   final Duration splashMinDisplay;
+
+  /// An ABA payment the previous run left open; its resume screen opens over Home once.
+  final PendingPayment? pendingPayment;
 
   @override
   State<App> createState() => _AppState();
@@ -43,6 +48,9 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
 
   /// The state before the change the listener is handling.
   AuthState _previous = const AuthState.unknown();
+
+  /// Cleared once the resume screen has been pushed.
+  late PendingPayment? _pendingPayment = widget.pendingPayment;
 
   @override
   void initState() {
@@ -97,6 +105,12 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
     final navigator = _navigatorKey.currentState;
     if (navigator == null) return;
     navigator.pushNamedAndRemoveUntil(_rootFor(current), (_) => false);
+    final pending = _pendingPayment;
+    if (pending != null && _rootFor(current) == AppRoutes.shell) {
+      _pendingPayment = null;
+      navigator.pushNamed(AppRoutes.paymentResume, arguments: pending);
+      return;
+    }
     // Expired mid-use: offer to sign straight back in, with the reason shown.
     if (current is AuthGuest && current.failure is AuthSessionExpired) {
       navigator.pushNamed(AppRoutes.login, arguments: const LoginArgs());

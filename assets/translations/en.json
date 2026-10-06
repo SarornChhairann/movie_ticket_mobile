@@ -106,7 +106,16 @@
     "pairError": "Couple seats must be selected in pairs.",
     "conflict": "Some seats were just taken. Please reselect.",
     "title": "Select Seat",
-    "count": "{count} seat(s) selected"
+    "count": "{count} seat(s) selected",
+    "limit": "You can pick up to {max} seats per booking.",
+    "partySize": "How many seats?",
+    "partySkip": "Skip",
+    "partyCount": "{count} seats",
+    "best": "Best seats",
+    "noBlock": "No row has that many seats together. Pick seats yourself or choose fewer.",
+    "holdEnding": "Your seats are held for {time} more.",
+    "extend": "Extend",
+    "extendDone": "Hold extended."
   },
   "checkout": {
     "title": "Checkout",
@@ -142,7 +151,9 @@
     "guestName": "Name",
     "guestPhone": "Phone",
     "guestEmail": "Email (optional)",
-    "pay": "Pay"
+    "pay": "Pay",
+    "holdTooShort": "Less than 3 minutes are left on your seats, too little to pay. Please pick seats again.",
+    "holdExtendToPay": "Less than 3 minutes left: extend your hold to pay."
   },
   "pay": {
     "processing": "Processing…",
@@ -163,7 +174,12 @@
     "closeConfirm": "Leave payment? The seats stay held until the timer ends.",
     "stay": "Stay",
     "leave": "Leave",
-    "notCompleted": "The payment was not completed."
+    "notCompleted": "The payment was not completed.",
+    "referenceHint": "Keep this reference. With your phone number it finds your tickets under Bookings.",
+    "resumeTitle": "Checking your payment",
+    "resumeBody": "We're confirming your last ABA payment. This can take a moment.",
+    "resumeFailed": "That payment did not go through. Your seats were not booked and you were not charged by us.",
+    "resumeLater": "Check later"
   },
   "tickets": {
     "title": "My bookings",
@@ -175,12 +191,24 @@
       "cancelled": "Cancelled"
     },
     "cancel": "Cancel booking",
-    "cancelConfirm": "Cancel this booking? Your seats will be released. Points and promo codes are not refunded.",
+    "cancelConfirm": "Cancel this booking? Your seats will be released, the points it earned are removed, and a paid amount is refunded by the cinema.",
     "keep": "Keep booking",
     "cancelled": "Booking cancelled. Your seats were released.",
     "qr": "Ticket QR",
     "code": "Ticket code",
-    "brightnessHint": "Turn up your screen brightness for scanning."
+    "brightnessHint": "Turn up your screen brightness for scanning.",
+    "refundPending": "Refund pending",
+    "refunded": "Refunded",
+    "notFound": "We couldn't find this booking.",
+    "reference": "Booking reference",
+    "offline": "Offline copy — showing what was saved on this phone.",
+    "find": "Find my booking",
+    "findHint": "Enter the booking reference from your confirmation and the phone number you booked with.",
+    "findSubmit": "Find booking",
+    "lookupMiss": "No booking matches that reference and phone number.",
+    "guestEmpty": "Bookings you make or find on this phone appear here.",
+    "signIn": "Sign in",
+    "forget": "Remove from this phone"
   },
   "loyalty": {
     "points": "Loyalty points",

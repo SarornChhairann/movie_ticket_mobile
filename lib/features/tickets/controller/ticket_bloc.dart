@@ -24,8 +24,9 @@ sealed class TicketState with _$TicketState {
   const factory TicketState.initial() = TicketInitial;
   const factory TicketState.loading(String code) = TicketLoading;
 
-  /// [png] is the server's QR image for [code].
-  const factory TicketState.ready({required String code, required Uint8List png}) = TicketReady;
+  /// [png] is the server's QR image for [code]; [offline] when it is the device copy.
+  const factory TicketState.ready({required String code, required Uint8List png, @Default(false) bool offline}) =
+      TicketReady;
   const factory TicketState.failure({required String code, required TicketsFailure failure}) = TicketFailureState;
 }
 
@@ -39,7 +40,7 @@ class TicketBloc extends Bloc<TicketEvent, TicketState> {
   Future<void> _onQrRequested(QrRequested event, Emitter<TicketState> emit) async {
     emit(TicketState.loading(event.code));
     emit(switch (await _repository.qrBytes(event.code)) {
-      Ok(:final value) => TicketState.ready(code: event.code, png: value),
+      Ok(:final value) => TicketState.ready(code: event.code, png: value.png, offline: value.offline),
       Err(:final failure) => TicketState.failure(code: event.code, failure: failure),
     });
   }

@@ -29,7 +29,7 @@ void main() {
 
   blocTest<MyBookingsBloc, MyBookingsState>(
     'loads bookings and keeps the server order (newest first)',
-    setUp: () => when(() => repository.myBookings()).thenAnswer((_) async => Ok([newest, older])),
+    setUp: () => when(() => repository.myBookings()).thenAnswer((_) async => Ok((bookings: [newest, older], offline: false))),
     build: () => MyBookingsBloc(repository),
     act: (bloc) => bloc.add(const LoadRequested()),
     expect: () => [const MyBookingsState.loading(), ready()],
@@ -45,7 +45,7 @@ void main() {
 
   blocTest<MyBookingsBloc, MyBookingsState>(
     'refresh keeps the list on screen while it reloads',
-    setUp: () => when(() => repository.myBookings()).thenAnswer((_) async => Ok([newest])),
+    setUp: () => when(() => repository.myBookings()).thenAnswer((_) async => Ok((bookings: [newest], offline: false))),
     build: () => MyBookingsBloc(repository),
     seed: ready,
     act: (bloc) => bloc.add(const RefreshRequested()),
@@ -112,6 +112,45 @@ void main() {
       'a second cancel while one is in flight is ignored',
       build: () => MyBookingsBloc(repository),
       seed: () => ready().copyWith(cancellingId: 1),
+      act: (bloc) => bloc.add(const CancelRequested(3)),
+      expect: () => const <MyBookingsState>[],
+      verify: (_) => verifyNever(() => repository.cancel(any())),
+    );
+  });
+
+  group('guest list (sprint 13)', () {
+    blocTest<MyBookingsBloc, MyBookingsState>(
+      'loads the bookings saved on this phone, with the offline flag',
+      setUp: () => when(() => repository.guestBookings())
+          .thenAnswer((_) async => Ok((bookings: [newest], offline: true))),
+      build: () => GuestBookingsBloc(repository),
+      act: (bloc) => bloc.add(const LoadRequested()),
+      expect: () => [const MyBookingsState.loading(), MyBookingsReady(bookings: [newest], offline: true)],
+      verify: (_) => verifyNever(() => repository.myBookings()),
+    );
+
+    blocTest<MyBookingsBloc, MyBookingsState>(
+      'a found booking goes first, replacing an older copy',
+      build: () => GuestBookingsBloc(repository),
+      seed: ready,
+      act: (bloc) => bloc.add(BookingFound(cancelledNewest)),
+      expect: () => [ready([cancelledNewest, older])],
+    );
+
+    blocTest<MyBookingsBloc, MyBookingsState>(
+      'forget removes it from the phone and the list',
+      setUp: () => when(() => repository.forget(1)).thenAnswer((_) async {}),
+      build: () => GuestBookingsBloc(repository),
+      seed: ready,
+      act: (bloc) => bloc.add(const ForgetRequested(1)),
+      expect: () => [ready([newest])],
+      verify: (_) => verify(() => repository.forget(1)).called(1),
+    );
+
+    blocTest<MyBookingsBloc, MyBookingsState>(
+      'a guest cannot cancel',
+      build: () => GuestBookingsBloc(repository),
+      seed: ready,
       act: (bloc) => bloc.add(const CancelRequested(3)),
       expect: () => const <MyBookingsState>[],
       verify: (_) => verifyNever(() => repository.cancel(any())),

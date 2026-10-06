@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/core/storage/booking_cache.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/core/session/session_end.dart';
 import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
@@ -13,8 +14,11 @@ import 'auth_fixtures.dart';
 
 class _MockAuthRepository extends Mock implements AuthRepository {}
 
+class _MockBookingCache extends Mock implements BookingCache {}
+
 void main() {
   late _MockAuthRepository repository;
+  final bookingCache = _MockBookingCache();
   late StreamController<SessionEnd> sessionEnded;
 
   setUp(() {
@@ -132,6 +136,19 @@ void main() {
     act: (bloc) => bloc.add(const LogoutRequested()),
     expect: () => const [AuthState.guest()],
     verify: (_) => verify(() => repository.logout()).called(1),
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'LogoutRequested takes the account\'s bookings off the device',
+    setUp: () {
+      when(() => repository.logout()).thenAnswer((_) async {});
+      when(() => bookingCache.clearAccount()).thenAnswer((_) async {});
+    },
+    build: () => AuthBloc(repository, bookingCache: bookingCache),
+    seed: () => const AuthState.authenticated(testUser),
+    act: (bloc) => bloc.add(const LogoutRequested()),
+    expect: () => const [AuthState.guest()],
+    verify: (_) => verify(() => bookingCache.clearAccount()).called(1),
   );
 
   blocTest<AuthBloc, AuthState>(

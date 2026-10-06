@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_failure.dart';
@@ -28,10 +30,28 @@ class SeatRepository {
     }
   }
 
-  Future<Result<Hold, ApiFailure>> hold(int showtimeId, Set<int> seatIds) async {
+  final _holdChanges = StreamController<Hold>.broadcast();
+
+  /// A hold changed outside the seat map (an extend from checkout), so the map's
+  /// countdown follows it.
+  Stream<Hold> get holdChanges => _holdChanges.stream;
+
+  /// Holding again keeps the running expiry on the server (one clock per visit).
+  Future<Result<Hold, ApiFailure>> hold(int showtimeId, Set<int> seatIds) =>
+      _postHold('/api/seat-holds/hold', showtimeId, seatIds);
+
+  /// The one extend for [hold] (`POST /api/seat-holds/extend`): 409 `HOLD_EXTEND_LIMIT`
+  /// when it was used, 409 `HOLD_EXPIRED` when nothing is held.
+  Future<Result<Hold, ApiFailure>> extend(Hold hold) async {
+    final result = await _postHold('/api/seat-holds/extend', hold.showtimeId, hold.seatIds);
+    if (result case Ok(:final value)) _holdChanges.add(value);
+    return result;
+  }
+
+  Future<Result<Hold, ApiFailure>> _postHold(String path, int showtimeId, Set<int> seatIds) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/api/seat-holds/hold',
+        path,
         data: SeatIdsRequestDto(showtimeId: showtimeId, seatIds: seatIds.toList()..sort()).toJson(),
       );
       final dto = HoldResponseDto.fromJson(response.data!);
@@ -39,6 +59,7 @@ class SeatRepository {
         showtimeId: dto.showtimeId,
         seatIds: seatIds,
         expiresAt: DateTime.fromMillisecondsSinceEpoch(dto.expiresAtEpochMs),
+        extended: dto.extended,
       ));
     } on DioException catch (e) {
       return Err(ApiFailure.fromDioException(e));

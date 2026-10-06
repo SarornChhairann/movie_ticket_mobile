@@ -12,6 +12,7 @@ class SeatMapResponseDto {
     this.heldByOthers = const [],
     this.heldByMe = const [],
     this.holdMinutes = 0,
+    this.maxSeats = 0,
   });
 
   factory SeatMapResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -23,6 +24,9 @@ class SeatMapResponseDto {
   final List<int> heldByOthers;
   final List<int> heldByMe;
   final int holdMinutes;
+
+  /// `max_seats_per_booking`; 0 from a server that does not send it yet.
+  final int maxSeats;
 }
 
 @JsonSerializable(createToJson: false)
@@ -68,13 +72,21 @@ class SeatDto {
 
 @JsonSerializable(createToJson: false)
 class HoldResponseDto {
-  const HoldResponseDto({required this.showtimeId, required this.expiresAtEpochMs, this.holdMinutes = 0});
+  const HoldResponseDto({
+    required this.showtimeId,
+    required this.expiresAtEpochMs,
+    this.holdMinutes = 0,
+    this.extended = false,
+  });
 
   factory HoldResponseDto.fromJson(Map<String, dynamic> json) => _$HoldResponseDtoFromJson(json);
 
   final int showtimeId;
   final int expiresAtEpochMs;
   final int holdMinutes;
+
+  /// The hold's one extend was used; false from a server older than sprint 14.
+  final bool extended;
 }
 
 @JsonSerializable(createToJson: false)

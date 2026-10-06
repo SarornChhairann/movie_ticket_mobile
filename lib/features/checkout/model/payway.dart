@@ -10,6 +10,9 @@ part 'payway.freezed.dart';
 abstract class PaywaySession with _$PaywaySession {
   const factory PaywaySession({
     required int bookingId,
+
+    /// The booking reference; empty from a server older than sprint 13.
+    @Default('') String reference,
     required String tranId,
     required num amount,
     required String checkoutUrl,
@@ -20,6 +23,7 @@ abstract class PaywaySession with _$PaywaySession {
 
   factory PaywaySession.fromDto(PaywayStartResponseDto dto) => PaywaySession(
         bookingId: dto.bookingId,
+        reference: dto.reference ?? '',
         tranId: dto.tranId,
         amount: dto.amount,
         checkoutUrl: dto.checkoutUrl,
@@ -35,6 +39,10 @@ abstract class PaywayLaunch with _$PaywayLaunch {
     required PaywaySession session,
     required bool canOpenAba,
     required DateTime holdExpiresAt,
+
+    /// The guest's phone; null when signed in. Kept with the pending payment so a
+    /// paid guest booking can be found again by reference + phone.
+    String? guestPhone,
   }) = _PaywayLaunch;
 }
 

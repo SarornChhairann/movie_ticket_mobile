@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/widgets/hold_banner.dart';
 import '../../../core/format/locale_format.dart';
 import '../../../core/motion/crossfade_text.dart';
 import '../../../core/router/app_router.dart';
@@ -119,6 +120,10 @@ class CheckoutPage extends StatelessWidget {
           _backToSeatMap(context);
           return;
         }
+        if (state is CheckoutReady && state.effect == CheckoutEffect.holdExtended) {
+          messenger.showSnackBar(SnackBar(content: Text('seats.extendDone'.tr(context: context))));
+          return;
+        }
         final message = (state as CheckoutReady).message;
         messenger.showSnackBar(
           SnackBar(
@@ -143,7 +148,9 @@ class CheckoutPage extends StatelessWidget {
               CheckoutSeatConflict(:final message) ||
               CheckoutPaymentFailed(:final message) ||
               CheckoutBlocked(:final message) ||
+              CheckoutSeatLimit(:final message) ||
               CheckoutUnknown(:final message) => message,
+              CheckoutBookingNotFound() => 'tickets.notFound'.tr(context: context),
               CheckoutNetwork() => 'shell.offline'.tr(context: context),
               CheckoutHoldExpired() || CheckoutPairInvalid() => '',
             },
@@ -203,6 +210,19 @@ class _ReadyBody extends StatelessWidget {
                 secondsLeft: state.secondsLeft!,
                 textKey: const Key('checkout.countdown'),
               ),
+            // Under PayWay's 3-minute minimum Pay is off: extend once, or start over.
+            if (state.holdTooShort && state.holdAlive) ...[
+              const SizedBox(height: Space.x1),
+              HoldBanner(
+                secondsLeft: state.secondsLeft!,
+                extending: state.extending,
+                message: (state.hold.extended ? 'checkout.holdTooShort' : 'checkout.holdExtendToPay')
+                    .tr(context: context),
+                onExtend: state.canExtend
+                    ? () => context.read<CheckoutBloc>().add(const CheckoutHoldExtendRequested())
+                    : null,
+              ),
+            ],
             if (quote.foodItems.isNotEmpty) ...[
               const SizedBox(height: Space.x2),
               _FoodCard(state: state),

@@ -18,6 +18,7 @@ void main() {
   });
 
   const confirmation = BookingSummary(
+    reference: 'AB3DEF7H',
     bookingId: 99,
     status: BookingStatus.confirmed,
     movieTitle: 'Dune',
@@ -36,6 +37,14 @@ void main() {
       BlocProvider<AuthBloc>.value(value: authBloc, child: const PaySuccessPage(confirmation: confirmation)),
     );
   }
+
+  testWidgets('the booking reference is shown with how to use it', (tester) async {
+    await pump(tester, const AuthState.guest());
+
+    expect(find.byKey(const Key('pay.reference')), findsOneWidget);
+    expect(find.text('AB3DEF7H'), findsOneWidget);
+    expect(find.text('Keep this reference. With your phone number it finds your tickets under Bookings.'), findsOneWidget);
+  });
 
   testWidgets('a signed-in user gets View tickets', (tester) async {
     await pump(tester, const AuthState.authenticated(testUser));

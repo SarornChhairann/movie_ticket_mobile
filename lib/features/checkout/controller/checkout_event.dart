@@ -58,3 +58,8 @@ final class PaywayFinished extends CheckoutEvent {
 final class HoldTicked extends CheckoutEvent {
   const HoldTicked();
 }
+
+/// Use the hold's one extend from checkout.
+final class CheckoutHoldExtendRequested extends CheckoutEvent {
+  const CheckoutHoldExtendRequested();
+}

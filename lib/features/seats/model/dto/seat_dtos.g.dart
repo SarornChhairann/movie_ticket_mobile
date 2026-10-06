@@ -28,6 +28,7 @@ SeatMapResponseDto _$SeatMapResponseDtoFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       holdMinutes: (json['holdMinutes'] as num?)?.toInt() ?? 0,
+      maxSeats: (json['maxSeats'] as num?)?.toInt() ?? 0,
     );
 
 ShowtimeInfoDto _$ShowtimeInfoDtoFromJson(Map<String, dynamic> json) =>
@@ -53,6 +54,7 @@ HoldResponseDto _$HoldResponseDtoFromJson(Map<String, dynamic> json) =>
       showtimeId: (json['showtimeId'] as num).toInt(),
       expiresAtEpochMs: (json['expiresAtEpochMs'] as num).toInt(),
       holdMinutes: (json['holdMinutes'] as num?)?.toInt() ?? 0,
+      extended: json['extended'] as bool? ?? false,
     );
 
 HoldStateDto _$HoldStateDtoFromJson(Map<String, dynamic> json) => HoldStateDto(

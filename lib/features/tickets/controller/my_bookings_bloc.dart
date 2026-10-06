@@ -27,6 +27,20 @@ final class CancelRequested extends MyBookingsEvent {
   final int bookingId;
 }
 
+/// Guests: a lookup found [booking] (already saved on the device); show it first.
+final class BookingFound extends MyBookingsEvent {
+  const BookingFound(this.booking);
+
+  final BookingSummary booking;
+}
+
+/// Guests: remove a booking from this phone (swipe).
+final class ForgetRequested extends MyBookingsEvent {
+  const ForgetRequested(this.bookingId);
+
+  final int bookingId;
+}
+
 /// One-shot outcomes consumed by a `BlocListener`.
 enum MyBookingsEffect { cancelled, error }
 
@@ -41,6 +55,9 @@ sealed class MyBookingsState with _$MyBookingsState {
     /// Server order: newest first.
     required List<BookingSummary> bookings,
     @Default(false) bool refreshing,
+
+    /// The device copy, shown because the server could not be reached.
+    @Default(false) bool offline,
 
     /// The booking whose cancel is in flight.
     int? cancellingId,
@@ -58,19 +75,28 @@ sealed class MyBookingsState with _$MyBookingsState {
       };
 }
 
+/// The signed-in user's bookings. [GuestBookingsBloc] is the same screen for the
+/// bookings a guest made or found on this phone.
 class MyBookingsBloc extends Bloc<MyBookingsEvent, MyBookingsState> {
-  MyBookingsBloc(this._repository) : super(const MyBookingsState.initial()) {
+  MyBookingsBloc(this._repository, {this.guest = false}) : super(const MyBookingsState.initial()) {
     on<LoadRequested>(_onLoadRequested);
     on<RefreshRequested>(_onRefreshRequested);
     on<CancelRequested>(_onCancelRequested);
+    on<BookingFound>(_onBookingFound);
+    on<ForgetRequested>(_onForgetRequested);
   }
 
   final TicketsRepository _repository;
 
+  /// Guest bookings: no cancel (the server allows it only for the account owner).
+  final bool guest;
+
+  Future<Result<BookingList, TicketsFailure>> _load() => guest ? _repository.guestBookings() : _repository.myBookings();
+
   Future<void> _onLoadRequested(LoadRequested event, Emitter<MyBookingsState> emit) async {
     emit(const MyBookingsState.loading());
-    emit(switch (await _repository.myBookings()) {
-      Ok(:final value) => MyBookingsState.ready(bookings: value),
+    emit(switch (await _load()) {
+      Ok(:final value) => MyBookingsState.ready(bookings: value.bookings, offline: value.offline),
       Err(:final failure) => MyBookingsState.failure(failure),
     });
   }
@@ -79,15 +105,32 @@ class MyBookingsBloc extends Bloc<MyBookingsEvent, MyBookingsState> {
     final s = state;
     if (s is! MyBookingsReady) return _onLoadRequested(const LoadRequested(), emit);
     emit(s.copyWith(refreshing: true, effect: null, message: null));
-    emit(switch (await _repository.myBookings()) {
-      Ok(:final value) => MyBookingsState.ready(bookings: value),
+    emit(switch (await _load()) {
+      Ok(:final value) => MyBookingsState.ready(bookings: value.bookings, offline: value.offline),
       Err(:final failure) => s.copyWith(refreshing: false, effect: MyBookingsEffect.error, message: failure.message),
     });
   }
 
+  void _onBookingFound(BookingFound event, Emitter<MyBookingsState> emit) {
+    final s = state;
+    final others = s is MyBookingsReady ? s.bookings.where((b) => b.bookingId != event.booking.bookingId) : const <BookingSummary>[];
+    emit(MyBookingsState.ready(
+      bookings: [event.booking, ...others],
+      offline: s is MyBookingsReady && s.offline,
+    ));
+  }
+
+  Future<void> _onForgetRequested(ForgetRequested event, Emitter<MyBookingsState> emit) async {
+    await _repository.forget(event.bookingId);
+    final s = state;
+    if (s is MyBookingsReady) {
+      emit(s.copyWith(bookings: [for (final b in s.bookings) if (b.bookingId != event.bookingId) b], effect: null));
+    }
+  }
+
   Future<void> _onCancelRequested(CancelRequested event, Emitter<MyBookingsState> emit) async {
     final s = state;
-    if (s is! MyBookingsReady || s.cancellingId != null) return;
+    if (guest || s is! MyBookingsReady || s.cancellingId != null) return;
     emit(s.copyWith(cancellingId: event.bookingId, effect: null, message: null));
 
     switch (await _repository.cancel(event.bookingId)) {
@@ -121,4 +164,10 @@ class MyBookingsBloc extends Bloc<MyBookingsEvent, MyBookingsState> {
         status: BookingStatus.cancelled,
         tickets: [for (final t in b.tickets) t.copyWith(status: 'CANCELLED')],
       );
+}
+
+/// [MyBookingsBloc] over the guest's on-device list, as its own type so the shell
+/// can provide both.
+class GuestBookingsBloc extends MyBookingsBloc {
+  GuestBookingsBloc(super.repository) : super(guest: true);
 }

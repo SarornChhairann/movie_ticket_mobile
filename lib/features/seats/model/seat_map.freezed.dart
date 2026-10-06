@@ -296,7 +296,9 @@ as bool,
 /// @nodoc
 mixin _$SeatMapData {
 
- int get showtimeId; String get movieTitle; String get hallName; String? get showDate; String? get showTime; List<SeatView> get seats; Set<int> get heldByOthers; int get holdMinutes;
+ int get showtimeId; String get movieTitle; String get hallName; String? get showDate; String? get showTime; List<SeatView> get seats; Set<int> get heldByOthers; int get holdMinutes;/// Most seats one booking may have; 0 means the server did not say, so no
+/// client guard. The server enforces it either way (`SEAT_LIMIT`).
+ int get maxSeats;
 /// Create a copy of SeatMapData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -308,20 +310,20 @@ $SeatMapDataCopyWith<SeatMapData> get copyWith => _$SeatMapDataCopyWithImpl<Seat
 @override
 bool operator ==(Object other) {
   final _this = this as SeatMapData;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SeatMapData&&(identical(other.showtimeId, _this.showtimeId) || other.showtimeId == _this.showtimeId)&&(identical(other.movieTitle, _this.movieTitle) || other.movieTitle == _this.movieTitle)&&(identical(other.hallName, _this.hallName) || other.hallName == _this.hallName)&&(identical(other.showDate, _this.showDate) || other.showDate == _this.showDate)&&(identical(other.showTime, _this.showTime) || other.showTime == _this.showTime)&&const DeepCollectionEquality().equals(other.seats, _this.seats)&&const DeepCollectionEquality().equals(other.heldByOthers, _this.heldByOthers)&&(identical(other.holdMinutes, _this.holdMinutes) || other.holdMinutes == _this.holdMinutes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SeatMapData&&(identical(other.showtimeId, _this.showtimeId) || other.showtimeId == _this.showtimeId)&&(identical(other.movieTitle, _this.movieTitle) || other.movieTitle == _this.movieTitle)&&(identical(other.hallName, _this.hallName) || other.hallName == _this.hallName)&&(identical(other.showDate, _this.showDate) || other.showDate == _this.showDate)&&(identical(other.showTime, _this.showTime) || other.showTime == _this.showTime)&&const DeepCollectionEquality().equals(other.seats, _this.seats)&&const DeepCollectionEquality().equals(other.heldByOthers, _this.heldByOthers)&&(identical(other.holdMinutes, _this.holdMinutes) || other.holdMinutes == _this.holdMinutes)&&(identical(other.maxSeats, _this.maxSeats) || other.maxSeats == _this.maxSeats));
 }
 
 
 @override
 int get hashCode {
   final _this = this as SeatMapData;
-  return Object.hash(runtimeType,_this.showtimeId,_this.movieTitle,_this.hallName,_this.showDate,_this.showTime,const DeepCollectionEquality().hash(_this.seats),const DeepCollectionEquality().hash(_this.heldByOthers),_this.holdMinutes);
+  return Object.hash(runtimeType,_this.showtimeId,_this.movieTitle,_this.hallName,_this.showDate,_this.showTime,const DeepCollectionEquality().hash(_this.seats),const DeepCollectionEquality().hash(_this.heldByOthers),_this.holdMinutes,_this.maxSeats);
 }
 
 @override
 String toString() {
   final _this = this as SeatMapData;
-  return 'SeatMapData(showtimeId: ${_this.showtimeId}, movieTitle: ${_this.movieTitle}, hallName: ${_this.hallName}, showDate: ${_this.showDate}, showTime: ${_this.showTime}, seats: ${_this.seats}, heldByOthers: ${_this.heldByOthers}, holdMinutes: ${_this.holdMinutes})';
+  return 'SeatMapData(showtimeId: ${_this.showtimeId}, movieTitle: ${_this.movieTitle}, hallName: ${_this.hallName}, showDate: ${_this.showDate}, showTime: ${_this.showTime}, seats: ${_this.seats}, heldByOthers: ${_this.heldByOthers}, holdMinutes: ${_this.holdMinutes}, maxSeats: ${_this.maxSeats})';
 }
 
 
@@ -332,7 +334,7 @@ abstract mixin class $SeatMapDataCopyWith<$Res>  {
   factory $SeatMapDataCopyWith(SeatMapData value, $Res Function(SeatMapData) _then) = _$SeatMapDataCopyWithImpl;
 @useResult
 $Res call({
- int showtimeId, String movieTitle, String hallName, String? showDate, String? showTime, List<SeatView> seats, Set<int> heldByOthers, int holdMinutes
+ int showtimeId, String movieTitle, String hallName, String? showDate, String? showTime, List<SeatView> seats, Set<int> heldByOthers, int holdMinutes, int maxSeats
 });
 
 
@@ -349,7 +351,7 @@ class _$SeatMapDataCopyWithImpl<$Res>
 
 /// Create a copy of SeatMapData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? showtimeId = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? seats = null,Object? heldByOthers = null,Object? holdMinutes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? showtimeId = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? seats = null,Object? heldByOthers = null,Object? holdMinutes = null,Object? maxSeats = null,}) {
   return _then(SeatMapData(
 showtimeId: null == showtimeId ? _self.showtimeId : showtimeId // ignore: cast_nullable_to_non_nullable
 as int,movieTitle: null == movieTitle ? _self.movieTitle : movieTitle // ignore: cast_nullable_to_non_nullable
@@ -359,6 +361,7 @@ as String?,showTime: freezed == showTime ? _self.showTime : showTime // ignore: 
 as String?,seats: null == seats ? _self.seats : seats // ignore: cast_nullable_to_non_nullable
 as List<SeatView>,heldByOthers: null == heldByOthers ? _self.heldByOthers : heldByOthers // ignore: cast_nullable_to_non_nullable
 as Set<int>,holdMinutes: null == holdMinutes ? _self.holdMinutes : holdMinutes // ignore: cast_nullable_to_non_nullable
+as int,maxSeats: null == maxSeats ? _self.maxSeats : maxSeats // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -444,10 +447,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int showtimeId,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  List<SeatView> seats,  Set<int> heldByOthers,  int holdMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int showtimeId,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  List<SeatView> seats,  Set<int> heldByOthers,  int holdMinutes,  int maxSeats)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SeatMapData() when $default != null:
-return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.seats,_that.heldByOthers,_that.holdMinutes);case _:
+return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.seats,_that.heldByOthers,_that.holdMinutes,_that.maxSeats);case _:
   return orElse();
 
 }
@@ -465,10 +468,10 @@ return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int showtimeId,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  List<SeatView> seats,  Set<int> heldByOthers,  int holdMinutes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int showtimeId,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  List<SeatView> seats,  Set<int> heldByOthers,  int holdMinutes,  int maxSeats)  $default,) {final _that = this;
 switch (_that) {
 case _SeatMapData():
-return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.seats,_that.heldByOthers,_that.holdMinutes);case _:
+return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.seats,_that.heldByOthers,_that.holdMinutes,_that.maxSeats);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -485,10 +488,10 @@ return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int showtimeId,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  List<SeatView> seats,  Set<int> heldByOthers,  int holdMinutes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int showtimeId,  String movieTitle,  String hallName,  String? showDate,  String? showTime,  List<SeatView> seats,  Set<int> heldByOthers,  int holdMinutes,  int maxSeats)?  $default,) {final _that = this;
 switch (_that) {
 case _SeatMapData() when $default != null:
-return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.seats,_that.heldByOthers,_that.holdMinutes);case _:
+return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,_that.showTime,_that.seats,_that.heldByOthers,_that.holdMinutes,_that.maxSeats);case _:
   return null;
 
 }
@@ -500,7 +503,7 @@ return $default(_that.showtimeId,_that.movieTitle,_that.hallName,_that.showDate,
 
 
 class _SeatMapData implements SeatMapData {
-  const _SeatMapData({required this.showtimeId, required this.movieTitle, required this.hallName, this.showDate, this.showTime, required  List<SeatView> seats, required  Set<int> heldByOthers, required this.holdMinutes}): _seats = seats,_heldByOthers = heldByOthers;
+  const _SeatMapData({required this.showtimeId, required this.movieTitle, required this.hallName, this.showDate, this.showTime, required  List<SeatView> seats, required  Set<int> heldByOthers, required this.holdMinutes, this.maxSeats = 0}): _seats = seats,_heldByOthers = heldByOthers;
   
 
 @override final  int showtimeId;
@@ -523,6 +526,9 @@ class _SeatMapData implements SeatMapData {
 }
 
 @override final  int holdMinutes;
+/// Most seats one booking may have; 0 means the server did not say, so no
+/// client guard. The server enforces it either way (`SEAT_LIMIT`).
+@override@JsonKey() final  int maxSeats;
 
 /// Create a copy of SeatMapData
 /// with the given fields replaced by the non-null parameter values.
@@ -534,18 +540,18 @@ _$SeatMapDataCopyWith<_SeatMapData> get copyWith => __$SeatMapDataCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SeatMapData&&(identical(other.showtimeId, showtimeId) || other.showtimeId == showtimeId)&&(identical(other.movieTitle, movieTitle) || other.movieTitle == movieTitle)&&(identical(other.hallName, hallName) || other.hallName == hallName)&&(identical(other.showDate, showDate) || other.showDate == showDate)&&(identical(other.showTime, showTime) || other.showTime == showTime)&&const DeepCollectionEquality().equals(other.seats, _seats)&&const DeepCollectionEquality().equals(other.heldByOthers, _heldByOthers)&&(identical(other.holdMinutes, holdMinutes) || other.holdMinutes == holdMinutes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SeatMapData&&(identical(other.showtimeId, showtimeId) || other.showtimeId == showtimeId)&&(identical(other.movieTitle, movieTitle) || other.movieTitle == movieTitle)&&(identical(other.hallName, hallName) || other.hallName == hallName)&&(identical(other.showDate, showDate) || other.showDate == showDate)&&(identical(other.showTime, showTime) || other.showTime == showTime)&&const DeepCollectionEquality().equals(other.seats, _seats)&&const DeepCollectionEquality().equals(other.heldByOthers, _heldByOthers)&&(identical(other.holdMinutes, holdMinutes) || other.holdMinutes == holdMinutes)&&(identical(other.maxSeats, maxSeats) || other.maxSeats == maxSeats));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,showtimeId,movieTitle,hallName,showDate,showTime,const DeepCollectionEquality().hash(_seats),const DeepCollectionEquality().hash(_heldByOthers),holdMinutes);
+    return Object.hash(runtimeType,showtimeId,movieTitle,hallName,showDate,showTime,const DeepCollectionEquality().hash(_seats),const DeepCollectionEquality().hash(_heldByOthers),holdMinutes,maxSeats);
 }
 
 @override
 String toString() {
-    return 'SeatMapData(showtimeId: $showtimeId, movieTitle: $movieTitle, hallName: $hallName, showDate: $showDate, showTime: $showTime, seats: $seats, heldByOthers: $heldByOthers, holdMinutes: $holdMinutes)';
+    return 'SeatMapData(showtimeId: $showtimeId, movieTitle: $movieTitle, hallName: $hallName, showDate: $showDate, showTime: $showTime, seats: $seats, heldByOthers: $heldByOthers, holdMinutes: $holdMinutes, maxSeats: $maxSeats)';
 }
 
 
@@ -556,7 +562,7 @@ abstract mixin class _$SeatMapDataCopyWith<$Res> implements $SeatMapDataCopyWith
   factory _$SeatMapDataCopyWith(_SeatMapData value, $Res Function(_SeatMapData) _then) = __$SeatMapDataCopyWithImpl;
 @override @useResult
 $Res call({
- int showtimeId, String movieTitle, String hallName, String? showDate, String? showTime, List<SeatView> seats, Set<int> heldByOthers, int holdMinutes
+ int showtimeId, String movieTitle, String hallName, String? showDate, String? showTime, List<SeatView> seats, Set<int> heldByOthers, int holdMinutes, int maxSeats
 });
 
 
@@ -573,7 +579,7 @@ class __$SeatMapDataCopyWithImpl<$Res>
 
 /// Create a copy of SeatMapData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? showtimeId = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? seats = null,Object? heldByOthers = null,Object? holdMinutes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? showtimeId = null,Object? movieTitle = null,Object? hallName = null,Object? showDate = freezed,Object? showTime = freezed,Object? seats = null,Object? heldByOthers = null,Object? holdMinutes = null,Object? maxSeats = null,}) {
   return _then(_SeatMapData(
 showtimeId: null == showtimeId ? _self.showtimeId : showtimeId // ignore: cast_nullable_to_non_nullable
 as int,movieTitle: null == movieTitle ? _self.movieTitle : movieTitle // ignore: cast_nullable_to_non_nullable
@@ -583,6 +589,7 @@ as String?,showTime: freezed == showTime ? _self.showTime : showTime // ignore: 
 as String?,seats: null == seats ? _self._seats : seats // ignore: cast_nullable_to_non_nullable
 as List<SeatView>,heldByOthers: null == heldByOthers ? _self._heldByOthers : heldByOthers // ignore: cast_nullable_to_non_nullable
 as Set<int>,holdMinutes: null == holdMinutes ? _self.holdMinutes : holdMinutes // ignore: cast_nullable_to_non_nullable
+as int,maxSeats: null == maxSeats ? _self.maxSeats : maxSeats // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -593,7 +600,8 @@ as int,
 /// @nodoc
 mixin _$Hold {
 
- int get showtimeId; Set<int> get seatIds; DateTime get expiresAt;
+ int get showtimeId; Set<int> get seatIds; DateTime get expiresAt;/// The one extend for this hold was used (sprint 14).
+ bool get extended;
 /// Create a copy of Hold
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -605,20 +613,20 @@ $HoldCopyWith<Hold> get copyWith => _$HoldCopyWithImpl<Hold>(this as Hold, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Hold;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Hold&&(identical(other.showtimeId, _this.showtimeId) || other.showtimeId == _this.showtimeId)&&const DeepCollectionEquality().equals(other.seatIds, _this.seatIds)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Hold&&(identical(other.showtimeId, _this.showtimeId) || other.showtimeId == _this.showtimeId)&&const DeepCollectionEquality().equals(other.seatIds, _this.seatIds)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.extended, _this.extended) || other.extended == _this.extended));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Hold;
-  return Object.hash(runtimeType,_this.showtimeId,const DeepCollectionEquality().hash(_this.seatIds),_this.expiresAt);
+  return Object.hash(runtimeType,_this.showtimeId,const DeepCollectionEquality().hash(_this.seatIds),_this.expiresAt,_this.extended);
 }
 
 @override
 String toString() {
   final _this = this as Hold;
-  return 'Hold(showtimeId: ${_this.showtimeId}, seatIds: ${_this.seatIds}, expiresAt: ${_this.expiresAt})';
+  return 'Hold(showtimeId: ${_this.showtimeId}, seatIds: ${_this.seatIds}, expiresAt: ${_this.expiresAt}, extended: ${_this.extended})';
 }
 
 
@@ -629,7 +637,7 @@ abstract mixin class $HoldCopyWith<$Res>  {
   factory $HoldCopyWith(Hold value, $Res Function(Hold) _then) = _$HoldCopyWithImpl;
 @useResult
 $Res call({
- int showtimeId, Set<int> seatIds, DateTime expiresAt
+ int showtimeId, Set<int> seatIds, DateTime expiresAt, bool extended
 });
 
 
@@ -646,12 +654,13 @@ class _$HoldCopyWithImpl<$Res>
 
 /// Create a copy of Hold
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? showtimeId = null,Object? seatIds = null,Object? expiresAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? showtimeId = null,Object? seatIds = null,Object? expiresAt = null,Object? extended = null,}) {
   return _then(Hold(
 showtimeId: null == showtimeId ? _self.showtimeId : showtimeId // ignore: cast_nullable_to_non_nullable
 as int,seatIds: null == seatIds ? _self.seatIds : seatIds // ignore: cast_nullable_to_non_nullable
 as Set<int>,expiresAt: null == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,extended: null == extended ? _self.extended : extended // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -736,10 +745,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int showtimeId,  Set<int> seatIds,  DateTime expiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int showtimeId,  Set<int> seatIds,  DateTime expiresAt,  bool extended)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Hold() when $default != null:
-return $default(_that.showtimeId,_that.seatIds,_that.expiresAt);case _:
+return $default(_that.showtimeId,_that.seatIds,_that.expiresAt,_that.extended);case _:
   return orElse();
 
 }
@@ -757,10 +766,10 @@ return $default(_that.showtimeId,_that.seatIds,_that.expiresAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int showtimeId,  Set<int> seatIds,  DateTime expiresAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int showtimeId,  Set<int> seatIds,  DateTime expiresAt,  bool extended)  $default,) {final _that = this;
 switch (_that) {
 case _Hold():
-return $default(_that.showtimeId,_that.seatIds,_that.expiresAt);case _:
+return $default(_that.showtimeId,_that.seatIds,_that.expiresAt,_that.extended);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -777,10 +786,10 @@ return $default(_that.showtimeId,_that.seatIds,_that.expiresAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int showtimeId,  Set<int> seatIds,  DateTime expiresAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int showtimeId,  Set<int> seatIds,  DateTime expiresAt,  bool extended)?  $default,) {final _that = this;
 switch (_that) {
 case _Hold() when $default != null:
-return $default(_that.showtimeId,_that.seatIds,_that.expiresAt);case _:
+return $default(_that.showtimeId,_that.seatIds,_that.expiresAt,_that.extended);case _:
   return null;
 
 }
@@ -792,7 +801,7 @@ return $default(_that.showtimeId,_that.seatIds,_that.expiresAt);case _:
 
 
 class _Hold implements Hold {
-  const _Hold({required this.showtimeId, required  Set<int> seatIds, required this.expiresAt}): _seatIds = seatIds;
+  const _Hold({required this.showtimeId, required  Set<int> seatIds, required this.expiresAt, this.extended = false}): _seatIds = seatIds;
   
 
 @override final  int showtimeId;
@@ -804,6 +813,8 @@ class _Hold implements Hold {
 }
 
 @override final  DateTime expiresAt;
+/// The one extend for this hold was used (sprint 14).
+@override@JsonKey() final  bool extended;
 
 /// Create a copy of Hold
 /// with the given fields replaced by the non-null parameter values.
@@ -815,18 +826,18 @@ _$HoldCopyWith<_Hold> get copyWith => __$HoldCopyWithImpl<_Hold>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Hold&&(identical(other.showtimeId, showtimeId) || other.showtimeId == showtimeId)&&const DeepCollectionEquality().equals(other.seatIds, _seatIds)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Hold&&(identical(other.showtimeId, showtimeId) || other.showtimeId == showtimeId)&&const DeepCollectionEquality().equals(other.seatIds, _seatIds)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.extended, extended) || other.extended == extended));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,showtimeId,const DeepCollectionEquality().hash(_seatIds),expiresAt);
+    return Object.hash(runtimeType,showtimeId,const DeepCollectionEquality().hash(_seatIds),expiresAt,extended);
 }
 
 @override
 String toString() {
-    return 'Hold(showtimeId: $showtimeId, seatIds: $seatIds, expiresAt: $expiresAt)';
+    return 'Hold(showtimeId: $showtimeId, seatIds: $seatIds, expiresAt: $expiresAt, extended: $extended)';
 }
 
 
@@ -837,7 +848,7 @@ abstract mixin class _$HoldCopyWith<$Res> implements $HoldCopyWith<$Res> {
   factory _$HoldCopyWith(_Hold value, $Res Function(_Hold) _then) = __$HoldCopyWithImpl;
 @override @useResult
 $Res call({
- int showtimeId, Set<int> seatIds, DateTime expiresAt
+ int showtimeId, Set<int> seatIds, DateTime expiresAt, bool extended
 });
 
 
@@ -854,12 +865,13 @@ class __$HoldCopyWithImpl<$Res>
 
 /// Create a copy of Hold
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? showtimeId = null,Object? seatIds = null,Object? expiresAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? showtimeId = null,Object? seatIds = null,Object? expiresAt = null,Object? extended = null,}) {
   return _then(_Hold(
 showtimeId: null == showtimeId ? _self.showtimeId : showtimeId // ignore: cast_nullable_to_non_nullable
 as int,seatIds: null == seatIds ? _self._seatIds : seatIds // ignore: cast_nullable_to_non_nullable
 as Set<int>,expiresAt: null == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,extended: null == extended ? _self.extended : extended // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

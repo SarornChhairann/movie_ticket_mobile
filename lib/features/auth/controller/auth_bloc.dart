@@ -1,3 +1,4 @@
+import '../../../core/storage/booking_cache.dart';
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,7 @@ export 'auth_state.dart';
 /// [AuthGuest]: the app opens on Home and asks for sign-in only when an action
 /// needs it (see `requireSignIn`).
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(this._repository) : super(const AuthState.unknown()) {
+  AuthBloc(this._repository, {this._bookingCache}) : super(const AuthState.unknown()) {
     on<SessionStarted>(_onSessionStarted);
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
@@ -33,6 +34,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthRepository _repository;
   late final StreamSubscription<SessionEnd> _sessionEndedSubscription;
+
+  /// The account's bookings saved on the device leave with the session; null in tests.
+  final BookingCache? _bookingCache;
 
   Future<void> _onSessionStarted(SessionStarted event, Emitter<AuthState> emit) async {
     final result = await _repository.restoreSession();
@@ -68,14 +72,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) async {
     await _repository.logout();
+    await _bookingCache?.clearAccount();
     emit(const AuthState.guest());
   }
 
-  void _onSessionEnded(SessionEnded event, Emitter<AuthState> emit) {
+  Future<void> _onSessionEnded(SessionEnded event, Emitter<AuthState> emit) async {
     // A guest has no session to end.
     if (state is AuthGuest) {
       return;
     }
+    await _bookingCache?.clearAccount();
     emit(switch (event.reason) {
       SessionBlocked(:final message) => AuthState.blocked(message),
       SessionExpired() => const AuthState.guest(failure: AuthFailure.sessionExpired()),

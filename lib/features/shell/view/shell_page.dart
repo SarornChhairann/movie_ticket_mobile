@@ -25,10 +25,10 @@ import 'language_toggle.dart';
 
 enum ShellTab { home, explore, bookings, profile }
 
-/// Bottom-bar shell. Anyone can browse Home and Explore. Bookings needs an
-/// account: opening it asks for sign-in first and continues on success. The
-/// Account tab is open to guests (language, sign-in) and becomes Profile once
-/// signed in. Bookings and Profile read their blocs only when signed in.
+/// Bottom-bar shell. Anyone can browse Home and Explore. Bookings shows the
+/// account's list when signed in, and for guests the bookings made or found on
+/// this phone with Find my booking and a sign-in button. The Account tab is open
+/// to guests (language, sign-in) and becomes Profile once signed in.
 class ShellPage extends StatefulWidget {
   const ShellPage({super.key});
 
@@ -40,12 +40,9 @@ class _ShellPageState extends State<ShellPage> {
   ShellTab _tab = ShellTab.home;
 
   Future<void> _select(ShellTab tab) async {
-    if (tab == ShellTab.bookings &&
-        await requireSignIn(context, reasonKey: 'auth.reason.bookings') != AuthGateResult.signedIn) {
-      return; // Closed the login screen: stay where we were.
-    }
-    if (!mounted) return;
     final signedIn = context.read<AuthBloc>().state is AuthAuthenticated;
+    // Guests get the bookings saved on this phone and Find my booking (sprint 13).
+    if (tab == ShellTab.bookings && !signedIn) context.read<tickets.GuestBookingsBloc>().add(const tickets.RefreshRequested());
     if (signedIn) {
       // Re-read on every visit so bookings and points are current.
       if (tab == ShellTab.bookings) context.read<tickets.MyBookingsBloc>().add(const tickets.RefreshRequested());
@@ -55,6 +52,13 @@ class _ShellPageState extends State<ShellPage> {
       }
     }
     setState(() => _tab = tab);
+  }
+
+  /// The guest Bookings tab's sign-in: on success it shows the account's list.
+  Future<void> _openBookingsSignIn() async {
+    if (await requireSignIn(context, reasonKey: 'auth.reason.bookings') == AuthGateResult.signedIn && mounted) {
+      context.read<tickets.MyBookingsBloc>().add(const tickets.RefreshRequested());
+    }
   }
 
   /// Avatar and the guest Account tab's sign-in button.
@@ -93,8 +97,12 @@ class _ShellPageState extends State<ShellPage> {
             ],
           ),
         ),
-      // Only reachable signed in (see _select); sign-out resets to Home.
-      ShellTab.bookings => const MyBookingsPage(),
+      ShellTab.bookings => signedIn
+          ? const MyBookingsPage()
+          : BlocProvider<tickets.MyBookingsBloc>.value(
+              value: context.read<tickets.GuestBookingsBloc>(),
+              child: MyBookingsPage(onSignIn: _openBookingsSignIn),
+            ),
       ShellTab.profile => signedIn ? const ProfilePage() : _GuestProfile(onSignIn: _openAccount),
     };
     return Scaffold(

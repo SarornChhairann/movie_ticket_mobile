@@ -185,4 +185,15 @@ void main() {
     final button = tester.widget<PrimaryButton>(find.byKey(const Key('pay.process')));
     expect(button.onPressed, isNull);
   });
+
+  testWidgets('under 3 minutes Pay is off and the banner offers Extend; once used it says to start over', (tester) async {
+    await pump(tester, ready().copyWith(secondsLeft: 120));
+    expect(payButton(tester).onPressed, isNull);
+    expect(find.text('Less than 3 minutes left: extend your hold to pay.'), findsOneWidget);
+    expect(find.byKey(const Key('hold.extend')), findsOneWidget);
+
+    await pump(tester, ready().copyWith(secondsLeft: 120, hold: testHold.copyWith(extended: true)));
+    expect(find.textContaining('too little to pay'), findsOneWidget);
+    expect(find.byKey(const Key('hold.extend')), findsNothing);
+  });
 }

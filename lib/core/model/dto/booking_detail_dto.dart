@@ -22,6 +22,7 @@ class ShowtimeInfoDto {
 class BookingDetailDto {
   const BookingDetailDto({
     required this.id,
+    this.reference,
     required this.showtime,
     this.customerName,
     this.customerEmail,
@@ -32,11 +33,15 @@ class BookingDetailDto {
     required this.status,
     this.bookedAt,
     this.tickets = const [],
+    this.paymentStatus,
   });
 
   factory BookingDetailDto.fromJson(Map<String, dynamic> json) => _$BookingDetailDtoFromJson(json);
 
   final int id;
+
+  /// What the customer types back in to find the booking (sprint 13).
+  final String? reference;
   final ShowtimeInfoDto showtime;
   final String? customerName;
   final String? customerEmail;
@@ -47,6 +52,10 @@ class BookingDetailDto {
   final String status;
   final String? bookedAt;
   final List<TicketSummaryDto> tickets;
+
+  /// `PENDING | PAID | FAILED | REFUND_PENDING | REFUNDED`; null when the booking has
+  /// no payment or the server is older than sprint 12.
+  final String? paymentStatus;
 }
 
 @JsonSerializable(createToJson: false)

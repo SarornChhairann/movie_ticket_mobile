@@ -17,7 +17,13 @@ enum CheckoutEffect {
 
   /// PayWay checkout created: open the web view for [CheckoutReady.payway].
   paywayStarted,
+
+  /// The hold's one extend went through.
+  holdExtended,
 }
+
+/// PayWay needs at least this much hold left to start a payment.
+const payMinHoldSeconds = 180;
 
 @freezed
 sealed class CheckoutState with _$CheckoutState {
@@ -44,6 +50,9 @@ sealed class CheckoutState with _$CheckoutState {
     /// The open PayWay payment, while its web view is up.
     PaywayLaunch? payway,
     int? secondsLeft,
+
+    /// The extend call is running.
+    @Default(false) bool extending,
     CheckoutEffect? effect,
 
     /// Server message for [CheckoutEffect.error].
@@ -65,7 +74,13 @@ extension CheckoutReadyX on CheckoutReady {
       (guest.email.trim().isEmpty || Validators.email(guest.email) == null);
 
   /// The Pay button's guard. Validation lives here, not in the view.
-  bool get canPay => !quoting && !submitting && (!requiresGuest || guestValid);
+  bool get canPay => !quoting && !submitting && !holdTooShort && (!requiresGuest || guestValid);
+
+  /// Under PayWay's minimum: Pay would only fail with `HOLD_EXPIRED`, so it is
+  /// disabled instead (sprint 14). Extend, if unused, lifts it.
+  bool get holdTooShort => secondsLeft != null && secondsLeft! < payMinHoldSeconds;
+
+  bool get canExtend => !hold.extended && !extending && holdAlive && payway == null;
 
   bool get holdAlive => (secondsLeft ?? 0) > 0;
 }

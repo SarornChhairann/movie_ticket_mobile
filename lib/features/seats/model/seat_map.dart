@@ -41,6 +41,10 @@ abstract class SeatMapData with _$SeatMapData {
     required List<SeatView> seats,
     required Set<int> heldByOthers,
     required int holdMinutes,
+
+    /// Most seats one booking may have; 0 means the server did not say, so no
+    /// client guard. The server enforces it either way (`SEAT_LIMIT`).
+    @Default(0) int maxSeats,
   }) = _SeatMapData;
 
   factory SeatMapData.fromDto(SeatMapResponseDto dto) => SeatMapData(
@@ -52,6 +56,7 @@ abstract class SeatMapData with _$SeatMapData {
         seats: dto.seats.map(SeatView.fromDto).toList(),
         heldByOthers: dto.heldByOthers.toSet(),
         holdMinutes: dto.holdMinutes,
+        maxSeats: dto.maxSeats,
       );
 }
 
@@ -62,6 +67,9 @@ abstract class Hold with _$Hold {
     required int showtimeId,
     required Set<int> seatIds,
     required DateTime expiresAt,
+
+    /// The one extend for this hold was used (sprint 14).
+    @Default(false) bool extended,
   }) = _Hold;
 }
 

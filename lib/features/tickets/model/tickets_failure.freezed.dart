@@ -56,13 +56,15 @@ extension TicketsFailurePatterns on TicketsFailure {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TicketsNotOwner value)?  notOwner,TResult Function( TicketsAlreadyCancelled value)?  alreadyCancelled,TResult Function( TicketsCancelWindow value)?  cancelWindow,TResult Function( TicketsNetwork value)?  network,TResult Function( TicketsUnknown value)?  unknown,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TicketsNotOwner value)?  notOwner,TResult Function( TicketsAlreadyCancelled value)?  alreadyCancelled,TResult Function( TicketsCancelWindow value)?  cancelWindow,TResult Function( TicketsNotFound value)?  notFound,TResult Function( TicketsTooManyAttempts value)?  tooManyAttempts,TResult Function( TicketsNetwork value)?  network,TResult Function( TicketsUnknown value)?  unknown,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case TicketsNotOwner() when notOwner != null:
 return notOwner(_that);case TicketsAlreadyCancelled() when alreadyCancelled != null:
 return alreadyCancelled(_that);case TicketsCancelWindow() when cancelWindow != null:
-return cancelWindow(_that);case TicketsNetwork() when network != null:
+return cancelWindow(_that);case TicketsNotFound() when notFound != null:
+return notFound(_that);case TicketsTooManyAttempts() when tooManyAttempts != null:
+return tooManyAttempts(_that);case TicketsNetwork() when network != null:
 return network(_that);case TicketsUnknown() when unknown != null:
 return unknown(_that);case _:
   return orElse();
@@ -82,13 +84,15 @@ return unknown(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TicketsNotOwner value)  notOwner,required TResult Function( TicketsAlreadyCancelled value)  alreadyCancelled,required TResult Function( TicketsCancelWindow value)  cancelWindow,required TResult Function( TicketsNetwork value)  network,required TResult Function( TicketsUnknown value)  unknown,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TicketsNotOwner value)  notOwner,required TResult Function( TicketsAlreadyCancelled value)  alreadyCancelled,required TResult Function( TicketsCancelWindow value)  cancelWindow,required TResult Function( TicketsNotFound value)  notFound,required TResult Function( TicketsTooManyAttempts value)  tooManyAttempts,required TResult Function( TicketsNetwork value)  network,required TResult Function( TicketsUnknown value)  unknown,}){
 final _that = this;
 switch (_that) {
 case TicketsNotOwner():
 return notOwner(_that);case TicketsAlreadyCancelled():
 return alreadyCancelled(_that);case TicketsCancelWindow():
-return cancelWindow(_that);case TicketsNetwork():
+return cancelWindow(_that);case TicketsNotFound():
+return notFound(_that);case TicketsTooManyAttempts():
+return tooManyAttempts(_that);case TicketsNetwork():
 return network(_that);case TicketsUnknown():
 return unknown(_that);}
 }
@@ -104,13 +108,15 @@ return unknown(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TicketsNotOwner value)?  notOwner,TResult? Function( TicketsAlreadyCancelled value)?  alreadyCancelled,TResult? Function( TicketsCancelWindow value)?  cancelWindow,TResult? Function( TicketsNetwork value)?  network,TResult? Function( TicketsUnknown value)?  unknown,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TicketsNotOwner value)?  notOwner,TResult? Function( TicketsAlreadyCancelled value)?  alreadyCancelled,TResult? Function( TicketsCancelWindow value)?  cancelWindow,TResult? Function( TicketsNotFound value)?  notFound,TResult? Function( TicketsTooManyAttempts value)?  tooManyAttempts,TResult? Function( TicketsNetwork value)?  network,TResult? Function( TicketsUnknown value)?  unknown,}){
 final _that = this;
 switch (_that) {
 case TicketsNotOwner() when notOwner != null:
 return notOwner(_that);case TicketsAlreadyCancelled() when alreadyCancelled != null:
 return alreadyCancelled(_that);case TicketsCancelWindow() when cancelWindow != null:
-return cancelWindow(_that);case TicketsNetwork() when network != null:
+return cancelWindow(_that);case TicketsNotFound() when notFound != null:
+return notFound(_that);case TicketsTooManyAttempts() when tooManyAttempts != null:
+return tooManyAttempts(_that);case TicketsNetwork() when network != null:
 return network(_that);case TicketsUnknown() when unknown != null:
 return unknown(_that);case _:
   return null;
@@ -129,12 +135,14 @@ return unknown(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String message)?  notOwner,TResult Function( String message)?  alreadyCancelled,TResult Function( String message)?  cancelWindow,TResult Function()?  network,TResult Function( String message)?  unknown,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String message)?  notOwner,TResult Function( String message)?  alreadyCancelled,TResult Function( String message)?  cancelWindow,TResult Function( String message)?  notFound,TResult Function( String message)?  tooManyAttempts,TResult Function()?  network,TResult Function( String message)?  unknown,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TicketsNotOwner() when notOwner != null:
 return notOwner(_that.message);case TicketsAlreadyCancelled() when alreadyCancelled != null:
 return alreadyCancelled(_that.message);case TicketsCancelWindow() when cancelWindow != null:
-return cancelWindow(_that.message);case TicketsNetwork() when network != null:
+return cancelWindow(_that.message);case TicketsNotFound() when notFound != null:
+return notFound(_that.message);case TicketsTooManyAttempts() when tooManyAttempts != null:
+return tooManyAttempts(_that.message);case TicketsNetwork() when network != null:
 return network();case TicketsUnknown() when unknown != null:
 return unknown(_that.message);case _:
   return orElse();
@@ -154,12 +162,14 @@ return unknown(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String message)  notOwner,required TResult Function( String message)  alreadyCancelled,required TResult Function( String message)  cancelWindow,required TResult Function()  network,required TResult Function( String message)  unknown,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String message)  notOwner,required TResult Function( String message)  alreadyCancelled,required TResult Function( String message)  cancelWindow,required TResult Function( String message)  notFound,required TResult Function( String message)  tooManyAttempts,required TResult Function()  network,required TResult Function( String message)  unknown,}) {final _that = this;
 switch (_that) {
 case TicketsNotOwner():
 return notOwner(_that.message);case TicketsAlreadyCancelled():
 return alreadyCancelled(_that.message);case TicketsCancelWindow():
-return cancelWindow(_that.message);case TicketsNetwork():
+return cancelWindow(_that.message);case TicketsNotFound():
+return notFound(_that.message);case TicketsTooManyAttempts():
+return tooManyAttempts(_that.message);case TicketsNetwork():
 return network();case TicketsUnknown():
 return unknown(_that.message);}
 }
@@ -175,12 +185,14 @@ return unknown(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String message)?  notOwner,TResult? Function( String message)?  alreadyCancelled,TResult? Function( String message)?  cancelWindow,TResult? Function()?  network,TResult? Function( String message)?  unknown,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String message)?  notOwner,TResult? Function( String message)?  alreadyCancelled,TResult? Function( String message)?  cancelWindow,TResult? Function( String message)?  notFound,TResult? Function( String message)?  tooManyAttempts,TResult? Function()?  network,TResult? Function( String message)?  unknown,}) {final _that = this;
 switch (_that) {
 case TicketsNotOwner() when notOwner != null:
 return notOwner(_that.message);case TicketsAlreadyCancelled() when alreadyCancelled != null:
 return alreadyCancelled(_that.message);case TicketsCancelWindow() when cancelWindow != null:
-return cancelWindow(_that.message);case TicketsNetwork() when network != null:
+return cancelWindow(_that.message);case TicketsNotFound() when notFound != null:
+return notFound(_that.message);case TicketsTooManyAttempts() when tooManyAttempts != null:
+return tooManyAttempts(_that.message);case TicketsNetwork() when network != null:
 return network();case TicketsUnknown() when unknown != null:
 return unknown(_that.message);case _:
   return null;
@@ -386,6 +398,142 @@ class _$TicketsCancelWindowCopyWithImpl<$Res>
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
   return _then(TicketsCancelWindow(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class TicketsNotFound extends TicketsFailure {
+  const TicketsNotFound(this.message): super._();
+  
+
+ final  String message;
+
+/// Create a copy of TicketsFailure
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TicketsNotFoundCopyWith<TicketsNotFound> get copyWith => _$TicketsNotFoundCopyWithImpl<TicketsNotFound>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is TicketsNotFound&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
+    return 'TicketsFailure.notFound(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TicketsNotFoundCopyWith<$Res> implements $TicketsFailureCopyWith<$Res> {
+  factory $TicketsNotFoundCopyWith(TicketsNotFound value, $Res Function(TicketsNotFound) _then) = _$TicketsNotFoundCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$TicketsNotFoundCopyWithImpl<$Res>
+    implements $TicketsNotFoundCopyWith<$Res> {
+  _$TicketsNotFoundCopyWithImpl(this._self, this._then);
+
+  final TicketsNotFound _self;
+  final $Res Function(TicketsNotFound) _then;
+
+/// Create a copy of TicketsFailure
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(TicketsNotFound(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class TicketsTooManyAttempts extends TicketsFailure {
+  const TicketsTooManyAttempts(this.message): super._();
+  
+
+ final  String message;
+
+/// Create a copy of TicketsFailure
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TicketsTooManyAttemptsCopyWith<TicketsTooManyAttempts> get copyWith => _$TicketsTooManyAttemptsCopyWithImpl<TicketsTooManyAttempts>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is TicketsTooManyAttempts&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
+    return 'TicketsFailure.tooManyAttempts(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TicketsTooManyAttemptsCopyWith<$Res> implements $TicketsFailureCopyWith<$Res> {
+  factory $TicketsTooManyAttemptsCopyWith(TicketsTooManyAttempts value, $Res Function(TicketsTooManyAttempts) _then) = _$TicketsTooManyAttemptsCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$TicketsTooManyAttemptsCopyWithImpl<$Res>
+    implements $TicketsTooManyAttemptsCopyWith<$Res> {
+  _$TicketsTooManyAttemptsCopyWithImpl(this._self, this._then);
+
+  final TicketsTooManyAttempts _self;
+  final $Res Function(TicketsTooManyAttempts) _then;
+
+/// Create a copy of TicketsFailure
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(TicketsTooManyAttempts(
 null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,
   ));

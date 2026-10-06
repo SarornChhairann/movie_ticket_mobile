@@ -21,7 +21,7 @@ class LastBookingTile extends StatelessWidget {
       leading: const Icon(Icons.history),
       title: Text('loyalty.lastBooking'.tr(context: context)),
       subtitle: Text('${last.movieTitle} · ${showLine(context, last)}'),
-      trailing: BookingStatusChip(status: last.status),
+      trailing: BookingStatusChip(status: last.status, refund: last.refund),
       onTap: () => Navigator.of(context).pushNamed(
         AppRoutes.bookingDetail,
         arguments: (context.read<MyBookingsBloc>(), last.bookingId),

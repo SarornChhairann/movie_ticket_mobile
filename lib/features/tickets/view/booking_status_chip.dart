@@ -6,18 +6,24 @@ import '../../../core/model/booking_summary.dart';
 import '../../../core/motion/motion.dart';
 
 class BookingStatusChip extends StatelessWidget {
-  const BookingStatusChip({super.key, required this.status});
+  const BookingStatusChip({super.key, required this.status, this.refund = RefundState.none});
 
   final BookingStatus status;
+
+  /// Shown instead of plain "Cancelled" once a paid booking is cancelled.
+  final RefundState refund;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final (key, background, foreground) = switch (status) {
-      BookingStatus.confirmed => ('tickets.status.confirmed', scheme.primaryContainer, scheme.onPrimaryContainer),
-      BookingStatus.cancelled => ('tickets.status.cancelled', scheme.errorContainer, scheme.onErrorContainer),
-      BookingStatus.pending ||
-      BookingStatus.unknown =>
+    final (key, background, foreground) = switch ((status, refund)) {
+      (BookingStatus.cancelled, RefundState.pending) =>
+        ('tickets.refundPending', scheme.tertiaryContainer, scheme.onTertiaryContainer),
+      (BookingStatus.cancelled, RefundState.refunded) =>
+        ('tickets.refunded', scheme.surfaceContainerHighest, scheme.onSurfaceVariant),
+      (BookingStatus.confirmed, _) => ('tickets.status.confirmed', scheme.primaryContainer, scheme.onPrimaryContainer),
+      (BookingStatus.cancelled, _) => ('tickets.status.cancelled', scheme.errorContainer, scheme.onErrorContainer),
+      (BookingStatus.pending || BookingStatus.unknown, _) =>
         ('tickets.status.pending', scheme.surfaceContainerHighest, scheme.onSurfaceVariant),
     };
     // A status change (e.g. confirmed → cancelled) morphs in place: colour and
@@ -28,7 +34,9 @@ class BookingStatusChip extends StatelessWidget {
       child: AnimatedSwitcher(
         duration: context.motion(Motion.medium),
         child: Chip(
-          key: Key('tickets.chip.${status.name}'),
+          key: Key(refund == RefundState.none || status != BookingStatus.cancelled
+              ? 'tickets.chip.${status.name}'
+              : 'tickets.chip.refund.${refund.name}'),
           label: Text(key.tr(context: context), style: TextStyle(color: foreground)),
           backgroundColor: background,
           side: BorderSide.none,

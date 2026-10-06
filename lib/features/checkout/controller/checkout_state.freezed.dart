@@ -129,12 +129,12 @@ return success(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( Hold hold)?  loading,TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  PaywayLaunch? payway,  int? secondsLeft,  CheckoutEffect? effect,  String? message)?  ready,TResult Function( Hold hold,  CheckoutFailure failure)?  failure,TResult Function( BookingSummary confirmation)?  success,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( Hold hold)?  loading,TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  PaywayLaunch? payway,  int? secondsLeft,  bool extending,  CheckoutEffect? effect,  String? message)?  ready,TResult Function( Hold hold,  CheckoutFailure failure)?  failure,TResult Function( BookingSummary confirmation)?  success,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CheckoutInitial() when initial != null:
 return initial();case CheckoutLoading() when loading != null:
 return loading(_that.hold);case CheckoutReady() when ready != null:
-return ready(_that.hold,_that.quote,_that.food,_that.guest,_that.quoting,_that.submitting,_that.payway,_that.secondsLeft,_that.effect,_that.message);case CheckoutFailureState() when failure != null:
+return ready(_that.hold,_that.quote,_that.food,_that.guest,_that.quoting,_that.submitting,_that.payway,_that.secondsLeft,_that.extending,_that.effect,_that.message);case CheckoutFailureState() when failure != null:
 return failure(_that.hold,_that.failure);case CheckoutSuccess() when success != null:
 return success(_that.confirmation);case _:
   return orElse();
@@ -154,12 +154,12 @@ return success(_that.confirmation);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( Hold hold)  loading,required TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  PaywayLaunch? payway,  int? secondsLeft,  CheckoutEffect? effect,  String? message)  ready,required TResult Function( Hold hold,  CheckoutFailure failure)  failure,required TResult Function( BookingSummary confirmation)  success,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( Hold hold)  loading,required TResult Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  PaywayLaunch? payway,  int? secondsLeft,  bool extending,  CheckoutEffect? effect,  String? message)  ready,required TResult Function( Hold hold,  CheckoutFailure failure)  failure,required TResult Function( BookingSummary confirmation)  success,}) {final _that = this;
 switch (_that) {
 case CheckoutInitial():
 return initial();case CheckoutLoading():
 return loading(_that.hold);case CheckoutReady():
-return ready(_that.hold,_that.quote,_that.food,_that.guest,_that.quoting,_that.submitting,_that.payway,_that.secondsLeft,_that.effect,_that.message);case CheckoutFailureState():
+return ready(_that.hold,_that.quote,_that.food,_that.guest,_that.quoting,_that.submitting,_that.payway,_that.secondsLeft,_that.extending,_that.effect,_that.message);case CheckoutFailureState():
 return failure(_that.hold,_that.failure);case CheckoutSuccess():
 return success(_that.confirmation);}
 }
@@ -175,12 +175,12 @@ return success(_that.confirmation);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( Hold hold)?  loading,TResult? Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  PaywayLaunch? payway,  int? secondsLeft,  CheckoutEffect? effect,  String? message)?  ready,TResult? Function( Hold hold,  CheckoutFailure failure)?  failure,TResult? Function( BookingSummary confirmation)?  success,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( Hold hold)?  loading,TResult? Function( Hold hold,  Quote quote,  Map<int, int> food,  GuestInfo guest,  bool quoting,  bool submitting,  PaywayLaunch? payway,  int? secondsLeft,  bool extending,  CheckoutEffect? effect,  String? message)?  ready,TResult? Function( Hold hold,  CheckoutFailure failure)?  failure,TResult? Function( BookingSummary confirmation)?  success,}) {final _that = this;
 switch (_that) {
 case CheckoutInitial() when initial != null:
 return initial();case CheckoutLoading() when loading != null:
 return loading(_that.hold);case CheckoutReady() when ready != null:
-return ready(_that.hold,_that.quote,_that.food,_that.guest,_that.quoting,_that.submitting,_that.payway,_that.secondsLeft,_that.effect,_that.message);case CheckoutFailureState() when failure != null:
+return ready(_that.hold,_that.quote,_that.food,_that.guest,_that.quoting,_that.submitting,_that.payway,_that.secondsLeft,_that.extending,_that.effect,_that.message);case CheckoutFailureState() when failure != null:
 return failure(_that.hold,_that.failure);case CheckoutSuccess() when success != null:
 return success(_that.confirmation);case _:
   return null;
@@ -303,7 +303,7 @@ $HoldCopyWith<$Res> get hold {
 
 
 class CheckoutReady extends CheckoutState {
-  const CheckoutReady({required this.hold, required this.quote,  Map<int, int> food = const <int, int>{}, this.guest = const GuestInfo(), this.quoting = false, this.submitting = false, this.payway, this.secondsLeft, this.effect, this.message}): _food = food,super._();
+  const CheckoutReady({required this.hold, required this.quote,  Map<int, int> food = const <int, int>{}, this.guest = const GuestInfo(), this.quoting = false, this.submitting = false, this.payway, this.secondsLeft, this.extending = false, this.effect, this.message}): _food = food,super._();
   
 
  final  Hold hold;
@@ -327,6 +327,8 @@ class CheckoutReady extends CheckoutState {
 /// The open PayWay payment, while its web view is up.
  final  PaywayLaunch? payway;
  final  int? secondsLeft;
+/// The extend call is running.
+@JsonKey() final  bool extending;
  final  CheckoutEffect? effect;
 /// Server message for [CheckoutEffect.error].
  final  String? message;
@@ -341,18 +343,18 @@ $CheckoutReadyCopyWith<CheckoutReady> get copyWith => _$CheckoutReadyCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckoutReady&&(identical(other.hold, hold) || other.hold == hold)&&(identical(other.quote, quote) || other.quote == quote)&&const DeepCollectionEquality().equals(other.food, _food)&&(identical(other.guest, guest) || other.guest == guest)&&(identical(other.quoting, quoting) || other.quoting == quoting)&&(identical(other.submitting, submitting) || other.submitting == submitting)&&(identical(other.payway, payway) || other.payway == payway)&&(identical(other.secondsLeft, secondsLeft) || other.secondsLeft == secondsLeft)&&(identical(other.effect, effect) || other.effect == effect)&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckoutReady&&(identical(other.hold, hold) || other.hold == hold)&&(identical(other.quote, quote) || other.quote == quote)&&const DeepCollectionEquality().equals(other.food, _food)&&(identical(other.guest, guest) || other.guest == guest)&&(identical(other.quoting, quoting) || other.quoting == quoting)&&(identical(other.submitting, submitting) || other.submitting == submitting)&&(identical(other.payway, payway) || other.payway == payway)&&(identical(other.secondsLeft, secondsLeft) || other.secondsLeft == secondsLeft)&&(identical(other.extending, extending) || other.extending == extending)&&(identical(other.effect, effect) || other.effect == effect)&&(identical(other.message, message) || other.message == message));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,hold,quote,const DeepCollectionEquality().hash(_food),guest,quoting,submitting,payway,secondsLeft,effect,message);
+    return Object.hash(runtimeType,hold,quote,const DeepCollectionEquality().hash(_food),guest,quoting,submitting,payway,secondsLeft,extending,effect,message);
 }
 
 @override
 String toString() {
-    return 'CheckoutState.ready(hold: $hold, quote: $quote, food: $food, guest: $guest, quoting: $quoting, submitting: $submitting, payway: $payway, secondsLeft: $secondsLeft, effect: $effect, message: $message)';
+    return 'CheckoutState.ready(hold: $hold, quote: $quote, food: $food, guest: $guest, quoting: $quoting, submitting: $submitting, payway: $payway, secondsLeft: $secondsLeft, extending: $extending, effect: $effect, message: $message)';
 }
 
 
@@ -363,7 +365,7 @@ abstract mixin class $CheckoutReadyCopyWith<$Res> implements $CheckoutStateCopyW
   factory $CheckoutReadyCopyWith(CheckoutReady value, $Res Function(CheckoutReady) _then) = _$CheckoutReadyCopyWithImpl;
 @useResult
 $Res call({
- Hold hold, Quote quote, Map<int, int> food, GuestInfo guest, bool quoting, bool submitting, PaywayLaunch? payway, int? secondsLeft, CheckoutEffect? effect, String? message
+ Hold hold, Quote quote, Map<int, int> food, GuestInfo guest, bool quoting, bool submitting, PaywayLaunch? payway, int? secondsLeft, bool extending, CheckoutEffect? effect, String? message
 });
 
 
@@ -380,7 +382,7 @@ class _$CheckoutReadyCopyWithImpl<$Res>
 
 /// Create a copy of CheckoutState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? hold = null,Object? quote = null,Object? food = null,Object? guest = null,Object? quoting = null,Object? submitting = null,Object? payway = freezed,Object? secondsLeft = freezed,Object? effect = freezed,Object? message = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? hold = null,Object? quote = null,Object? food = null,Object? guest = null,Object? quoting = null,Object? submitting = null,Object? payway = freezed,Object? secondsLeft = freezed,Object? extending = null,Object? effect = freezed,Object? message = freezed,}) {
   return _then(CheckoutReady(
 hold: null == hold ? _self.hold : hold // ignore: cast_nullable_to_non_nullable
 as Hold,quote: null == quote ? _self.quote : quote // ignore: cast_nullable_to_non_nullable
@@ -390,7 +392,8 @@ as GuestInfo,quoting: null == quoting ? _self.quoting : quoting // ignore: cast_
 as bool,submitting: null == submitting ? _self.submitting : submitting // ignore: cast_nullable_to_non_nullable
 as bool,payway: freezed == payway ? _self.payway : payway // ignore: cast_nullable_to_non_nullable
 as PaywayLaunch?,secondsLeft: freezed == secondsLeft ? _self.secondsLeft : secondsLeft // ignore: cast_nullable_to_non_nullable
-as int?,effect: freezed == effect ? _self.effect : effect // ignore: cast_nullable_to_non_nullable
+as int?,extending: null == extending ? _self.extending : extending // ignore: cast_nullable_to_non_nullable
+as bool,effect: freezed == effect ? _self.effect : effect // ignore: cast_nullable_to_non_nullable
 as CheckoutEffect?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

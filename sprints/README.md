@@ -39,6 +39,8 @@ These are decided once and reused by every sprint. Do not redesign them inside a
 
 ### 1. Hold session id — `X-Session-Id` header
 
+*Sprint 13 amends this: when a PayWay payment was in flight at the last app kill, the next run restores that session id instead of creating a new one.*
+
 The API is a stateless JWT resource server, but `SeatHoldApiController` and `BookingController` currently read `HttpSession.getId()`. A Dio client keeps no cookies, so every request would get a new servlet session and the hold → quote → confirm chain would always fail with "Your seat hold expired".
 
 - The app creates **one UUID per app install run** (guest *and* signed-in user) in `core/session/session_id_provider.dart` and sends it on every request as `X-Session-Id`. Generate it with `Random.secure()` — do not add a `uuid` package for one function.
@@ -66,6 +68,10 @@ Today every error is `{ "error": "<message>", "type": "<HTTP status name or BAD_
 | `ALREADY_CANCELLED` | 409 | 6 | Cancel on a `CANCELLED` booking |
 | `CANCEL_WINDOW` | 409 | 6 | Cancel inside the cancellation window |
 | `REMINDER_EXISTS` | 409 | 7 | Same email + movie already subscribed |
+| `BOOKING_NOT_FOUND` | 404 | 12 | Booking read, lookup, or payment poll by someone who is not the owner (404, not 403, so ids cannot be probed) |
+| `TOO_MANY_ATTEMPTS` | 429 | 13 | Five lookups that found nothing from one client in 10 minutes |
+| `SEAT_LIMIT` | 400 | 12 | More seats than `max_seats_per_booking` on hold, quote, confirm, or PayWay start |
+| `HOLD_EXTEND_LIMIT` | 409 | 14 | Second extend on the same hold |
 
 The client maps unknown codes to a generic failure and still shows the server's `error` message.
 
@@ -91,7 +97,7 @@ The client maps unknown codes to a generic failure and still shows the server's 
 
 ## Backend gap register
 
-Verified against `Ticket-Management-System` source on 2026-10-01. Each row is closed by the named sprint; ✅ marks rows already closed (all of G1–G23 as of sprint 7; G23 accepted for v1). G24 is open for sprint 10. Re-check a row before closing it — the code may have moved.
+Verified against `Ticket-Management-System` source on 2026-10-01. Each row is closed by the named sprint; ✅ marks rows already closed (all of G1–G23 as of sprint 7; G23 accepted for v1). G24 is open for sprint 10. G25–G32 were verified on 2026-10-06 for the booking enhancement (`booking-enhancement/PLAN.md`); G25–G28 are closed by sprint 12, G29–G31 by sprint 13, G32 by sprint 14. Re-check a row before closing it — the code may have moved.
 
 | # | Area | Current backend | Target | Sprint |
 | --- | --- | --- | --- | --- |
@@ -119,6 +125,14 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | G22 | Reminder email ✅ | Sends synchronously and throws 409 when mail is not configured, so the row is rolled back in dev | Persist first; email is best-effort (log on failure) | 7 |
 | G23 | Ticket QR access ✅ | `/tickets/{code}/qr` is public to anyone holding a code | Accepted for v1 (code is the bearer secret). Note in sprint 6, revisit after v1 | 6 |
 | G24 | Public halls | Halls exist only on `GET /admin/halls` (`ROLE_ADMIN`). Home has no hall section | Public `GET /api/halls` and `GET /api/halls/{id}/showtimes`. Customer app never calls `/admin/**` | 10 |
+| G25 | Booking read ✅ | `/bookings/confirmation/{id}` is `permitAll` with sequential ids and returns guest PII and ticket codes | Owner only: bearer user, or the `X-Session-Id` that created it. Else 404 `BOOKING_NOT_FOUND` | 12 |
+| G26 | Seat cap ✅ | None; one session can hold a whole hall | `max_seats_per_booking` setting (default 8). Hold, quote, confirm, PayWay start reject above it with 400 `SEAT_LIMIT` | 12 |
+| G27 | Cancel reversal ✅ | Points and promo `usedCount` kept on cancel | Customer and admin cancel subtract the booking's points (floor 0) and decrement `usedCount` (floor 0) | 12 |
+| G28 | Refund trail ✅ | `PAID` payment untouched on cancel | Payment `REFUND_PENDING` on cancel of a paid booking; admin sets `REFUNDED`. No provider refund call in v1 | 12 |
+| G29 | Booking reference ✅ | Only the numeric id | `bookings.reference`: 8 chars, no `0/O/1/I`, unique; on success screen, ticket, email | 13 |
+| G30 | Guest lookup ✅ | None | `POST /bookings/lookup { reference, phone }`; 5 misses per client per 10 min then 429 `TOO_MANY_ATTEMPTS`; 404 `BOOKING_NOT_FOUND` on any miss | 13 |
+| G31 | Payment resume ✅ | PayWay poll/close need the starting session, which rotates on app restart | Poll and close accept the bearer owner or the starting session (restored by the app after a kill) | 13 |
+| G32 | Hold extend ✅ | None | `POST /api/seat-holds/extend` once per hold, adds `hold_extend_minutes` (default 5); second call 409 `HOLD_EXTEND_LIMIT` | 14 |
 
 ## Sequence
 
@@ -135,6 +149,18 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | 8 | `sprint-08-motion-carousel` | Motion system, journey transitions, coming-soon hero carousel | — (UX only, no backend) |
 | 10 | `sprint-10-home-halls` | Home hall list under the movie rail, hall schedule, existing seat map | G24 |
 | 11 | `sprint-11-home-filters` | Home filter sheet: movie language and rating, hall city, type, Dolby, ScreenX | — (client filter on data already loaded) |
+| 12 | `sprint-12-booking-safety` | Another phone cannot open my booking; the 9th seat is refused; cancel removes points and shows refund pending | G25, G26, G27, G28 |
+| 13 | `sprint-13-find-my-tickets` | Kill the app mid-payment, reopen, tickets appear; guest finds tickets by reference + phone; tickets open offline | G29, G30, G31 |
+| 14 | `sprint-14-faster-seats` | Pick party size, tap Best seats, extend the hold once at the 1-minute warning, pay | G32 |
+| 15 | `sprint-15-design-system` | Component gallery in en/km, goldens green, consistent press + haptics, predictive back on every route | — (UX only) |
+| 16 | `sprint-16-booking-flow` | Progress header and booking capsule travel Detail → Success; back asks before releasing seats; ticket flies into Bookings | — (UX only) |
+| 17 | `sprint-17-seat-experience` | Seat map focuses the selection, mini-map, Best seats reveal; full booking with TalkBack via list mode | — (UX only) |
+| 18 | `sprint-18-ticket-wallet` | "Up next" card on Home; ticket flips to a door-mode QR; works offline | G33 (optional) |
+| 19 | `sprint-19-quality-bar` | 200% text + Khmer + screen-reader walk-through; no frame > 16 ms; funnel events | — (UX only) |
+
+Sprints 12–14 share one analysis: `booking-enhancement/PLAN.md` (findings A1–A9, approach, decisions to confirm).
+
+Sprints 15–19 share one analysis: `experience-enhancement/PLAN.md` (findings X1–X11, persona journeys, decisions D1–D7).
 
 ## Per-feature build order (Flutter)
 

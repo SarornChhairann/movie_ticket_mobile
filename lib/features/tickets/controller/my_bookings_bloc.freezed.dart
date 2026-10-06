@@ -126,12 +126,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<BookingSummary> bookings,  bool refreshing,  int? cancellingId,  MyBookingsEffect? effect,  String? message)?  ready,TResult Function( TicketsFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<BookingSummary> bookings,  bool refreshing,  bool offline,  int? cancellingId,  MyBookingsEffect? effect,  String? message)?  ready,TResult Function( TicketsFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case MyBookingsInitial() when initial != null:
 return initial();case MyBookingsLoading() when loading != null:
 return loading();case MyBookingsReady() when ready != null:
-return ready(_that.bookings,_that.refreshing,_that.cancellingId,_that.effect,_that.message);case MyBookingsFailure() when failure != null:
+return ready(_that.bookings,_that.refreshing,_that.offline,_that.cancellingId,_that.effect,_that.message);case MyBookingsFailure() when failure != null:
 return failure(_that.failure);case _:
   return orElse();
 
@@ -150,12 +150,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<BookingSummary> bookings,  bool refreshing,  int? cancellingId,  MyBookingsEffect? effect,  String? message)  ready,required TResult Function( TicketsFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<BookingSummary> bookings,  bool refreshing,  bool offline,  int? cancellingId,  MyBookingsEffect? effect,  String? message)  ready,required TResult Function( TicketsFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case MyBookingsInitial():
 return initial();case MyBookingsLoading():
 return loading();case MyBookingsReady():
-return ready(_that.bookings,_that.refreshing,_that.cancellingId,_that.effect,_that.message);case MyBookingsFailure():
+return ready(_that.bookings,_that.refreshing,_that.offline,_that.cancellingId,_that.effect,_that.message);case MyBookingsFailure():
 return failure(_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -170,12 +170,12 @@ return failure(_that.failure);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<BookingSummary> bookings,  bool refreshing,  int? cancellingId,  MyBookingsEffect? effect,  String? message)?  ready,TResult? Function( TicketsFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<BookingSummary> bookings,  bool refreshing,  bool offline,  int? cancellingId,  MyBookingsEffect? effect,  String? message)?  ready,TResult? Function( TicketsFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case MyBookingsInitial() when initial != null:
 return initial();case MyBookingsLoading() when loading != null:
 return loading();case MyBookingsReady() when ready != null:
-return ready(_that.bookings,_that.refreshing,_that.cancellingId,_that.effect,_that.message);case MyBookingsFailure() when failure != null:
+return ready(_that.bookings,_that.refreshing,_that.offline,_that.cancellingId,_that.effect,_that.message);case MyBookingsFailure() when failure != null:
 return failure(_that.failure);case _:
   return null;
 
@@ -252,7 +252,7 @@ String toString() {
 
 
 class MyBookingsReady extends MyBookingsState {
-  const MyBookingsReady({required  List<BookingSummary> bookings, this.refreshing = false, this.cancellingId, this.effect, this.message}): _bookings = bookings,super._();
+  const MyBookingsReady({required  List<BookingSummary> bookings, this.refreshing = false, this.offline = false, this.cancellingId, this.effect, this.message}): _bookings = bookings,super._();
   
 
 /// Server order: newest first.
@@ -265,6 +265,8 @@ class MyBookingsReady extends MyBookingsState {
 }
 
 @JsonKey() final  bool refreshing;
+/// The device copy, shown because the server could not be reached.
+@JsonKey() final  bool offline;
 /// The booking whose cancel is in flight.
  final  int? cancellingId;
  final  MyBookingsEffect? effect;
@@ -281,18 +283,18 @@ $MyBookingsReadyCopyWith<MyBookingsReady> get copyWith => _$MyBookingsReadyCopyW
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MyBookingsReady&&const DeepCollectionEquality().equals(other.bookings, _bookings)&&(identical(other.refreshing, refreshing) || other.refreshing == refreshing)&&(identical(other.cancellingId, cancellingId) || other.cancellingId == cancellingId)&&(identical(other.effect, effect) || other.effect == effect)&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MyBookingsReady&&const DeepCollectionEquality().equals(other.bookings, _bookings)&&(identical(other.refreshing, refreshing) || other.refreshing == refreshing)&&(identical(other.offline, offline) || other.offline == offline)&&(identical(other.cancellingId, cancellingId) || other.cancellingId == cancellingId)&&(identical(other.effect, effect) || other.effect == effect)&&(identical(other.message, message) || other.message == message));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_bookings),refreshing,cancellingId,effect,message);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_bookings),refreshing,offline,cancellingId,effect,message);
 }
 
 @override
 String toString() {
-    return 'MyBookingsState.ready(bookings: $bookings, refreshing: $refreshing, cancellingId: $cancellingId, effect: $effect, message: $message)';
+    return 'MyBookingsState.ready(bookings: $bookings, refreshing: $refreshing, offline: $offline, cancellingId: $cancellingId, effect: $effect, message: $message)';
 }
 
 
@@ -303,7 +305,7 @@ abstract mixin class $MyBookingsReadyCopyWith<$Res> implements $MyBookingsStateC
   factory $MyBookingsReadyCopyWith(MyBookingsReady value, $Res Function(MyBookingsReady) _then) = _$MyBookingsReadyCopyWithImpl;
 @useResult
 $Res call({
- List<BookingSummary> bookings, bool refreshing, int? cancellingId, MyBookingsEffect? effect, String? message
+ List<BookingSummary> bookings, bool refreshing, bool offline, int? cancellingId, MyBookingsEffect? effect, String? message
 });
 
 
@@ -320,10 +322,11 @@ class _$MyBookingsReadyCopyWithImpl<$Res>
 
 /// Create a copy of MyBookingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? bookings = null,Object? refreshing = null,Object? cancellingId = freezed,Object? effect = freezed,Object? message = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? bookings = null,Object? refreshing = null,Object? offline = null,Object? cancellingId = freezed,Object? effect = freezed,Object? message = freezed,}) {
   return _then(MyBookingsReady(
 bookings: null == bookings ? _self._bookings : bookings // ignore: cast_nullable_to_non_nullable
 as List<BookingSummary>,refreshing: null == refreshing ? _self.refreshing : refreshing // ignore: cast_nullable_to_non_nullable
+as bool,offline: null == offline ? _self.offline : offline // ignore: cast_nullable_to_non_nullable
 as bool,cancellingId: freezed == cancellingId ? _self.cancellingId : cancellingId // ignore: cast_nullable_to_non_nullable
 as int?,effect: freezed == effect ? _self.effect : effect // ignore: cast_nullable_to_non_nullable
 as MyBookingsEffect?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable

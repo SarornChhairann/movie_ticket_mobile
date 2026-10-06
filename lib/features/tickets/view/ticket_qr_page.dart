@@ -7,6 +7,7 @@ import '../../../core/theme/spacing.dart';
 import '../../../core/widgets/error_view.dart';
 import '../controller/ticket_bloc.dart';
 import '../model/tickets_failure.dart';
+import 'offline_note.dart';
 
 /// Large code plus the server's QR PNG, for scanning at the door.
 class TicketQrPage extends StatelessWidget {
@@ -16,6 +17,8 @@ class TicketQrPage extends StatelessWidget {
 
   static const _qrSize = 280.0;
 
+  static bool _offline(TicketState state) => state is TicketReady && state.offline;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -24,6 +27,12 @@ class TicketQrPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(Space.x3),
         children: [
+          BlocBuilder<TicketBloc, TicketState>(
+            buildWhen: (previous, current) => _offline(previous) != _offline(current),
+            builder: (context, state) => _offline(state)
+                ? const Padding(padding: EdgeInsets.only(bottom: Space.x2), child: OfflineNote())
+                : const SizedBox.shrink(),
+          ),
           Text(ticket.seatCode, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
           const SizedBox(height: Space.x2),
           Center(
@@ -38,7 +47,11 @@ class TicketQrPage extends StatelessWidget {
                       child: Image.memory(png, key: const Key('tickets.qrImage'), fit: BoxFit.contain),
                     ),
                   TicketFailureState(:final code, :final failure) => ErrorView(
-                      message: failure is TicketsNetwork ? 'shell.offline'.tr(context: context) : failure.message,
+                      message: switch (failure) {
+                  TicketsNetwork() => 'shell.offline'.tr(context: context),
+                  TicketsNotFound() => 'tickets.notFound'.tr(context: context),
+                  _ => failure.message,
+                },
                       onRetry: () => context.read<TicketBloc>().add(QrRequested(code)),
                     ),
                 },
@@ -53,6 +66,15 @@ class TicketQrPage extends StatelessWidget {
             style: theme.textTheme.titleLarge?.copyWith(fontFamily: 'monospace', letterSpacing: 1),
             textAlign: TextAlign.center,
           ),
+          if (ticket.bookingReference.isNotEmpty) ...[
+            const SizedBox(height: Space.x1),
+            Text(
+              '${'tickets.reference'.tr(context: context)}: ${ticket.bookingReference}',
+              key: const Key('tickets.qrReference'),
+              style: theme.textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: Space.x3),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

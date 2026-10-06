@@ -11,6 +11,7 @@ import '../../../core/widgets/empty_view.dart';
 import '../controller/my_bookings_bloc.dart';
 import 'booking_status_chip.dart';
 import 'my_bookings_page.dart';
+import 'offline_note.dart';
 
 /// One booking from the [MyBookingsBloc] of the list route, with its tickets and cancel.
 class BookingDetailPage extends StatelessWidget {
@@ -45,9 +46,11 @@ class BookingDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<MyBookingsBloc>().state;
+    final bloc = context.watch<MyBookingsBloc>();
+    final state = bloc.state;
     final booking = state.bookingById(bookingId);
     final cancelling = state is MyBookingsReady && state.cancellingId == bookingId;
+    final offline = state is MyBookingsReady && state.offline;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(title: Text('tickets.detail'.tr(context: context))),
@@ -57,14 +60,22 @@ class BookingDetailPage extends StatelessWidget {
             : ListView(
                 padding: const EdgeInsets.all(Space.x2),
                 children: [
+                  if (offline) ...[const OfflineNote(), const SizedBox(height: Space.x2)],
                   Row(
                     children: [
                       Expanded(child: Text(booking.movieTitle, style: textTheme.titleLarge)),
-                      BookingStatusChip(status: booking.status),
+                      BookingStatusChip(status: booking.status, refund: booking.refund),
                     ],
                   ),
                   const SizedBox(height: Space.x0_5),
                   Text(showLine(context, booking)),
+                  if (booking.reference.isNotEmpty) ...[
+                    const SizedBox(height: Space.x0_5),
+                    SelectableText(
+                      '${'tickets.reference'.tr(context: context)}: ${booking.reference}',
+                      key: const Key('tickets.reference'),
+                    ),
+                  ],
                   const SizedBox(height: Space.x1),
                   Text(
                     context.money(booking.totalAmount),
@@ -73,7 +84,8 @@ class BookingDetailPage extends StatelessWidget {
                   ),
                   const Divider(height: Space.x4),
                   for (final t in booking.tickets) _TicketTile(booking: booking, ticket: t),
-                  if (booking.canCancelAt(clock())) ...[
+                  // Guests cannot cancel (owner only), and offline nothing can be sent.
+                  if (!bloc.guest && !offline && booking.canCancelAt(clock())) ...[
                     const SizedBox(height: Space.x3),
                     OutlinedButton(
                       key: const Key('tickets.cancel'),

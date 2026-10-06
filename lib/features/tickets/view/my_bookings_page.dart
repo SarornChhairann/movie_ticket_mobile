@@ -12,6 +12,7 @@ import '../../../core/widgets/skeleton.dart';
 import '../controller/my_bookings_bloc.dart';
 import '../model/tickets_failure.dart';
 import 'booking_status_chip.dart';
+import 'offline_note.dart';
 
 /// Shows a cancel outcome once. Shared by the list and the detail screen.
 class MyBookingsEffectListener extends StatelessWidget {
@@ -42,11 +43,17 @@ class MyBookingsEffectListener extends StatelessWidget {
   }
 }
 
+/// The account's bookings, or — with a [GuestBookingsBloc] above it — the bookings
+/// a guest made or found on this phone, with **Find my booking** and sign-in.
 class MyBookingsPage extends StatelessWidget {
-  const MyBookingsPage({super.key});
+  const MyBookingsPage({super.key, this.onSignIn});
+
+  /// Guests only: opens sign-in for the account's bookings.
+  final VoidCallback? onSignIn;
 
   @override
   Widget build(BuildContext context) {
+    final guest = context.read<MyBookingsBloc>().guest;
     return Scaffold(
       appBar: AppBar(title: Text('tickets.title'.tr(context: context))),
       body: MyBookingsEffectListener(
@@ -59,9 +66,19 @@ class MyBookingsPage extends StatelessWidget {
                   child: Column(children: [SkeletonListTile(), SkeletonListTile(), SkeletonListTile()]),
                 ),
               ),
-            MyBookingsReady(:final bookings) => _BookingList(bookings: bookings),
+            MyBookingsReady(:final bookings, :final offline) => Column(
+                children: [
+                  if (offline) const OfflineNote(),
+                  if (guest) _GuestHeader(onSignIn: onSignIn),
+                  Expanded(child: _BookingList(bookings: bookings, guest: guest)),
+                ],
+              ),
             MyBookingsFailure(:final failure) => ErrorView(
-                message: failure is TicketsNetwork ? 'shell.offline'.tr(context: context) : failure.message,
+                message: switch (failure) {
+                  TicketsNetwork() => 'shell.offline'.tr(context: context),
+                  TicketsNotFound() => 'tickets.notFound'.tr(context: context),
+                  _ => failure.message,
+                },
                 onRetry: () => context.read<MyBookingsBloc>().add(const LoadRequested()),
               ),
           },
@@ -71,10 +88,54 @@ class MyBookingsPage extends StatelessWidget {
   }
 }
 
+/// Guests: find a booking by reference + phone, or sign in for the account's list.
+class _GuestHeader extends StatelessWidget {
+  const _GuestHeader({this.onSignIn});
+
+  final VoidCallback? onSignIn;
+
+  Future<void> _find(BuildContext context) async {
+    final bloc = context.read<MyBookingsBloc>();
+    final navigator = Navigator.of(context);
+    final found = await navigator.pushNamed<BookingSummary>(AppRoutes.bookingLookup);
+    if (found == null) return;
+    bloc.add(BookingFound(found));
+    await navigator.pushNamed(AppRoutes.bookingDetail, arguments: (bloc, found.bookingId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Space.x2, Space.x2, Space.x2, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: FilledButton.icon(
+              key: const Key('tickets.find'),
+              icon: const Icon(Icons.search),
+              label: Text('tickets.find'.tr(context: context)),
+              onPressed: () => _find(context),
+            ),
+          ),
+          if (onSignIn != null) ...[
+            const SizedBox(width: Space.x1),
+            TextButton(
+              key: const Key('tickets.signIn'),
+              onPressed: onSignIn,
+              child: Text('tickets.signIn'.tr(context: context)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _BookingList extends StatelessWidget {
-  const _BookingList({required this.bookings});
+  const _BookingList({required this.bookings, required this.guest});
 
   final List<BookingSummary> bookings;
+  final bool guest;
 
   Future<void> _refresh(BuildContext context) {
     final bloc = context.read<MyBookingsBloc>()..add(const RefreshRequested());
@@ -89,14 +150,31 @@ class _BookingList extends StatelessWidget {
           // Scrollable so pull to refresh still works on an empty list.
           ? ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [SizedBox(height: Space.x6), EmptyView(messageKey: 'tickets.empty')],
+              children: [
+                const SizedBox(height: Space.x6),
+                EmptyView(messageKey: guest ? 'tickets.guestEmpty' : 'tickets.empty'),
+              ],
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(Space.x2),
               itemCount: bookings.length,
               separatorBuilder: (_, _) => const SizedBox(height: Space.x1),
-              itemBuilder: (context, i) => _BookingCard(booking: bookings[i]),
+              itemBuilder: (context, i) => guest
+                  // Only takes it off this phone; the booking itself is unchanged.
+                  ? Dismissible(
+                      key: Key('forget.${bookings[i].bookingId}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: Space.x3),
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        child: Text('tickets.forget'.tr(context: context)),
+                      ),
+                      onDismissed: (_) => context.read<MyBookingsBloc>().add(ForgetRequested(bookings[i].bookingId)),
+                      child: _BookingCard(booking: bookings[i]),
+                    )
+                  : _BookingCard(booking: bookings[i]),
             ),
     );
   }
@@ -126,7 +204,7 @@ class _BookingCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(child: Text(booking.movieTitle, style: textTheme.titleMedium)),
-                  BookingStatusChip(status: booking.status),
+                  BookingStatusChip(status: booking.status, refund: booking.refund),
                 ],
               ),
               const SizedBox(height: Space.x0_5),

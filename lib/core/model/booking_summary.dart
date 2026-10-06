@@ -19,12 +19,33 @@ enum BookingStatus {
       };
 }
 
+/// Money owed back on a cancelled paid booking (sprint 12). An admin refunds by
+/// hand, so the client only reports what the payment row says.
+enum RefundState {
+  none,
+  pending,
+  refunded;
+
+  static RefundState parse(String? paymentStatus) => switch (paymentStatus) {
+        'REFUND_PENDING' => pending,
+        'REFUNDED' => refunded,
+        _ => none,
+      };
+}
+
 /// One issued ticket. [status] is the server's `ACTIVE | USED | CANCELLED`.
 @freezed
 abstract class TicketPass with _$TicketPass {
   const TicketPass._();
 
-  const factory TicketPass({required String code, required String seatCode, required String status}) = _TicketPass;
+  const factory TicketPass({
+    required String code,
+    required String seatCode,
+    required String status,
+
+    /// The booking's reference, shown with the QR.
+    @Default('') String bookingReference,
+  }) = _TicketPass;
 
   bool get cancelled => status == 'CANCELLED';
 }
@@ -37,6 +58,9 @@ abstract class BookingSummary with _$BookingSummary {
 
   const factory BookingSummary({
     required int bookingId,
+
+    /// Empty from a server older than sprint 13.
+    @Default('') String reference,
     required BookingStatus status,
     required String movieTitle,
     required String hallName,
@@ -47,10 +71,12 @@ abstract class BookingSummary with _$BookingSummary {
     required num totalAmount,
     required List<TicketPass> tickets,
     String? bookedAt,
+    @Default(RefundState.none) RefundState refund,
   }) = _BookingSummary;
 
   factory BookingSummary.fromDto(BookingDetailDto dto) => BookingSummary(
         bookingId: dto.id,
+        reference: dto.reference ?? '',
         status: BookingStatus.parse(dto.status),
         movieTitle: dto.showtime.movieTitle ?? '',
         hallName: dto.showtime.hallName ?? '',
@@ -58,8 +84,15 @@ abstract class BookingSummary with _$BookingSummary {
         showTime: dto.showtime.showTime,
         totalAmount: dto.totalAmount,
         bookedAt: dto.bookedAt,
+        refund: RefundState.parse(dto.paymentStatus),
         tickets: [
-          for (final t in dto.tickets) TicketPass(code: t.ticketCode, seatCode: t.seatCode ?? '', status: t.status),
+          for (final t in dto.tickets)
+            TicketPass(
+              code: t.ticketCode,
+              seatCode: t.seatCode ?? '',
+              status: t.status,
+              bookingReference: dto.reference ?? '',
+            ),
         ]..sort((a, b) => a.seatCode.compareTo(b.seatCode)),
       );
 

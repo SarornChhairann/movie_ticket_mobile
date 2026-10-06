@@ -5,13 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/features/tickets/controller/my_bookings_bloc.dart';
+import 'package:movie_ticket_mobile/features/tickets/model/tickets_failure.dart';
 import 'package:movie_ticket_mobile/features/tickets/view/booking_detail_page.dart';
 import 'package:movie_ticket_mobile/features/tickets/view/my_bookings_page.dart';
 
 import '../../helpers/localized_app.dart';
 import 'tickets_fixtures.dart';
 
-class _MockMyBookingsBloc extends MockBloc<MyBookingsEvent, MyBookingsState> implements MyBookingsBloc {}
+class _MockMyBookingsBloc extends MockBloc<MyBookingsEvent, MyBookingsState> implements MyBookingsBloc {
+  @override
+  bool get guest => false;
+}
 
 void main() {
   setUpAll(() async {
@@ -82,6 +86,19 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
+  testWidgets('the detail shows the reference; offline it says so and hides cancel', (tester) async {
+    final booking = testBooking(id: 7).copyWith(reference: 'AB3DEF7H');
+    await pump(
+      tester,
+      BookingDetailPage(bookingId: 7, clock: () => now),
+      MyBookingsState.ready(bookings: [booking], offline: true),
+    );
+
+    expect(find.text('Booking reference: AB3DEF7H'), findsOneWidget);
+    expect(find.byKey(const Key('tickets.offline')), findsOneWidget);
+    expect(find.byKey(const Key('tickets.cancel')), findsNothing);
+  });
+
   testWidgets('my bookings lists each booking with chip, seats, and total', (tester) async {
     await pump(
       tester,
@@ -103,6 +120,30 @@ void main() {
       lessThan(tester.getTopLeft(find.byKey(const Key('booking.1'))).dy),
       reason: 'server order (newest first) is kept',
     );
+  });
+
+  testWidgets('a cancelled paid booking shows refund pending, then refunded', (tester) async {
+    await pump(
+      tester,
+      const MyBookingsPage(),
+      MyBookingsState.ready(bookings: [
+        testBooking(id: 2, status: BookingStatus.cancelled, ticketStatus: 'CANCELLED', refund: RefundState.pending),
+        testBooking(id: 1, status: BookingStatus.cancelled, ticketStatus: 'CANCELLED', refund: RefundState.refunded),
+      ]),
+    );
+
+    expect(find.byKey(const Key('tickets.chip.refund.pending')), findsOneWidget);
+    expect(find.text('Refund pending'), findsOneWidget);
+    expect(find.byKey(const Key('tickets.chip.refund.refunded')), findsOneWidget);
+    expect(find.text('Refunded'), findsOneWidget);
+    expect(find.byKey(const Key('tickets.chip.cancelled')), findsNothing);
+  });
+
+  testWidgets('a not-found failure shows the localized copy, not the server text', (tester) async {
+    await pump(tester, const MyBookingsPage(),
+        const MyBookingsState.failure(TicketsFailure.notFound('Booking not found.')));
+
+    expect(find.text("We couldn't find this booking."), findsOneWidget);
   });
 
   testWidgets('an empty list shows the empty copy', (tester) async {

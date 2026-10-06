@@ -31,6 +31,7 @@ void main() {
     expect(map.seats.firstWhere((s) => s.id == 3).booked, isTrue);
     expect(map.seats.firstWhere((s) => s.id == 11).couple, isTrue);
     expect(map.seats.firstWhere((s) => s.id == 11).number, 1);
+    expect(map.maxSeats, 8);
   });
 
   test('hold sends showtime seat ids and maps the expiry epoch', () async {

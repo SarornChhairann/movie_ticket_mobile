@@ -50,6 +50,17 @@ class _PaySuccessPageState extends State<PaySuccessPage> {
             style: textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
+          if (c.reference.isNotEmpty) ...[
+            const SizedBox(height: Space.x2),
+            Text('tickets.reference'.tr(context: context), style: textTheme.labelLarge, textAlign: TextAlign.center),
+            SelectableText(
+              c.reference,
+              key: const Key('pay.reference'),
+              style: textTheme.headlineSmall?.copyWith(fontFamily: 'monospace', letterSpacing: 2),
+              textAlign: TextAlign.center,
+            ),
+            Text('pay.referenceHint'.tr(context: context), style: textTheme.bodySmall, textAlign: TextAlign.center),
+          ],
           const Divider(height: Space.x4),
           for (final t in c.tickets)
             ListTile(
@@ -62,7 +73,7 @@ class _PaySuccessPageState extends State<PaySuccessPage> {
               onTap: () => Navigator.of(context).pushNamed(AppRoutes.ticketQr, arguments: t),
             ),
           const SizedBox(height: Space.x3),
-          // Guests have no account list; this screen is their ticket view.
+          // Guests find it again under Bookings (saved on this phone, or by reference + phone).
           if (context.watch<AuthBloc>().state is AuthAuthenticated) ...[
             OutlinedButton(
               key: const Key('pay.viewTickets'),

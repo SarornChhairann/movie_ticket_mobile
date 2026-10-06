@@ -37,7 +37,10 @@ class _Seats extends MockBloc<SeatMapEvent, SeatMapState> implements SeatMapBloc
 class _Checkout extends MockBloc<CheckoutEvent, CheckoutState> implements CheckoutBloc {}
 
 class _Bookings extends MockBloc<tickets.MyBookingsEvent, tickets.MyBookingsState>
-    implements tickets.MyBookingsBloc {}
+    implements tickets.MyBookingsBloc {
+  @override
+  bool get guest => false;
+}
 
 /// Sprint 8: with the OS "reduce motion" setting, every screen is complete on its
 /// first frame — nothing runs, nothing auto-advances, nothing loops.

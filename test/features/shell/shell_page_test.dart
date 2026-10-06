@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/core/motion/motion.dart';
 import 'package:movie_ticket_mobile/core/motion/poster_hero.dart';
+import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/core/router/app_router.dart';
 import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
 import 'package:movie_ticket_mobile/features/auth/view/auth_gate.dart';
@@ -30,7 +31,16 @@ class _MockShellCubit extends MockCubit<ShellState> implements ShellCubit {}
 class _MockProfileBloc extends MockBloc<ProfileEvent, ProfileState> implements ProfileBloc {}
 
 class _MockMyBookingsBloc extends MockBloc<tickets.MyBookingsEvent, tickets.MyBookingsState>
-    implements tickets.MyBookingsBloc {}
+    implements tickets.MyBookingsBloc {
+  @override
+  bool get guest => false;
+}
+
+class _MockGuestBookingsBloc extends MockBloc<tickets.MyBookingsEvent, tickets.MyBookingsState>
+    implements tickets.GuestBookingsBloc {
+  @override
+  bool get guest => true;
+}
 
 class _MockHallListBloc extends MockBloc<HallListEvent, HallListState> implements HallListBloc {}
 
@@ -60,6 +70,7 @@ void main() {
   late _RouteRecorder recorder;
   late _MockProfileBloc profileBloc;
   late _MockMyBookingsBloc myBookingsBloc;
+  late _MockGuestBookingsBloc guestBookingsBloc;
 
   Future<void> pump(WidgetTester tester, {AuthState auth = const AuthState.guest()}) async {
     final repository = _MockCatalogRepository();
@@ -82,6 +93,9 @@ void main() {
     myBookingsBloc = _MockMyBookingsBloc();
     whenListen(myBookingsBloc, const Stream<tickets.MyBookingsState>.empty(),
         initialState: const tickets.MyBookingsState.ready(bookings: []));
+    guestBookingsBloc = _MockGuestBookingsBloc();
+    whenListen(guestBookingsBloc, const Stream<tickets.MyBookingsState>.empty(),
+        initialState: const tickets.MyBookingsState.ready(bookings: []));
     recorder = _RouteRecorder();
 
     tester.view.physicalSize = const Size(1170, 2532);
@@ -97,6 +111,7 @@ void main() {
           BlocProvider<HallListBloc>.value(value: hallListBloc),
           BlocProvider<ProfileBloc>.value(value: profileBloc),
           BlocProvider<tickets.MyBookingsBloc>.value(value: myBookingsBloc),
+          BlocProvider<tickets.GuestBookingsBloc>.value(value: guestBookingsBloc),
         ],
         child: Navigator(
           observers: [recorder],
@@ -113,6 +128,8 @@ void main() {
                   ),
                 ),
               ),
+            AppRoutes.bookingLookup =>
+              MaterialPageRoute<BookingSummary>(settings: settings, builder: (_) => const Scaffold()),
             _ => MaterialPageRoute<void>(settings: settings, builder: (_) => const Scaffold()),
           },
         ),
@@ -186,22 +203,36 @@ void main() {
     expect(recorder.pushed.where((r) => r.name == AppRoutes.login), isEmpty);
   });
 
-  testWidgets('Bookings asks for sign-in with a reason; closing it stays on Home', (tester) async {
+  testWidgets('a guest opens Bookings on this phone: Find my booking, and sign-in with a reason', (tester) async {
     await pump(tester);
 
     await tester.tap(find.byKey(const Key('nav.bookings')));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<NavigationBar>(find.byKey(const Key('shell.nav'))).selectedIndex, ShellTab.bookings.index);
+    expect(find.byKey(const Key('tickets.find')), findsOneWidget);
+    expect(find.text('Bookings you make or find on this phone appear here.'), findsOneWidget);
+    verify(() => guestBookingsBloc.add(any(that: isA<tickets.RefreshRequested>()))).called(1);
+    verifyNever(() => myBookingsBloc.add(any()));
+
+    await tester.tap(find.byKey(const Key('tickets.signIn')));
     await tester.pumpAndSettle();
 
     final login = recorder.pushed.last;
     expect(login.name, AppRoutes.login);
     expect((login.arguments! as LoginArgs).reasonKey, 'auth.reason.bookings');
     expect((login.arguments! as LoginArgs).allowGuest, isFalse);
+  });
 
-    await tester.tap(find.byKey(const Key('fakeLogin.close')));
+  testWidgets('a guest taps Find my booking: the lookup screen opens', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('nav.bookings')));
     await tester.pumpAndSettle();
-    expect(find.text('Find your favourite movies!'), findsOneWidget);
-    expect(tester.widget<NavigationBar>(find.byKey(const Key('shell.nav'))).selectedIndex, ShellTab.home.index);
-    verifyNever(() => myBookingsBloc.add(any()));
+
+    await tester.tap(find.byKey(const Key('tickets.find')));
+    await tester.pumpAndSettle();
+
+    expect(recorder.pushed.last.name, AppRoutes.bookingLookup);
   });
 
   testWidgets('the guest avatar asks for sign-in for the account', (tester) async {

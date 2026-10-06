@@ -18,6 +18,7 @@ ShowtimeInfoDto _$ShowtimeInfoDtoFromJson(Map<String, dynamic> json) =>
 BookingDetailDto _$BookingDetailDtoFromJson(Map<String, dynamic> json) =>
     BookingDetailDto(
       id: (json['id'] as num).toInt(),
+      reference: json['reference'] as String?,
       showtime: ShowtimeInfoDto.fromJson(
         json['showtime'] as Map<String, dynamic>,
       ),
@@ -34,6 +35,7 @@ BookingDetailDto _$BookingDetailDtoFromJson(Map<String, dynamic> json) =>
               ?.map((e) => TicketSummaryDto.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      paymentStatus: json['paymentStatus'] as String?,
     );
 
 TicketSummaryDto _$TicketSummaryDtoFromJson(Map<String, dynamic> json) =>

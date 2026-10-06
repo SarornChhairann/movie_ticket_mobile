@@ -1,8 +1,10 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
+import 'package:movie_ticket_mobile/core/session/pending_payment_store.dart';
 import 'package:movie_ticket_mobile/features/checkout/controller/payway_bloc.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_failure.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_repository.dart';
@@ -130,4 +132,60 @@ void main() {
     ],
     verify: (_) => verify(() => repository.closePayway('CK2RT1')).called(1),
   );
+
+  group('pending record (sprint 13)', () {
+    late PendingPaymentStore store;
+    const sessionId = '3f2b8c1e-6a4d-4c3b-9e2f-1a2b3c4d5e6f';
+    final guestLaunch = launch.copyWith(
+      session: session.copyWith(reference: 'AB3DEF7H'),
+      guestPhone: '012345678',
+    );
+
+    setUp(() {
+      FlutterSecureStorage.setMockInitialValues({});
+      store = PendingPaymentStore(const FlutterSecureStorage());
+    });
+
+    PaywayBloc buildWithStore() => PaywayBloc(repository, guestLaunch,
+        clock: () => testNow, pollEvery: const Duration(hours: 1), pendingStore: store, sessionId: sessionId);
+
+    test('opening the page writes the record with this run\'s session', () async {
+      final bloc = buildWithStore()..add(const PaywayOpened());
+      await pumpEventQueue();
+
+      final record = await store.read();
+      expect(record!.tranId, 'CK2RT1');
+      expect(record.bookingId, 99);
+      expect(record.reference, 'AB3DEF7H');
+      expect(record.sessionId, sessionId);
+      expect(record.startedAt, testNow);
+      expect(record.holdExpiresAt, testHold.expiresAt);
+      expect(record.guestPhone, '012345678');
+      await bloc.close();
+    });
+
+    test('a settled payment clears it', () async {
+      stubPolls(const [Ok(PaywayStatus.declined())]);
+      final bloc = buildWithStore()..add(const PaywayOpened());
+      await pumpEventQueue();
+      bloc.add(const PaywayPolled());
+
+      await bloc.stream.firstWhere((s) => s.outcome != null);
+
+      expect(await store.read(), isNull);
+      await bloc.close();
+    });
+
+    test('closing the page clears it', () async {
+      when(() => repository.closePayway(any())).thenAnswer((_) async => const Ok(PaywayStatus.cancelled()));
+      final bloc = buildWithStore()..add(const PaywayOpened());
+      await pumpEventQueue();
+      bloc.add(const PaywayCloseRequested());
+
+      await bloc.stream.firstWhere((s) => s.outcome != null);
+
+      expect(await store.read(), isNull);
+      await bloc.close();
+    });
+  });
 }

@@ -15,12 +15,17 @@ import '../../../core/theme/seat_colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/genre_chip.dart';
+import '../../../core/widgets/hold_banner.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../controller/seat_map_bloc.dart';
 import '../model/couple_pairing.dart';
 import '../model/seat_map.dart';
 import '../model/seat_map_args.dart';
+import 'party_size_sheet.dart';
+
+/// The seat map shows the extend banner for the hold's last minute.
+const holdWarningSeconds = 60;
 
 class SeatMapPage extends StatelessWidget {
   const SeatMapPage({super.key, this.args});
@@ -28,8 +33,31 @@ class SeatMapPage extends StatelessWidget {
   /// The detail screen's showtime choice; null when opened with a bare id.
   final SeatMapArgs? args;
 
+  /// Party size choices when the server sent no cap.
+  static const fallbackMaxSeats = 8;
+
+  static int _maxChoice(SeatMapReady s) => s.data.maxSeats > 0 ? s.data.maxSeats : fallbackMaxSeats;
+
+  /// Opens "How many seats?" and applies the answer; null (Skip) keeps the server cap.
+  static Future<int?> askPartySize(BuildContext context, SeatMapReady s) async {
+    final bloc = context.read<SeatMapBloc>();
+    final size = await PartySizeSheet.show(context, max: _maxChoice(s), selected: s.partySize);
+    bloc.add(PartySizeChosen(size ?? s.partySize));
+    return size ?? s.partySize;
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Asked once per visit, when the first map arrives and nothing is held yet.
+    return BlocListener<SeatMapBloc, SeatMapState>(
+      listenWhen: (previous, current) =>
+          previous is! SeatMapReady && current is SeatMapReady && !current.partyAsked && current.hold == null,
+      listener: (context, state) => askPartySize(context, state as SeatMapReady),
+      child: _consumer(context),
+    );
+  }
+
+  Widget _consumer(BuildContext context) {
     return BlocConsumer<SeatMapBloc, SeatMapState>(
       listenWhen: (previous, current) =>
           current is SeatMapReady &&
@@ -46,6 +74,19 @@ class SeatMapPage extends StatelessWidget {
             messenger.showSnackBar(SnackBar(content: Text('seats.expired'.tr(context: context))));
           case SeatMapEffect.pairError:
             messenger.showSnackBar(SnackBar(content: Text('seats.pairError'.tr(context: context))));
+          case SeatMapEffect.limit:
+            final message = s.message;
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(message == null || message.isEmpty
+                    ? 'seats.limit'.tr(context: context, namedArgs: {'max': '${s.seatCap ?? s.data.maxSeats}'})
+                    : message),
+              ),
+            );
+          case SeatMapEffect.noBlock:
+            messenger.showSnackBar(SnackBar(content: Text('seats.noBlock'.tr(context: context))));
+          case SeatMapEffect.extended:
+            messenger.showSnackBar(SnackBar(content: Text('seats.extendDone'.tr(context: context))));
           case SeatMapEffect.conflict:
             final message = s.message;
             messenger.showSnackBar(
@@ -59,7 +100,18 @@ class SeatMapPage extends StatelessWidget {
         appBar: AppBar(title: Text('seats.title'.tr(context: context))),
         body: switch (state) {
           SeatMapInitial() || SeatMapLoading() => const LoadingView(),
-          SeatMapReady() => _ReadyBody(state: state, args: args),
+          SeatMapReady() => Column(
+              children: [
+                // The last minute of the hold: offer the one extend.
+                if (state.hold != null && (state.secondsLeft ?? 0) > 0 && state.secondsLeft! <= holdWarningSeconds)
+                  HoldBanner(
+                    secondsLeft: state.secondsLeft!,
+                    extending: state.extending,
+                    onExtend: state.canExtend ? () => context.read<SeatMapBloc>().add(const HoldExtendRequested()) : null,
+                  ),
+                Expanded(child: _ReadyBody(state: state, args: args)),
+              ],
+            ),
           SeatMapFailure(:final failure) => ErrorView(
             message: switch (failure) {
               ApiFailureServer(:final message) => message,
@@ -820,7 +872,41 @@ class _SummaryBar extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: Space.x1 + 4),
+              const SizedBox(height: Space.x1),
+              Row(
+                children: [
+                  // Both shrink on a narrow phone or in Khmer rather than overflow.
+                  Flexible(
+                    child: OutlinedButton.icon(
+                      key: const Key('seats.party'),
+                      icon: const Icon(Icons.group_outlined),
+                      label: Text(
+                        state.partySize == null
+                            ? 'seats.partySize'.tr(context: context)
+                            : 'seats.partyCount'.tr(context: context, namedArgs: {'count': '${state.partySize}'}),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onPressed: state.holding ? null : () => SeatMapPage.askPartySize(context, state),
+                    ),
+                  ),
+                  const SizedBox(width: Space.x1),
+                  Flexible(
+                    child: TextButton.icon(
+                      key: const Key('seats.best'),
+                      icon: const Icon(Icons.auto_awesome),
+                      label: Text('seats.best'.tr(context: context), overflow: TextOverflow.ellipsis),
+                      onPressed: state.holding
+                          ? null
+                          : () async {
+                              final bloc = context.read<SeatMapBloc>();
+                              final size = state.partySize ?? await SeatMapPage.askPartySize(context, state);
+                              if (size != null) bloc.add(const BestSeatsRequested());
+                            },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Space.x1),
               PrimaryButton(
                 key: const Key('seats.continue'),
                 label: 'catalog.bookTicket'.tr(context: context),

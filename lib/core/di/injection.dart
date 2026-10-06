@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../features/auth/auth_module.dart';
 import '../../features/catalog/catalog_module.dart';
@@ -13,18 +14,23 @@ import '../../features/tickets/tickets_module.dart';
 import '../network/auth_interceptor.dart';
 import '../network/dio_client.dart';
 import '../network/session_header_interceptor.dart';
+import '../session/pending_payment_store.dart';
 import '../session/session_id_provider.dart';
+import '../storage/booking_cache.dart';
 import '../session/token_store.dart';
 
 final GetIt getIt = GetIt.instance;
 
 /// The only place that registers dependencies. Features expose
-/// `registerX(GetIt)` and are called from here.
-void configureDependencies({required String baseUrl}) {
+/// `registerX(GetIt)` and are called from here. [restoredSessionId] is the session
+/// of an ABA payment the previous run left open (see [PendingPaymentStore]).
+void configureDependencies({required String baseUrl, String? restoredSessionId}) {
   getIt
     ..registerLazySingleton<FlutterSecureStorage>(() => const FlutterSecureStorage())
     ..registerLazySingleton(() => TokenStore(getIt()))
-    ..registerLazySingleton(SessionIdProvider.new)
+    ..registerLazySingleton(() => PendingPaymentStore(getIt()))
+    ..registerLazySingleton(() => BookingCache(getIt(), getApplicationDocumentsDirectory))
+    ..registerLazySingleton(() => SessionIdProvider(restored: restoredSessionId))
     ..registerLazySingleton(() => SessionHeaderInterceptor(getIt()))
     ..registerLazySingleton(
       () => AuthInterceptor(tokenStore: getIt(), refreshDio: createBareDio(baseUrl)),

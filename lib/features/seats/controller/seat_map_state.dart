@@ -10,7 +10,19 @@ part 'seat_map_state.freezed.dart';
 enum SeatUiState { available, selected, heldByMe, heldByOthers, booked }
 
 /// One-shot outcomes consumed by a `BlocListener`.
-enum SeatMapEffect { proceed, expired, pairError, conflict }
+enum SeatMapEffect {
+  proceed,
+  expired,
+  pairError,
+  conflict,
+  limit,
+
+  /// Best seats found no block in one row.
+  noBlock,
+
+  /// The hold was extended.
+  extended,
+}
 
 @freezed
 sealed class SeatMapState with _$SeatMapState {
@@ -27,6 +39,15 @@ sealed class SeatMapState with _$SeatMapState {
     Hold? hold,
     @Default(false) bool holding,
     int? secondsLeft,
+
+    /// "How many seats?" for this visit; null when skipped or not asked yet.
+    int? partySize,
+
+    /// The party size question was answered or skipped; it is asked once per visit.
+    @Default(false) bool partyAsked,
+
+    /// The extend call is running.
+    @Default(false) bool extending,
     SeatMapEffect? effect,
 
     /// Server message for [SeatMapEffect.conflict].
@@ -55,4 +76,17 @@ extension SeatMapReadyX on SeatMapReady {
       data.seats.where((s) => selected.contains(s.id)).toList()..sort((a, b) => a.code.compareTo(b.code));
 
   bool get canContinue => selected.isNotEmpty && !holding;
+
+  /// Most seats this visit may pick: the party size if one was chosen, else the
+  /// server cap; null when neither is known.
+  int? get seatCap => partySize ?? (data.maxSeats > 0 ? data.maxSeats : null);
+
+  /// True when adding [count] more seats would pass [seatCap].
+  bool wouldExceedLimit(int count) {
+    final cap = seatCap;
+    return cap != null && selected.length + count > cap;
+  }
+
+  /// Extend is offered once, while the hold is alive.
+  bool get canExtend => hold != null && !hold!.extended && !extending && (secondsLeft ?? 0) > 0;
 }

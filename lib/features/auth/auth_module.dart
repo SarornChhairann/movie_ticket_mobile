@@ -6,5 +6,5 @@ import 'model/auth_repository.dart';
 void registerAuth(GetIt getIt) {
   getIt
     ..registerLazySingleton(() => AuthRepository(getIt(), getIt(), getIt()))
-    ..registerFactory(() => AuthBloc(getIt()));
+    ..registerFactory(() => AuthBloc(getIt(), bookingCache: getIt()));
 }

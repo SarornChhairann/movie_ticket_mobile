@@ -51,9 +51,11 @@ Do not collapse these into one status.
 Hold rules (`SeatHoldService`):
 
 - Caller sends showtime seat ids and a `sessionId`.
+- Seat cap: the seats this session already holds on the showtime plus the new ones must not exceed `max_seats_per_booking` (default 8). Every seat counts once, so a couple pair counts as two. Above the cap → 400 `SEAT_LIMIT`. Quote, confirm, and PayWay start apply the same cap to the selected seats.
 - Lock those rows (`FOR UPDATE`). Reject if any seat is not `AVAILABLE`.
 - Reject if another session has a non-expired hold on any of those ids.
-- Replace this session's holds on the same ids. Expiry = now + hold minutes from `system_settings`.
+- Replace this session's holds on the same ids. Expiry = now + hold minutes from `system_settings` for a session's first hold on the showtime. While the session still holds seats there, a new hold (changed or same seats) keeps that running expiry and its extended flag: one clock per session and showtime, so re-holding never resets the timer. Releasing every seat and holding again starts a new clock.
+- Extend (`POST /api/seat-holds/extend`): once per hold, adds `hold_extend_minutes` (default 5) to every hold the session has on the showtime, under the seat row lock, and publishes `HELD` with the new expiry. No active hold → 409 `HOLD_EXPIRED`; already extended → 409 `HOLD_EXTEND_LIMIT`.
 - Publish the hold on the seat websocket so other clients gray those seats out.
 - A scheduler deletes expired holds and publishes the release.
 - Checkout may proceed only when this session still owns an active hold for every selected seat, or the confirm transaction re-validates availability under the same row lock. Another user's hold is a conflict.
@@ -110,7 +112,10 @@ Loyalty: registered user only, `points += totalAmount` truncated to an integer (
 
 ### 3.6 After purchase
 
-- My bookings: authenticated, newest first. Guest lookup is out of the current API; mobile v1 uses the account list.
+- My bookings: authenticated, newest first.
+- Every booking has a `reference`: 8 characters from `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` (no `0/O/1/I`), unique, set on insert. It is on the success screen, the booking, the QR screen, and the emails.
+- Guest lookup (`POST /bookings/lookup { reference, phone }`): the booking whose reference matches and whose phone (guest phone, else the account phone) has the same digits, ignoring a `855` country code and the trunk `0`. Any miss is 404 `BOOKING_NOT_FOUND`. Five misses from one client in 10 minutes → every lookup from it is 429 `TOO_MANY_ATTEMPTS` until the oldest miss is 10 minutes old. Hits do not count.
+- A PayWay payment may be polled or closed by the signed-in owner or by the session that started it. The app keeps that session across a kill during the ABA hand-off (pending payment, under 30 minutes) so it can still finish the payment.
 - Confirmation payload includes showtime, movie, hall, seats, amounts, tickets.
 - Ticket QR (`/tickets/{ticketCode}/qr`) and PDF (`/tickets/{ticketCode}/pdf`).
 - Customer cancel (`/bookings/cancel/{id}`):
@@ -118,8 +123,10 @@ Loyalty: registered user only, `points += totalAmount` truncated to an integer (
   - Reject if already `CANCELLED`.
   - Reject when now is inside the cancellation window (default 2 hours before show start; key `cancellation` hours in settings).
   - Set each ticket `CANCELLED`, set its showtime seat `AVAILABLE`, set booking `CANCELLED`, email the notice.
-  - Do not reverse points or promo usage in the current service. A later sprint may add that reversal; do not invent it inside the cancel path until that sprint says so.
-- Admin cancel skips the time window.
+  - If the booking was `CONFIRMED`, give back what the paid path gave it, in the same transaction: subtract `floor(totalAmount)` points from the user (never below 0) and decrement the promo's `usedCount` (never below 0). A `PENDING` booking earned nothing, so nothing is reversed.
+  - If its payment is `PAID`, set the payment `REFUND_PENDING`. An admin returns the money by hand and sets `REFUNDED` (`POST /admin/bookings/{id}/refund`). No provider refund call in v1.
+- Admin cancel skips the time window and reverses the same way.
+- Reading one booking (`/bookings/confirmation/{id}`) is owner only: the signed-in user it belongs to, or the `X-Session-Id` that created it (`bookings.session_id`). Anyone else, and a missing id, get 404 `BOOKING_NOT_FOUND`.
 - Check-in (`/admin/checkin`): staff scans `ticketCode`. `ACTIVE` becomes `USED` and `scannedAt` is set. `USED` and `CANCELLED` are rejected.
 
 ### 3.7 Admin (existing API, not the customer app)
@@ -136,6 +143,8 @@ Movies, cinemas, halls, showtimes (create, block, copy next week), food items an
 | Morning discount rate | 0.10 | Show time before noon |
 | Hold minutes | service setting | Seat hold TTL |
 | Cancellation hours | 2 | Customer cancel |
+| Hold extend minutes | 5 | One extend per hold |
+| Max seats per booking | 8 | Hold, quote, confirm, PayWay start (`SEAT_LIMIT`) |
 
 Read these on the server at quote time. Do not hard-code them in Flutter.
 
@@ -257,6 +266,7 @@ erDiagram
         bigint showtimeSeatId
         string sessionId
         datetime expiresAt
+        bool extended "the one extend was used"
     }
 
     BOOKINGS ||--o| PAYMENTS : paid_by
@@ -277,6 +287,8 @@ erDiagram
         string paymentMethod
         string status "PENDING | CONFIRMED | CANCELLED"
         datetime bookedAt
+        string sessionId "creating X-Session-Id; reader check"
+        string reference UK "8 chars, typed back in for lookup"
     }
 
     PAYMENTS {
@@ -284,7 +296,7 @@ erDiagram
         bigint booking_id FK UK
         decimal amount
         string method
-        string status "PENDING | PAID | FAILED"
+        string status "PENDING | PAID | FAILED | REFUND_PENDING | REFUNDED"
         datetime paidAt
     }
 
@@ -486,11 +498,12 @@ flowchart TD
 | Movies | `GET /api/movies`, `GET /movies/{id}` | Public |
 | Showtimes | `GET /api/showtimes/search`, `/available-movies` | Public |
 | Seat map | `GET /bookings/seats/{showtimeId}` | Public |
-| Hold / release / state | `POST /api/seat-holds/hold`, `/release`, `GET /state` | Public + session id |
+| Hold / release / state / extend | `POST /api/seat-holds/hold`, `/release`, `/extend`, `GET /state` | Public + session id |
 | Quote | `GET /bookings/checkout/{showtimeId}` | Public |
 | Validate promo | `POST /bookings/promo/validate` | Public |
 | Confirm | `POST /bookings/checkout/{showtimeId}` | Public; user attached when bearer present |
-| Confirmation | `GET /bookings/confirmation/{bookingId}` | Public |
+| Confirmation | `GET /bookings/confirmation/{bookingId}` | Owner: bearer user or creating `X-Session-Id`; else 404 `BOOKING_NOT_FOUND` |
+| Guest lookup | `POST /bookings/lookup` | Public; 404 `BOOKING_NOT_FOUND`, 429 `TOO_MANY_ATTEMPTS` |
 | My bookings / cancel / profile | `GET /bookings/my-bookings`, `POST /bookings/cancel/{id}`, `/profile` | Bearer |
 | Tickets | `GET /tickets`, `GET /tickets/{code}`, `/qr`, `/pdf` | As currently permitted by security config |
 | Reminder | `POST /api/reminders` | Public |
@@ -507,3 +520,5 @@ Admin routes stay on `/admin/**`. The customer app does not call them.
 6. Keycloak stores credentials. The `users.password` column is not a login secret.
 7. Customer cancel checks owner and the cancellation window. Admin cancel does not use that window.
 8. Two confirms for the same seat must serialize on the row lock. The loser gets "already booked", not a second ticket.
+9. A booking is read only by its owner: the signed-in user it belongs to, or the session that created it. Everyone else gets the same 404 as a missing id, so ids cannot be probed for names, phones, or ticket codes.
+10. One session never holds or books more than `max_seats_per_booking` seats on a showtime; a couple pair counts as two.

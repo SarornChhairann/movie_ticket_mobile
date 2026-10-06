@@ -8,7 +8,7 @@ const cB2 = SeatView(id: 12, code: 'B2', row: 2, number: 2, couple: true, booked
 const cB3 = SeatView(id: 13, code: 'B3', row: 2, number: 3, couple: true, booked: false);
 const cB4 = SeatView(id: 14, code: 'B4', row: 2, number: 4, couple: true, booked: true);
 
-SeatMapData seatMap({Set<int> heldByOthers = const {}}) => SeatMapData(
+SeatMapData seatMap({Set<int> heldByOthers = const {}, int maxSeats = 0}) => SeatMapData(
       showtimeId: 50,
       movieTitle: 'Dune',
       hallName: 'Hall 1',
@@ -17,6 +17,7 @@ SeatMapData seatMap({Set<int> heldByOthers = const {}}) => SeatMapData(
       seats: const [sA1, sA2, sA3, cB1, cB2, cB3, cB4],
       heldByOthers: heldByOthers,
       holdMinutes: 10,
+      maxSeats: maxSeats,
     );
 
 Map<String, dynamic> seatMapJson() => {
@@ -44,4 +45,5 @@ Map<String, dynamic> seatMapJson() => {
       'holdMinutes': 10,
       'isWeekend': false,
       'isMorning': false,
+      'maxSeats': 8,
     };

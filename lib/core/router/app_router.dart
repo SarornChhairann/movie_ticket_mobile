@@ -6,6 +6,7 @@ import '../motion/poster_hero.dart';
 import '../motion/transitions.dart';
 
 import '../model/booking_summary.dart';
+import '../session/pending_payment_store.dart';
 import '../../features/auth/view/auth_gate.dart';
 import '../../features/auth/view/blocked_page.dart';
 import '../../features/auth/view/login_page.dart';
@@ -18,9 +19,11 @@ import '../../features/catalog/controller/movie_list_bloc.dart';
 import '../../features/catalog/view/hall_schedule_page.dart';
 import '../../features/catalog/view/movie_detail_page.dart';
 import '../../features/checkout/controller/checkout_bloc.dart';
+import '../../features/checkout/controller/payment_resume_bloc.dart';
 import '../../features/checkout/controller/payway_bloc.dart';
 import '../../features/checkout/model/payway.dart';
 import '../../features/checkout/view/checkout_page.dart';
+import '../../features/checkout/view/payment_resume_page.dart';
 import '../../features/checkout/view/payway_page.dart';
 import '../../features/checkout/view/concessions_page.dart';
 import '../../features/checkout/view/pay_success_page.dart';
@@ -38,8 +41,10 @@ import '../../features/seats/view/seat_map_page.dart';
 import '../../features/shell/controller/shell_cubit.dart';
 import '../../features/shell/view/shell_page.dart';
 import '../../features/tickets/controller/my_bookings_bloc.dart' as tickets;
+import '../../features/tickets/controller/booking_lookup_bloc.dart';
 import '../../features/tickets/controller/ticket_bloc.dart';
 import '../../features/tickets/view/booking_detail_page.dart';
+import '../../features/tickets/view/booking_lookup_page.dart';
 import '../../features/tickets/view/my_bookings_page.dart';
 import '../../features/tickets/view/ticket_qr_page.dart';
 
@@ -71,6 +76,12 @@ abstract final class AppRoutes {
 
   /// Argument: [PaywayLaunch]. Pops with a [PaywayOutcome].
   static const payway = '/checkout/payway';
+
+  /// Argument: the [PendingPayment] the last run left open. Pushed by `App` over Home.
+  static const paymentResume = '/checkout/resume';
+
+  /// Guests: find a booking by reference + phone. Pops the found `BookingSummary`.
+  static const bookingLookup = '/bookings/lookup';
 
   /// Signed-in only.
   static const myBookings = '/bookings';
@@ -170,6 +181,15 @@ class AppRouter {
               child: const PaywayPage(),
             ),
         },
+      AppRoutes.paymentResume => BlocProvider(
+          create: (_) =>
+              _getIt<PaymentResumeBloc>(param1: settings.arguments! as PendingPayment)..add(const ResumeStarted()),
+          child: const PaymentResumePage(),
+        ),
+      AppRoutes.bookingLookup => BlocProvider(
+          create: (_) => _getIt<BookingLookupBloc>(),
+          child: const BookingLookupPage(),
+        ),
       AppRoutes.paySuccess => PaySuccessPage(confirmation: settings.arguments! as BookingSummary),
       AppRoutes.myBookings => BlocProvider(
           create: (_) => _getIt<tickets.MyBookingsBloc>()..add(const tickets.LoadRequested()),
@@ -197,12 +217,17 @@ class AppRouter {
             // opens Bookings or Profile, so a guest never calls these endpoints.
             BlocProvider(create: (_) => _getIt<ProfileBloc>()),
             BlocProvider(create: (_) => _getIt<tickets.MyBookingsBloc>()),
+            // The guest Bookings tab: bookings made or found on this phone.
+            BlocProvider(create: (_) => _getIt<tickets.GuestBookingsBloc>()),
           ],
           child: const ShellPage(),
         ),
     };
     if (settings.name == AppRoutes.payway) {
       return buildMotionRoute<PaywayOutcome>(settings, motionFor(settings.name), (_) => page);
+    }
+    if (settings.name == AppRoutes.bookingLookup) {
+      return buildMotionRoute<BookingSummary>(settings, motionFor(settings.name), (_) => page);
     }
     if (settings.name == AppRoutes.login) {
       // Login opens over the current screen like a sheet; closing it returns to
@@ -225,7 +250,7 @@ class AppRouter {
         // The poster Hero carries the continuity; the page itself fades.
         AppRoutes.movieDetail => RouteMotion.container,
         // An outcome, not a place.
-        AppRoutes.paySuccess => RouteMotion.fadeThrough,
+        AppRoutes.paySuccess || AppRoutes.paymentResume => RouteMotion.fadeThrough,
         // A closer look at the same ticket.
         AppRoutes.ticketQr => RouteMotion.sharedAxisY,
         // Steps forward in a sequence or hierarchy.

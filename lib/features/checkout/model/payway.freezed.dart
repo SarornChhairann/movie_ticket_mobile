@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PaywaySession {
 
- int get bookingId; String get tranId; num get amount; String get checkoutUrl;/// `abapay_deeplink`; empty when PayWay sent none.
+ int get bookingId;/// The booking reference; empty from a server older than sprint 13.
+ String get reference; String get tranId; num get amount; String get checkoutUrl;/// `abapay_deeplink`; empty when PayWay sent none.
  String get abaDeeplink;
 /// Create a copy of PaywaySession
 /// with the given fields replaced by the non-null parameter values.
@@ -28,20 +29,20 @@ $PaywaySessionCopyWith<PaywaySession> get copyWith => _$PaywaySessionCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as PaywaySession;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaywaySession&&(identical(other.bookingId, _this.bookingId) || other.bookingId == _this.bookingId)&&(identical(other.tranId, _this.tranId) || other.tranId == _this.tranId)&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.checkoutUrl, _this.checkoutUrl) || other.checkoutUrl == _this.checkoutUrl)&&(identical(other.abaDeeplink, _this.abaDeeplink) || other.abaDeeplink == _this.abaDeeplink));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaywaySession&&(identical(other.bookingId, _this.bookingId) || other.bookingId == _this.bookingId)&&(identical(other.reference, _this.reference) || other.reference == _this.reference)&&(identical(other.tranId, _this.tranId) || other.tranId == _this.tranId)&&(identical(other.amount, _this.amount) || other.amount == _this.amount)&&(identical(other.checkoutUrl, _this.checkoutUrl) || other.checkoutUrl == _this.checkoutUrl)&&(identical(other.abaDeeplink, _this.abaDeeplink) || other.abaDeeplink == _this.abaDeeplink));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PaywaySession;
-  return Object.hash(runtimeType,_this.bookingId,_this.tranId,_this.amount,_this.checkoutUrl,_this.abaDeeplink);
+  return Object.hash(runtimeType,_this.bookingId,_this.reference,_this.tranId,_this.amount,_this.checkoutUrl,_this.abaDeeplink);
 }
 
 @override
 String toString() {
   final _this = this as PaywaySession;
-  return 'PaywaySession(bookingId: ${_this.bookingId}, tranId: ${_this.tranId}, amount: ${_this.amount}, checkoutUrl: ${_this.checkoutUrl}, abaDeeplink: ${_this.abaDeeplink})';
+  return 'PaywaySession(bookingId: ${_this.bookingId}, reference: ${_this.reference}, tranId: ${_this.tranId}, amount: ${_this.amount}, checkoutUrl: ${_this.checkoutUrl}, abaDeeplink: ${_this.abaDeeplink})';
 }
 
 
@@ -52,7 +53,7 @@ abstract mixin class $PaywaySessionCopyWith<$Res>  {
   factory $PaywaySessionCopyWith(PaywaySession value, $Res Function(PaywaySession) _then) = _$PaywaySessionCopyWithImpl;
 @useResult
 $Res call({
- int bookingId, String tranId, num amount, String checkoutUrl, String abaDeeplink
+ int bookingId, String reference, String tranId, num amount, String checkoutUrl, String abaDeeplink
 });
 
 
@@ -69,10 +70,11 @@ class _$PaywaySessionCopyWithImpl<$Res>
 
 /// Create a copy of PaywaySession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? bookingId = null,Object? tranId = null,Object? amount = null,Object? checkoutUrl = null,Object? abaDeeplink = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? bookingId = null,Object? reference = null,Object? tranId = null,Object? amount = null,Object? checkoutUrl = null,Object? abaDeeplink = null,}) {
   return _then(PaywaySession(
 bookingId: null == bookingId ? _self.bookingId : bookingId // ignore: cast_nullable_to_non_nullable
-as int,tranId: null == tranId ? _self.tranId : tranId // ignore: cast_nullable_to_non_nullable
+as int,reference: null == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
+as String,tranId: null == tranId ? _self.tranId : tranId // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,checkoutUrl: null == checkoutUrl ? _self.checkoutUrl : checkoutUrl // ignore: cast_nullable_to_non_nullable
 as String,abaDeeplink: null == abaDeeplink ? _self.abaDeeplink : abaDeeplink // ignore: cast_nullable_to_non_nullable
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bookingId,  String tranId,  num amount,  String checkoutUrl,  String abaDeeplink)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bookingId,  String reference,  String tranId,  num amount,  String checkoutUrl,  String abaDeeplink)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PaywaySession() when $default != null:
-return $default(_that.bookingId,_that.tranId,_that.amount,_that.checkoutUrl,_that.abaDeeplink);case _:
+return $default(_that.bookingId,_that.reference,_that.tranId,_that.amount,_that.checkoutUrl,_that.abaDeeplink);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.bookingId,_that.tranId,_that.amount,_that.checkoutUrl,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bookingId,  String tranId,  num amount,  String checkoutUrl,  String abaDeeplink)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bookingId,  String reference,  String tranId,  num amount,  String checkoutUrl,  String abaDeeplink)  $default,) {final _that = this;
 switch (_that) {
 case _PaywaySession():
-return $default(_that.bookingId,_that.tranId,_that.amount,_that.checkoutUrl,_that.abaDeeplink);case _:
+return $default(_that.bookingId,_that.reference,_that.tranId,_that.amount,_that.checkoutUrl,_that.abaDeeplink);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.bookingId,_that.tranId,_that.amount,_that.checkoutUrl,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bookingId,  String tranId,  num amount,  String checkoutUrl,  String abaDeeplink)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bookingId,  String reference,  String tranId,  num amount,  String checkoutUrl,  String abaDeeplink)?  $default,) {final _that = this;
 switch (_that) {
 case _PaywaySession() when $default != null:
-return $default(_that.bookingId,_that.tranId,_that.amount,_that.checkoutUrl,_that.abaDeeplink);case _:
+return $default(_that.bookingId,_that.reference,_that.tranId,_that.amount,_that.checkoutUrl,_that.abaDeeplink);case _:
   return null;
 
 }
@@ -217,10 +219,12 @@ return $default(_that.bookingId,_that.tranId,_that.amount,_that.checkoutUrl,_tha
 
 
 class _PaywaySession implements PaywaySession {
-  const _PaywaySession({required this.bookingId, required this.tranId, required this.amount, required this.checkoutUrl, this.abaDeeplink = ''});
+  const _PaywaySession({required this.bookingId, this.reference = '', required this.tranId, required this.amount, required this.checkoutUrl, this.abaDeeplink = ''});
   
 
 @override final  int bookingId;
+/// The booking reference; empty from a server older than sprint 13.
+@override@JsonKey() final  String reference;
 @override final  String tranId;
 @override final  num amount;
 @override final  String checkoutUrl;
@@ -237,18 +241,18 @@ _$PaywaySessionCopyWith<_PaywaySession> get copyWith => __$PaywaySessionCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaywaySession&&(identical(other.bookingId, bookingId) || other.bookingId == bookingId)&&(identical(other.tranId, tranId) || other.tranId == tranId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.checkoutUrl, checkoutUrl) || other.checkoutUrl == checkoutUrl)&&(identical(other.abaDeeplink, abaDeeplink) || other.abaDeeplink == abaDeeplink));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaywaySession&&(identical(other.bookingId, bookingId) || other.bookingId == bookingId)&&(identical(other.reference, reference) || other.reference == reference)&&(identical(other.tranId, tranId) || other.tranId == tranId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.checkoutUrl, checkoutUrl) || other.checkoutUrl == checkoutUrl)&&(identical(other.abaDeeplink, abaDeeplink) || other.abaDeeplink == abaDeeplink));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,bookingId,tranId,amount,checkoutUrl,abaDeeplink);
+    return Object.hash(runtimeType,bookingId,reference,tranId,amount,checkoutUrl,abaDeeplink);
 }
 
 @override
 String toString() {
-    return 'PaywaySession(bookingId: $bookingId, tranId: $tranId, amount: $amount, checkoutUrl: $checkoutUrl, abaDeeplink: $abaDeeplink)';
+    return 'PaywaySession(bookingId: $bookingId, reference: $reference, tranId: $tranId, amount: $amount, checkoutUrl: $checkoutUrl, abaDeeplink: $abaDeeplink)';
 }
 
 
@@ -259,7 +263,7 @@ abstract mixin class _$PaywaySessionCopyWith<$Res> implements $PaywaySessionCopy
   factory _$PaywaySessionCopyWith(_PaywaySession value, $Res Function(_PaywaySession) _then) = __$PaywaySessionCopyWithImpl;
 @override @useResult
 $Res call({
- int bookingId, String tranId, num amount, String checkoutUrl, String abaDeeplink
+ int bookingId, String reference, String tranId, num amount, String checkoutUrl, String abaDeeplink
 });
 
 
@@ -276,10 +280,11 @@ class __$PaywaySessionCopyWithImpl<$Res>
 
 /// Create a copy of PaywaySession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? bookingId = null,Object? tranId = null,Object? amount = null,Object? checkoutUrl = null,Object? abaDeeplink = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? bookingId = null,Object? reference = null,Object? tranId = null,Object? amount = null,Object? checkoutUrl = null,Object? abaDeeplink = null,}) {
   return _then(_PaywaySession(
 bookingId: null == bookingId ? _self.bookingId : bookingId // ignore: cast_nullable_to_non_nullable
-as int,tranId: null == tranId ? _self.tranId : tranId // ignore: cast_nullable_to_non_nullable
+as int,reference: null == reference ? _self.reference : reference // ignore: cast_nullable_to_non_nullable
+as String,tranId: null == tranId ? _self.tranId : tranId // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as num,checkoutUrl: null == checkoutUrl ? _self.checkoutUrl : checkoutUrl // ignore: cast_nullable_to_non_nullable
 as String,abaDeeplink: null == abaDeeplink ? _self.abaDeeplink : abaDeeplink // ignore: cast_nullable_to_non_nullable
@@ -293,7 +298,9 @@ as String,
 /// @nodoc
 mixin _$PaywayLaunch {
 
- PaywaySession get session; bool get canOpenAba; DateTime get holdExpiresAt;
+ PaywaySession get session; bool get canOpenAba; DateTime get holdExpiresAt;/// The guest's phone; null when signed in. Kept with the pending payment so a
+/// paid guest booking can be found again by reference + phone.
+ String? get guestPhone;
 /// Create a copy of PaywayLaunch
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -305,20 +312,20 @@ $PaywayLaunchCopyWith<PaywayLaunch> get copyWith => _$PaywayLaunchCopyWithImpl<P
 @override
 bool operator ==(Object other) {
   final _this = this as PaywayLaunch;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaywayLaunch&&(identical(other.session, _this.session) || other.session == _this.session)&&(identical(other.canOpenAba, _this.canOpenAba) || other.canOpenAba == _this.canOpenAba)&&(identical(other.holdExpiresAt, _this.holdExpiresAt) || other.holdExpiresAt == _this.holdExpiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaywayLaunch&&(identical(other.session, _this.session) || other.session == _this.session)&&(identical(other.canOpenAba, _this.canOpenAba) || other.canOpenAba == _this.canOpenAba)&&(identical(other.holdExpiresAt, _this.holdExpiresAt) || other.holdExpiresAt == _this.holdExpiresAt)&&(identical(other.guestPhone, _this.guestPhone) || other.guestPhone == _this.guestPhone));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PaywayLaunch;
-  return Object.hash(runtimeType,_this.session,_this.canOpenAba,_this.holdExpiresAt);
+  return Object.hash(runtimeType,_this.session,_this.canOpenAba,_this.holdExpiresAt,_this.guestPhone);
 }
 
 @override
 String toString() {
   final _this = this as PaywayLaunch;
-  return 'PaywayLaunch(session: ${_this.session}, canOpenAba: ${_this.canOpenAba}, holdExpiresAt: ${_this.holdExpiresAt})';
+  return 'PaywayLaunch(session: ${_this.session}, canOpenAba: ${_this.canOpenAba}, holdExpiresAt: ${_this.holdExpiresAt}, guestPhone: ${_this.guestPhone})';
 }
 
 
@@ -329,7 +336,7 @@ abstract mixin class $PaywayLaunchCopyWith<$Res>  {
   factory $PaywayLaunchCopyWith(PaywayLaunch value, $Res Function(PaywayLaunch) _then) = _$PaywayLaunchCopyWithImpl;
 @useResult
 $Res call({
- PaywaySession session, bool canOpenAba, DateTime holdExpiresAt
+ PaywaySession session, bool canOpenAba, DateTime holdExpiresAt, String? guestPhone
 });
 
 
@@ -346,12 +353,13 @@ class _$PaywayLaunchCopyWithImpl<$Res>
 
 /// Create a copy of PaywayLaunch
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? session = null,Object? canOpenAba = null,Object? holdExpiresAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? session = null,Object? canOpenAba = null,Object? holdExpiresAt = null,Object? guestPhone = freezed,}) {
   return _then(PaywayLaunch(
 session: null == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
 as PaywaySession,canOpenAba: null == canOpenAba ? _self.canOpenAba : canOpenAba // ignore: cast_nullable_to_non_nullable
 as bool,holdExpiresAt: null == holdExpiresAt ? _self.holdExpiresAt : holdExpiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,guestPhone: freezed == guestPhone ? _self.guestPhone : guestPhone // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of PaywayLaunch
@@ -445,10 +453,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PaywaySession session,  bool canOpenAba,  DateTime holdExpiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PaywaySession session,  bool canOpenAba,  DateTime holdExpiresAt,  String? guestPhone)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PaywayLaunch() when $default != null:
-return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt);case _:
+return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt,_that.guestPhone);case _:
   return orElse();
 
 }
@@ -466,10 +474,10 @@ return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PaywaySession session,  bool canOpenAba,  DateTime holdExpiresAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PaywaySession session,  bool canOpenAba,  DateTime holdExpiresAt,  String? guestPhone)  $default,) {final _that = this;
 switch (_that) {
 case _PaywayLaunch():
-return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt);case _:
+return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt,_that.guestPhone);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -486,10 +494,10 @@ return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PaywaySession session,  bool canOpenAba,  DateTime holdExpiresAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PaywaySession session,  bool canOpenAba,  DateTime holdExpiresAt,  String? guestPhone)?  $default,) {final _that = this;
 switch (_that) {
 case _PaywayLaunch() when $default != null:
-return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt);case _:
+return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt,_that.guestPhone);case _:
   return null;
 
 }
@@ -501,12 +509,15 @@ return $default(_that.session,_that.canOpenAba,_that.holdExpiresAt);case _:
 
 
 class _PaywayLaunch implements PaywayLaunch {
-  const _PaywayLaunch({required this.session, required this.canOpenAba, required this.holdExpiresAt});
+  const _PaywayLaunch({required this.session, required this.canOpenAba, required this.holdExpiresAt, this.guestPhone});
   
 
 @override final  PaywaySession session;
 @override final  bool canOpenAba;
 @override final  DateTime holdExpiresAt;
+/// The guest's phone; null when signed in. Kept with the pending payment so a
+/// paid guest booking can be found again by reference + phone.
+@override final  String? guestPhone;
 
 /// Create a copy of PaywayLaunch
 /// with the given fields replaced by the non-null parameter values.
@@ -518,18 +529,18 @@ _$PaywayLaunchCopyWith<_PaywayLaunch> get copyWith => __$PaywayLaunchCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaywayLaunch&&(identical(other.session, session) || other.session == session)&&(identical(other.canOpenAba, canOpenAba) || other.canOpenAba == canOpenAba)&&(identical(other.holdExpiresAt, holdExpiresAt) || other.holdExpiresAt == holdExpiresAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaywayLaunch&&(identical(other.session, session) || other.session == session)&&(identical(other.canOpenAba, canOpenAba) || other.canOpenAba == canOpenAba)&&(identical(other.holdExpiresAt, holdExpiresAt) || other.holdExpiresAt == holdExpiresAt)&&(identical(other.guestPhone, guestPhone) || other.guestPhone == guestPhone));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,session,canOpenAba,holdExpiresAt);
+    return Object.hash(runtimeType,session,canOpenAba,holdExpiresAt,guestPhone);
 }
 
 @override
 String toString() {
-    return 'PaywayLaunch(session: $session, canOpenAba: $canOpenAba, holdExpiresAt: $holdExpiresAt)';
+    return 'PaywayLaunch(session: $session, canOpenAba: $canOpenAba, holdExpiresAt: $holdExpiresAt, guestPhone: $guestPhone)';
 }
 
 
@@ -540,7 +551,7 @@ abstract mixin class _$PaywayLaunchCopyWith<$Res> implements $PaywayLaunchCopyWi
   factory _$PaywayLaunchCopyWith(_PaywayLaunch value, $Res Function(_PaywayLaunch) _then) = __$PaywayLaunchCopyWithImpl;
 @override @useResult
 $Res call({
- PaywaySession session, bool canOpenAba, DateTime holdExpiresAt
+ PaywaySession session, bool canOpenAba, DateTime holdExpiresAt, String? guestPhone
 });
 
 
@@ -557,12 +568,13 @@ class __$PaywayLaunchCopyWithImpl<$Res>
 
 /// Create a copy of PaywayLaunch
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? session = null,Object? canOpenAba = null,Object? holdExpiresAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? session = null,Object? canOpenAba = null,Object? holdExpiresAt = null,Object? guestPhone = freezed,}) {
   return _then(_PaywayLaunch(
 session: null == session ? _self.session : session // ignore: cast_nullable_to_non_nullable
 as PaywaySession,canOpenAba: null == canOpenAba ? _self.canOpenAba : canOpenAba // ignore: cast_nullable_to_non_nullable
 as bool,holdExpiresAt: null == holdExpiresAt ? _self.holdExpiresAt : holdExpiresAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,guestPhone: freezed == guestPhone ? _self.guestPhone : guestPhone // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

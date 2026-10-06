@@ -39,3 +39,27 @@ final class HoldTicked extends SeatMapEvent {
 final class HoldExpired extends SeatMapEvent {
   const HoldExpired();
 }
+
+/// "How many seats?" answered; null means skipped (the server cap applies).
+final class PartySizeChosen extends SeatMapEvent {
+  const PartySizeChosen(this.size);
+
+  final int? size;
+}
+
+/// Pick and hold the best block for the party size.
+final class BestSeatsRequested extends SeatMapEvent {
+  const BestSeatsRequested();
+}
+
+/// Use the hold's one extend.
+final class HoldExtendRequested extends SeatMapEvent {
+  const HoldExtendRequested();
+}
+
+/// Internal: the hold changed elsewhere (an extend from checkout).
+final class HoldChanged extends SeatMapEvent {
+  const HoldChanged(this.hold);
+
+  final Hold hold;
+}

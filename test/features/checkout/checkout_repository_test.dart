@@ -128,6 +128,19 @@ void main() {
         const CheckoutFailure.blocked('This account is banned.'));
   });
 
+  test('confirm maps SEAT_LIMIT and a foreign booking maps BOOKING_NOT_FOUND', () async {
+    adapter.onPost('/bookings/checkout/50',
+        (s) => s.reply(400, {'error': 'You can book at most 8 seats at a time.', 'type': 'BAD_REQUEST', 'code': 'SEAT_LIMIT'}),
+        data: Matchers.any);
+    expect((await repository.confirm(testHold) as Err<BookingSummary, CheckoutFailure>).failure,
+        const CheckoutFailure.seatLimit('You can book at most 8 seats at a time.'));
+
+    adapter.onGet('/bookings/confirmation/7',
+        (s) => s.reply(404, {'error': 'Booking not found.', 'type': 'NOT_FOUND', 'code': 'BOOKING_NOT_FOUND'}));
+    expect((await repository.getConfirmation(7) as Err<BookingSummary, CheckoutFailure>).failure,
+        const CheckoutFailure.bookingNotFound('Booking not found.'));
+  });
+
   test('getConfirmation re-reads a booking', () async {
     adapter.onGet('/bookings/confirmation/99', (s) => s.reply(200, bookingJson()));
 

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_failure.dart';
 import '../../../core/network/result.dart';
+import '../model/best_seats.dart';
 import '../model/couple_pairing.dart';
 import '../model/seat_map.dart';
 import '../model/seat_repository.dart';
@@ -24,6 +25,10 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
     on<RemoteSeatChanged>(_onRemoteSeatChanged);
     on<HoldTicked>(_onHoldTicked);
     on<HoldExpired>(_onHoldExpired);
+    on<PartySizeChosen>(_onPartySizeChosen);
+    on<BestSeatsRequested>(_onBestSeatsRequested);
+    on<HoldExtendRequested>(_onHoldExtendRequested);
+    on<HoldChanged>(_onHoldChanged);
   }
 
   static const _seatConflictCodes = {'SEAT_HELD', 'SEAT_BOOKED'};
@@ -32,6 +37,7 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
   final DateTime Function() _clock;
   final Duration _tick;
   StreamSubscription<SeatEvent>? _events;
+  StreamSubscription<Hold>? _holdChanges;
   Timer? _ticker;
 
   Future<void> _onLoadRequested(LoadRequested event, Emitter<SeatMapState> emit) async {
@@ -39,10 +45,13 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
     await _reload(emit, event.showtimeId);
     await _events?.cancel();
     _events = _repository.watch(event.showtimeId).listen((e) => add(RemoteSeatChanged(e)));
+    _holdChanges ??= _repository.holdChanges.listen((hold) => add(HoldChanged(hold)));
   }
 
   /// Fetches the map, keeping the current selection where still possible.
   Future<void> _reload(Emitter<SeatMapState> emit, int showtimeId, {Set<int> keepSelected = const {}}) async {
+    // The party size belongs to the visit, not to one load of the map.
+    final before = state;
     final result = await _repository.loadMap(showtimeId);
     switch (result) {
       case Ok(:final value):
@@ -52,6 +61,8 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
           heldByOthers: value.heldByOthers,
           booked: booked,
           selected: keepSelected.difference(booked).difference(value.heldByOthers),
+          partySize: before is SeatMapReady ? before.partySize : null,
+          partyAsked: before is SeatMapReady && before.partyAsked,
         ));
       case Err(:final failure):
         emit(SeatMapState.failure(failure));
@@ -75,6 +86,10 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
       ids.add(partner.id);
     }
     final selecting = !s.selected.contains(seat.id);
+    if (selecting && s.wouldExceedLimit(ids.length)) {
+      emit(s.copyWith(effect: SeatMapEffect.limit, message: null));
+      return;
+    }
     final selected = selecting ? s.selected.union(ids) : s.selected.difference(ids);
     emit(s.copyWith(selected: selected, effect: null, message: null));
   }
@@ -88,7 +103,73 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
       emit(s.copyWith(effect: SeatMapEffect.pairError, message: null));
       return;
     }
+    await _hold(emit, s, proceed: true);
+  }
 
+  void _onPartySizeChosen(PartySizeChosen event, Emitter<SeatMapState> emit) {
+    final s = state;
+    if (s is! SeatMapReady) return;
+    final size = event.size;
+    // A smaller party drops what no longer fits: keep the first seats picked by code.
+    final keep = size == null ? s.selected : s.selectedSeats.take(size).map((x) => x.id).toSet();
+    emit(s.copyWith(partySize: size, partyAsked: true, selected: keep, effect: null, message: null));
+  }
+
+  Future<void> _onBestSeatsRequested(BestSeatsRequested event, Emitter<SeatMapState> emit) async {
+    final s = state;
+    final size = s is SeatMapReady ? s.partySize : null;
+    if (s is! SeatMapReady || size == null || s.holding) return;
+    // Our own held seats are free to pick again; everyone else's are not.
+    final ids = bestSeats(s.data.seats, count: size, unavailable: s.booked.union(s.heldByOthers));
+    if (ids == null) {
+      emit(s.copyWith(effect: SeatMapEffect.noBlock, message: null));
+      return;
+    }
+    // Hold right away so nobody takes them while the customer looks; Continue proceeds.
+    await _hold(emit, s.copyWith(selected: ids.toSet()), proceed: false);
+  }
+
+  Future<void> _onHoldExtendRequested(HoldExtendRequested event, Emitter<SeatMapState> emit) async {
+    final s = state;
+    if (s is! SeatMapReady || !s.canExtend) return;
+    emit(s.copyWith(extending: true, effect: null, message: null));
+    final result = await _repository.extend(s.hold!);
+    final current = state;
+    if (current is! SeatMapReady) return;
+    switch (result) {
+      case Ok(:final value):
+        emit(current.copyWith(
+          hold: value,
+          extending: false,
+          secondsLeft: _secondsLeft(value),
+          effect: SeatMapEffect.extended,
+        ));
+      case Err(failure: ApiFailureServer(code: 'HOLD_EXPIRED')):
+        emit(current.copyWith(extending: false));
+        add(const HoldExpired());
+      case Err(failure: ApiFailureServer(code: 'HOLD_EXTEND_LIMIT', :final message)):
+        emit(current.copyWith(
+          hold: current.hold?.copyWith(extended: true),
+          extending: false,
+          effect: SeatMapEffect.conflict,
+          message: message,
+        ));
+      case Err(:final failure):
+        emit(current.copyWith(extending: false, effect: SeatMapEffect.conflict, message: _messageOf(failure)));
+    }
+  }
+
+  void _onHoldChanged(HoldChanged event, Emitter<SeatMapState> emit) {
+    final s = state;
+    final hold = s is SeatMapReady ? s.hold : null;
+    if (s is! SeatMapReady || hold == null || hold.showtimeId != event.hold.showtimeId) return;
+    final updated = hold.copyWith(expiresAt: event.hold.expiresAt, extended: event.hold.extended);
+    emit(s.copyWith(hold: updated, secondsLeft: _secondsLeft(updated), effect: null));
+  }
+
+  /// Holds [s.selected] (releasing seats dropped since the last hold). [proceed]
+  /// opens checkout on success; Best seats only holds.
+  Future<void> _hold(Emitter<SeatMapState> emit, SeatMapReady s, {required bool proceed}) async {
     emit(s.copyWith(holding: true, effect: null, message: null));
     final dropped = s.hold?.seatIds.difference(s.selected) ?? const <int>{};
     await _repository.release(s.data.showtimeId, dropped);
@@ -101,7 +182,7 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
           hold: value,
           holding: false,
           secondsLeft: _secondsLeft(value),
-          effect: SeatMapEffect.proceed,
+          effect: proceed ? SeatMapEffect.proceed : null,
           message: null,
         ));
       case Err(failure: ApiFailureServer(:final code, :final message)) when _seatConflictCodes.contains(code):
@@ -109,6 +190,8 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
         await _reload(emit, s.data.showtimeId, keepSelected: s.selected);
         final r = state;
         if (r is SeatMapReady) emit(r.copyWith(effect: SeatMapEffect.conflict, message: message));
+      case Err(failure: ApiFailureServer(code: 'SEAT_LIMIT', :final message)):
+        emit(s.copyWith(holding: false, effect: SeatMapEffect.limit, message: message));
       case Err(failure: ApiFailureServer(code: 'COUPLE_PAIR_INVALID')):
         emit(s.copyWith(holding: false, effect: SeatMapEffect.pairError, message: null));
       case Err(:final failure):
@@ -199,6 +282,7 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
   Future<void> close() async {
     _stopTicker();
     await _events?.cancel();
+    await _holdChanges?.cancel();
     final s = state;
     // The seat page closes only after checkout above it is gone, so leaving it
     // always gives the seats back (the server TTL is the backstop).

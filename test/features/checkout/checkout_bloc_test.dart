@@ -1,6 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/features/seats/model/seat_repository.dart';
+import 'package:movie_ticket_mobile/core/network/api_failure.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/features/checkout/controller/checkout_bloc.dart';
 import 'package:movie_ticket_mobile/features/checkout/model/checkout_failure.dart';
@@ -12,6 +14,8 @@ import 'package:movie_ticket_mobile/features/checkout/model/quote.dart';
 import 'checkout_fixtures.dart';
 
 class _MockCheckoutRepository extends Mock implements CheckoutRepository {}
+
+class _MockSeatRepository extends Mock implements SeatRepository {}
 
 void main() {
   late _MockCheckoutRepository repository;
@@ -182,7 +186,8 @@ void main() {
       checkoutUrl: 'https://checkout-sandbox.payway.com.kh/abc',
       abaDeeplink: 'abamobilebank://ababank.com?type=payway',
     );
-    final launch = PaywayLaunch(session: session, canOpenAba: true, holdExpiresAt: testHold.expiresAt);
+    // A guest checkout: the phone travels with the launch so the paid booking can be found again.
+    final launch = PaywayLaunch(session: session, canOpenAba: true, holdExpiresAt: testHold.expiresAt, guestPhone: '012');
 
     void stubStart(Result<PaywaySession, CheckoutFailure> result) => when(() => repository.startPayway(
           any(),
@@ -302,5 +307,51 @@ void main() {
     test('pay is blocked while submitting', () {
       expect(ready(guest: guest).copyWith(submitting: true).canPay, isFalse);
     });
+  });
+
+  group('hold extend and the Pay guard (sprint 14)', () {
+    late _MockSeatRepository holds;
+    final extended = testHold.copyWith(expiresAt: testHold.expiresAt.add(const Duration(minutes: 5)), extended: true);
+    const guest = GuestInfo(name: 'Dara', phone: '012');
+    CheckoutReady short() => ready(guest: guest).copyWith(secondsLeft: 120);
+
+    setUp(() => holds = _MockSeatRepository());
+
+    CheckoutBloc buildWithHolds() =>
+        CheckoutBloc(repository, clock: () => testNow, tick: const Duration(hours: 1), holds: holds);
+
+    test('under 3 minutes Pay is off; extend is offered once', () {
+      expect(short().holdTooShort, isTrue);
+      expect(short().canPay, isFalse);
+      expect(short().canExtend, isTrue);
+      expect(ready(guest: guest).canPay, isTrue);
+      expect(short().copyWith(hold: extended).canExtend, isFalse);
+    });
+
+    blocTest<CheckoutBloc, CheckoutState>(
+      'extend moves the hold on and Pay comes back',
+      setUp: () => when(() => holds.extend(testHold)).thenAnswer((_) async => Ok(extended)),
+      build: buildWithHolds,
+      seed: short,
+      act: (bloc) => bloc.add(const CheckoutHoldExtendRequested()),
+      expect: () => [
+        short().copyWith(extending: true),
+        short().copyWith(hold: extended, secondsLeft: 900, effect: CheckoutEffect.holdExtended),
+      ],
+      verify: (bloc) => expect((bloc.state as CheckoutReady).canPay, isTrue),
+    );
+
+    blocTest<CheckoutBloc, CheckoutState>(
+      'HOLD_EXPIRED from extend leaves for the seat map',
+      setUp: () => when(() => holds.extend(any())).thenAnswer((_) async =>
+          const Err(ApiFailure.server(status: 409, code: 'HOLD_EXPIRED', message: 'Your seat hold expired.'))),
+      build: buildWithHolds,
+      seed: short,
+      act: (bloc) => bloc.add(const CheckoutHoldExtendRequested()),
+      expect: () => [
+        short().copyWith(extending: true),
+        short().copyWith(secondsLeft: 0, effect: CheckoutEffect.holdExpired),
+      ],
+    );
   });
 }

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/features/seats/model/seat_map.dart';
 import 'package:movie_ticket_mobile/features/seats/controller/seat_map_bloc.dart';
 import 'package:movie_ticket_mobile/features/seats/model/seat_map_args.dart';
+import 'package:movie_ticket_mobile/features/seats/view/party_size_sheet.dart';
 import 'package:movie_ticket_mobile/features/seats/view/seat_map_page.dart';
 
 import '../../helpers/finders.dart';
@@ -105,5 +107,55 @@ void main() {
     await tester.tap(find.byKey(const Key('seatTime.77')));
     verify(() => bloc.add(any(that: isA<ReleaseRequested>()))).called(1);
     verify(() => bloc.add(any(that: isA<LoadRequested>().having((e) => e.showtimeId, 'id', 77)))).called(1);
+  });
+
+  group('sprint 14', () {
+    final hold = Hold(showtimeId: 50, seatIds: {1}, expiresAt: DateTime(2026, 10, 2, 20));
+
+    testWidgets('the extend banner shows in the hold\'s last minute and sends the extend', (tester) async {
+      final bloc = await pump(tester, ready(selected: {1}).copyWith(hold: hold, secondsLeft: 45));
+
+      expect(find.byKey(const Key('hold.banner')), findsOneWidget);
+      expect(find.text('Your seats are held for 0:45 more.'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('hold.extend')));
+      verify(() => bloc.add(any(that: isA<HoldExtendRequested>()))).called(1);
+    });
+
+    testWidgets('no banner before the last minute, and no Extend once used', (tester) async {
+      await pump(tester, ready(selected: {1}).copyWith(hold: hold, secondsLeft: 61));
+      expect(find.byKey(const Key('hold.banner')), findsNothing);
+
+      await pump(tester, ready(selected: {1}).copyWith(hold: hold.copyWith(extended: true), secondsLeft: 30));
+      expect(find.byKey(const Key('hold.banner')), findsOneWidget);
+      expect(find.byKey(const Key('hold.extend')), findsNothing);
+    });
+
+    testWidgets('Best seats with a party size asks the bloc; the party button shows the size', (tester) async {
+      final bloc = await pump(tester, ready().copyWith(partySize: 2, partyAsked: true));
+
+      expect(find.text('2 seats'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('seats.best')));
+      await tester.pump();
+      verify(() => bloc.add(any(that: isA<BestSeatsRequested>()))).called(1);
+    });
+
+    testWidgets('the first map asks how many seats; a choice is sent to the bloc', (tester) async {
+      final bloc = _MockSeatMapBloc();
+      whenListen(
+        bloc,
+        Stream<SeatMapState>.fromIterable([ready()]),
+        initialState: const SeatMapState.loading(),
+      );
+      await pumpLocalized(tester, BlocProvider<SeatMapBloc>.value(value: bloc, child: const SeatMapPage()));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PartySizeSheet), findsOneWidget);
+      await tester.tap(find.byKey(const Key('party.3')));
+      await tester.pumpAndSettle();
+      // The listener runs in the bloc stream's (real) zone, so its continuation does too.
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+
+      verify(() => bloc.add(any(that: isA<PartySizeChosen>().having((e) => e.size, 'size', 3)))).called(1);
+    });
   });
 }

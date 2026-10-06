@@ -10,6 +10,7 @@ PaywayStartResponseDto _$PaywayStartResponseDtoFromJson(
   Map<String, dynamic> json,
 ) => PaywayStartResponseDto(
   bookingId: (json['bookingId'] as num).toInt(),
+  reference: json['reference'] as String?,
   tranId: json['tranId'] as String,
   amount: json['amount'] as num,
   checkoutUrl: json['checkoutUrl'] as String,
