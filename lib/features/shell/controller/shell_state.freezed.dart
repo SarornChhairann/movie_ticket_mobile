@@ -126,12 +126,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( HomeSummary summary)?  ready,TResult Function( ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( HomeSummary summary,  DateTime? savedAt)?  ready,TResult Function( ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ShellInitial() when initial != null:
 return initial();case ShellLoading() when loading != null:
 return loading();case ShellReady() when ready != null:
-return ready(_that.summary);case ShellFailure() when failure != null:
+return ready(_that.summary,_that.savedAt);case ShellFailure() when failure != null:
 return failure(_that.failure);case _:
   return orElse();
 
@@ -150,12 +150,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( HomeSummary summary)  ready,required TResult Function( ApiFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( HomeSummary summary,  DateTime? savedAt)  ready,required TResult Function( ApiFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case ShellInitial():
 return initial();case ShellLoading():
 return loading();case ShellReady():
-return ready(_that.summary);case ShellFailure():
+return ready(_that.summary,_that.savedAt);case ShellFailure():
 return failure(_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -170,12 +170,12 @@ return failure(_that.failure);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( HomeSummary summary)?  ready,TResult? Function( ApiFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( HomeSummary summary,  DateTime? savedAt)?  ready,TResult? Function( ApiFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case ShellInitial() when initial != null:
 return initial();case ShellLoading() when loading != null:
 return loading();case ShellReady() when ready != null:
-return ready(_that.summary);case ShellFailure() when failure != null:
+return ready(_that.summary,_that.savedAt);case ShellFailure() when failure != null:
 return failure(_that.failure);case _:
   return null;
 
@@ -252,10 +252,11 @@ String toString() {
 
 
 class ShellReady implements ShellState {
-  const ShellReady(this.summary);
+  const ShellReady(this.summary, {this.savedAt});
   
 
  final  HomeSummary summary;
+ final  DateTime? savedAt;
 
 /// Create a copy of ShellState
 /// with the given fields replaced by the non-null parameter values.
@@ -267,18 +268,18 @@ $ShellReadyCopyWith<ShellReady> get copyWith => _$ShellReadyCopyWithImpl<ShellRe
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is ShellReady&&(identical(other.summary, summary) || other.summary == summary));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is ShellReady&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.savedAt, savedAt) || other.savedAt == savedAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,summary);
+    return Object.hash(runtimeType,summary,savedAt);
 }
 
 @override
 String toString() {
-    return 'ShellState.ready(summary: $summary)';
+    return 'ShellState.ready(summary: $summary, savedAt: $savedAt)';
 }
 
 
@@ -289,7 +290,7 @@ abstract mixin class $ShellReadyCopyWith<$Res> implements $ShellStateCopyWith<$R
   factory $ShellReadyCopyWith(ShellReady value, $Res Function(ShellReady) _then) = _$ShellReadyCopyWithImpl;
 @useResult
 $Res call({
- HomeSummary summary
+ HomeSummary summary, DateTime? savedAt
 });
 
 
@@ -306,10 +307,11 @@ class _$ShellReadyCopyWithImpl<$Res>
 
 /// Create a copy of ShellState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? summary = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? summary = null,Object? savedAt = freezed,}) {
   return _then(ShellReady(
 null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
-as HomeSummary,
+as HomeSummary,savedAt: freezed == savedAt ? _self.savedAt : savedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

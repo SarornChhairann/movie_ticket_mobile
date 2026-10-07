@@ -5,9 +5,13 @@ sealed class Result<T, F> {
 }
 
 final class Ok<T, F> extends Result<T, F> {
-  const Ok(this.value);
+  const Ok(this.value, {this.savedAt});
 
   final T value;
+
+  /// Set when [value] is the copy saved on this phone because the server could
+  /// not be reached (sprint 21): when that copy was saved. Null for fresh data.
+  final DateTime? savedAt;
 }
 
 final class Err<T, F> extends Result<T, F> {

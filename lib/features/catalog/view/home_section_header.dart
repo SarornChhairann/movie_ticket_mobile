@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/spacing.dart';
 
-/// A Home section title with an optional "See all".
+/// A Home section title with an optional "See all". The title is [titleKey]
+/// translated, or [title] when the caller formats it.
 class HomeSectionHeader extends StatelessWidget {
-  const HomeSectionHeader({super.key, required this.titleKey, this.seeAllKey, this.onSeeAll});
+  const HomeSectionHeader({super.key, this.titleKey = '', this.title, this.seeAllKey, this.onSeeAll});
 
   final String titleKey;
+  final String? title;
   final Key? seeAllKey;
   final VoidCallback? onSeeAll;
 
@@ -20,7 +22,7 @@ class HomeSectionHeader extends StatelessWidget {
         height: Space.minTarget,
         child: Row(
           children: [
-            Expanded(child: Text(titleKey.tr(context: context), style: Theme.of(context).textTheme.titleMedium)),
+            Expanded(child: Text(title ?? titleKey.tr(context: context), style: Theme.of(context).textTheme.titleMedium)),
             if (onSeeAll != null)
               TextButton(key: seeAllKey, onPressed: onSeeAll, child: Text('catalog.seeAll'.tr(context: context))),
           ],

@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeSummary {
 
- int get nowShowingCount; int get comingSoonCount; int get cinemaCount;
+ int get nowShowingCount; int get comingSoonCount; int get cinemaCount;/// Home's hero: the admin's featured movie, else the first hero movie.
+ Movie? get featured;
 /// Create a copy of HomeSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +28,20 @@ $HomeSummaryCopyWith<HomeSummary> get copyWith => _$HomeSummaryCopyWithImpl<Home
 @override
 bool operator ==(Object other) {
   final _this = this as HomeSummary;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeSummary&&(identical(other.nowShowingCount, _this.nowShowingCount) || other.nowShowingCount == _this.nowShowingCount)&&(identical(other.comingSoonCount, _this.comingSoonCount) || other.comingSoonCount == _this.comingSoonCount)&&(identical(other.cinemaCount, _this.cinemaCount) || other.cinemaCount == _this.cinemaCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeSummary&&(identical(other.nowShowingCount, _this.nowShowingCount) || other.nowShowingCount == _this.nowShowingCount)&&(identical(other.comingSoonCount, _this.comingSoonCount) || other.comingSoonCount == _this.comingSoonCount)&&(identical(other.cinemaCount, _this.cinemaCount) || other.cinemaCount == _this.cinemaCount)&&(identical(other.featured, _this.featured) || other.featured == _this.featured));
 }
 
 
 @override
 int get hashCode {
   final _this = this as HomeSummary;
-  return Object.hash(runtimeType,_this.nowShowingCount,_this.comingSoonCount,_this.cinemaCount);
+  return Object.hash(runtimeType,_this.nowShowingCount,_this.comingSoonCount,_this.cinemaCount,_this.featured);
 }
 
 @override
 String toString() {
   final _this = this as HomeSummary;
-  return 'HomeSummary(nowShowingCount: ${_this.nowShowingCount}, comingSoonCount: ${_this.comingSoonCount}, cinemaCount: ${_this.cinemaCount})';
+  return 'HomeSummary(nowShowingCount: ${_this.nowShowingCount}, comingSoonCount: ${_this.comingSoonCount}, cinemaCount: ${_this.cinemaCount}, featured: ${_this.featured})';
 }
 
 
@@ -51,11 +52,11 @@ abstract mixin class $HomeSummaryCopyWith<$Res>  {
   factory $HomeSummaryCopyWith(HomeSummary value, $Res Function(HomeSummary) _then) = _$HomeSummaryCopyWithImpl;
 @useResult
 $Res call({
- int nowShowingCount, int comingSoonCount, int cinemaCount
+ int nowShowingCount, int comingSoonCount, int cinemaCount, Movie? featured
 });
 
 
-
+$MovieCopyWith<$Res>? get featured;
 
 }
 /// @nodoc
@@ -68,15 +69,28 @@ class _$HomeSummaryCopyWithImpl<$Res>
 
 /// Create a copy of HomeSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nowShowingCount = null,Object? comingSoonCount = null,Object? cinemaCount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nowShowingCount = null,Object? comingSoonCount = null,Object? cinemaCount = null,Object? featured = freezed,}) {
   return _then(HomeSummary(
 nowShowingCount: null == nowShowingCount ? _self.nowShowingCount : nowShowingCount // ignore: cast_nullable_to_non_nullable
 as int,comingSoonCount: null == comingSoonCount ? _self.comingSoonCount : comingSoonCount // ignore: cast_nullable_to_non_nullable
 as int,cinemaCount: null == cinemaCount ? _self.cinemaCount : cinemaCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,featured: freezed == featured ? _self.featured : featured // ignore: cast_nullable_to_non_nullable
+as Movie?,
   ));
 }
+/// Create a copy of HomeSummary
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MovieCopyWith<$Res>? get featured {
+    if (_self.featured == null) {
+    return null;
+  }
 
+  return $MovieCopyWith<$Res>(_self.featured!, (value) {
+    return _then(_self.copyWith(featured: value));
+  });
+}
 }
 
 
@@ -158,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int nowShowingCount,  int comingSoonCount,  int cinemaCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int nowShowingCount,  int comingSoonCount,  int cinemaCount,  Movie? featured)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeSummary() when $default != null:
-return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount);case _:
+return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount,_that.featured);case _:
   return orElse();
 
 }
@@ -179,10 +193,10 @@ return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int nowShowingCount,  int comingSoonCount,  int cinemaCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int nowShowingCount,  int comingSoonCount,  int cinemaCount,  Movie? featured)  $default,) {final _that = this;
 switch (_that) {
 case _HomeSummary():
-return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount);case _:
+return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount,_that.featured);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +213,10 @@ return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int nowShowingCount,  int comingSoonCount,  int cinemaCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int nowShowingCount,  int comingSoonCount,  int cinemaCount,  Movie? featured)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeSummary() when $default != null:
-return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount);case _:
+return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount,_that.featured);case _:
   return null;
 
 }
@@ -214,12 +228,14 @@ return $default(_that.nowShowingCount,_that.comingSoonCount,_that.cinemaCount);c
 
 
 class _HomeSummary implements HomeSummary {
-  const _HomeSummary({required this.nowShowingCount, required this.comingSoonCount, required this.cinemaCount});
+  const _HomeSummary({required this.nowShowingCount, required this.comingSoonCount, required this.cinemaCount, this.featured});
   
 
 @override final  int nowShowingCount;
 @override final  int comingSoonCount;
 @override final  int cinemaCount;
+/// Home's hero: the admin's featured movie, else the first hero movie.
+@override final  Movie? featured;
 
 /// Create a copy of HomeSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -231,18 +247,18 @@ _$HomeSummaryCopyWith<_HomeSummary> get copyWith => __$HomeSummaryCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeSummary&&(identical(other.nowShowingCount, nowShowingCount) || other.nowShowingCount == nowShowingCount)&&(identical(other.comingSoonCount, comingSoonCount) || other.comingSoonCount == comingSoonCount)&&(identical(other.cinemaCount, cinemaCount) || other.cinemaCount == cinemaCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeSummary&&(identical(other.nowShowingCount, nowShowingCount) || other.nowShowingCount == nowShowingCount)&&(identical(other.comingSoonCount, comingSoonCount) || other.comingSoonCount == comingSoonCount)&&(identical(other.cinemaCount, cinemaCount) || other.cinemaCount == cinemaCount)&&(identical(other.featured, featured) || other.featured == featured));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nowShowingCount,comingSoonCount,cinemaCount);
+    return Object.hash(runtimeType,nowShowingCount,comingSoonCount,cinemaCount,featured);
 }
 
 @override
 String toString() {
-    return 'HomeSummary(nowShowingCount: $nowShowingCount, comingSoonCount: $comingSoonCount, cinemaCount: $cinemaCount)';
+    return 'HomeSummary(nowShowingCount: $nowShowingCount, comingSoonCount: $comingSoonCount, cinemaCount: $cinemaCount, featured: $featured)';
 }
 
 
@@ -253,11 +269,11 @@ abstract mixin class _$HomeSummaryCopyWith<$Res> implements $HomeSummaryCopyWith
   factory _$HomeSummaryCopyWith(_HomeSummary value, $Res Function(_HomeSummary) _then) = __$HomeSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- int nowShowingCount, int comingSoonCount, int cinemaCount
+ int nowShowingCount, int comingSoonCount, int cinemaCount, Movie? featured
 });
 
 
-
+@override $MovieCopyWith<$Res>? get featured;
 
 }
 /// @nodoc
@@ -270,16 +286,29 @@ class __$HomeSummaryCopyWithImpl<$Res>
 
 /// Create a copy of HomeSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nowShowingCount = null,Object? comingSoonCount = null,Object? cinemaCount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nowShowingCount = null,Object? comingSoonCount = null,Object? cinemaCount = null,Object? featured = freezed,}) {
   return _then(_HomeSummary(
 nowShowingCount: null == nowShowingCount ? _self.nowShowingCount : nowShowingCount // ignore: cast_nullable_to_non_nullable
 as int,comingSoonCount: null == comingSoonCount ? _self.comingSoonCount : comingSoonCount // ignore: cast_nullable_to_non_nullable
 as int,cinemaCount: null == cinemaCount ? _self.cinemaCount : cinemaCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,featured: freezed == featured ? _self.featured : featured // ignore: cast_nullable_to_non_nullable
+as Movie?,
   ));
 }
 
+/// Create a copy of HomeSummary
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MovieCopyWith<$Res>? get featured {
+    if (_self.featured == null) {
+    return null;
+  }
 
+  return $MovieCopyWith<$Res>(_self.featured!, (value) {
+    return _then(_self.copyWith(featured: value));
+  });
+}
 }
 
 // dart format on

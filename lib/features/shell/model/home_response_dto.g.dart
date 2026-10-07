@@ -11,4 +11,12 @@ HomeResponseDto _$HomeResponseDtoFromJson(Map<String, dynamic> json) =>
       nowShowing: json['nowShowing'] as List<dynamic>? ?? const [],
       comingSoon: json['comingSoon'] as List<dynamic>? ?? const [],
       cinemas: json['cinemas'] as List<dynamic>? ?? const [],
+      heroMovies:
+          (json['heroMovies'] as List<dynamic>?)
+              ?.map((e) => MovieDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      featuredMovie: json['featuredMovie'] == null
+          ? null
+          : MovieDto.fromJson(json['featuredMovie'] as Map<String, dynamic>),
     );

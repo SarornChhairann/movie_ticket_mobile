@@ -20,6 +20,7 @@ import '../network/session_header_interceptor.dart';
 import '../session/pending_payment_store.dart';
 import '../session/session_id_provider.dart';
 import '../storage/booking_cache.dart';
+import '../storage/home_cache.dart';
 import '../session/token_store.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -37,6 +38,8 @@ void configureDependencies({required String baseUrl, String? restoredSessionId})
     // Funnel events (sprint 19); the debug sink until a vendor is chosen (D5).
     ..registerLazySingleton<JourneyTracker>(DebugJourneyTracker.new)
     ..registerLazySingleton(() => BookingCache(getIt(), getApplicationDocumentsDirectory))
+    // Home's offline copy (sprint 21).
+    ..registerLazySingleton(() => HomeCache(getApplicationDocumentsDirectory))
     ..registerLazySingleton(() => SessionIdProvider(restored: restoredSessionId))
     ..registerLazySingleton(() => SessionHeaderInterceptor(getIt()))
     ..registerLazySingleton(

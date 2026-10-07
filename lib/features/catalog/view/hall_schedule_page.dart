@@ -13,6 +13,7 @@ import '../../seats/model/seat_map_args.dart';
 import '../controller/hall_schedule_bloc.dart';
 import '../model/catalog_mapper.dart';
 import '../model/hall.dart';
+import 'favourite_halls.dart';
 import 'hall_list_section.dart';
 import 'poster_image.dart';
 
@@ -30,6 +31,10 @@ class HallSchedulePage extends StatelessWidget {
             HallScheduleReady(:final schedule) => schedule.hall.name,
             _ => '',
           }),
+          actions: [
+            // Sprint 22: keep this hall on Home's "Your halls".
+            if (state case HallScheduleReady(:final hallId) || HallScheduleFailure(:final hallId)) FavouriteHeart(hallId: hallId),
+          ],
         ),
         body: KeyedSubtree(
           key: const Key('hall.schedule'),
@@ -133,6 +138,7 @@ class _MovieTimes extends StatelessWidget {
   final List<HallShowtime> showings;
 
   void _openSeatMap(BuildContext context, HallShowtime showing) {
+    context.read<HallScheduleBloc>().add(ShowtimeChosen(movieId: showing.movieId, showtimeId: showing.id));
     Navigator.of(context).pushNamed(
       AppRoutes.seatMap,
       arguments: SeatMapArgs(
@@ -151,7 +157,7 @@ class _MovieTimes extends StatelessWidget {
     final first = showings.first;
     final textTheme = Theme.of(context).textTheme;
     void openMovie() =>
-        Navigator.of(context).pushNamed(AppRoutes.movieDetail, arguments: MovieDetailArgs(movieId: first.movieId));
+        Navigator.of(context).pushNamed(AppRoutes.movieDetail, arguments: MovieDetailArgs(movieId: first.movieId, source: 'hall'));
     return Padding(
       key: Key('hall.movie.${first.movieId}'),
       padding: const EdgeInsets.only(bottom: Space.x2),

@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/features/shell/controller/shell_cubit.dart';
+import 'package:movie_ticket_mobile/features/shell/model/shell_repository.dart';
 import 'package:movie_ticket_mobile/core/model/booking_summary.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/core/telemetry/journey_tracker.dart';
@@ -23,6 +25,8 @@ import 'package:movie_ticket_mobile/features/tickets/model/tickets_repository.da
 
 import '../../features/checkout/checkout_fixtures.dart';
 import '../../features/seats/seat_fixtures.dart';
+
+class _Shell extends Mock implements ShellRepository {}
 
 class _Recorder implements JourneyTracker {
   final events = <JourneyEvent>[];
@@ -70,10 +74,11 @@ void main() {
     final tracker = _Recorder();
     final date = DateTime(2026, 10, 7);
 
-    // Home.
+    // Home: the shell counts the visit (sprint 21), the catalog loads without tracking.
     final catalog = _Catalog();
     when(() => catalog.fetchMovies(any(), search: any(named: 'search'))).thenAnswer((_) async => const Ok(<Movie>[]));
-    final home = list.MovieListBloc(catalog, tracker: tracker)..add(const list.RefreshRequested());
+    ShellCubit(_Shell(), tracker: tracker).homeViewed();
+    final home = list.MovieListBloc(catalog)..add(const list.RefreshRequested());
     await home.stream.firstWhere((s) => s is list.MovieListReady);
 
     // Detail → showtime.

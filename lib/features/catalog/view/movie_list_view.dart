@@ -111,7 +111,7 @@ class _Grid extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: Space.posterGap,
         mainAxisSpacing: Space.posterGap,
-        childAspectRatio: 0.52,
+        childAspectRatio: 0.48,
       ),
       itemCount: itemCount,
       itemBuilder: itemBuilder,

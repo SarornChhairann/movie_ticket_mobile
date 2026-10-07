@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -16,9 +18,12 @@ final class LoadRequested extends HallListEvent {
   const LoadRequested();
 }
 
-/// Pull to refresh: the rows stay on screen while it runs.
+/// Pull to refresh: the rows stay on screen while it runs. [done] completes
+/// when it settles (sprint 21).
 final class RefreshRequested extends HallListEvent {
-  const RefreshRequested();
+  const RefreshRequested([this.done]);
+
+  final Completer<void>? done;
 }
 
 /// City filter on the loaded halls; `null` is All. No API call.
@@ -69,12 +74,14 @@ sealed class HallListState with _$HallListState {
     @Default(false) bool screenXOnly,
   }) = HallListLoading;
 
+  /// [savedAt]: the halls are the copy saved on this phone (no connection).
   const factory HallListState.ready(
     List<Hall> halls, {
     String? city,
     String? type,
     @Default(false) bool dolbyOnly,
     @Default(false) bool screenXOnly,
+    DateTime? savedAt,
   }) = HallListReady;
 
   const factory HallListState.failure(
@@ -114,7 +121,13 @@ sealed class HallListState with _$HallListState {
 class HallListBloc extends Bloc<HallListEvent, HallListState> {
   HallListBloc(this._repository) : super(const HallListState.initial()) {
     on<LoadRequested>((_, emit) => _load(emit));
-    on<RefreshRequested>((_, emit) => _load(emit));
+    on<RefreshRequested>((event, emit) async {
+      try {
+        await _load(emit);
+      } finally {
+        event.done?.complete();
+      }
+    });
     on<HallCitySelected>((event, emit) => emit(state.copyWith(city: event.city)));
     on<HallTypeSelected>((event, emit) => emit(state.copyWith(type: event.type)));
     on<HallDolbyToggled>((_, emit) => emit(state.copyWith(dolbyOnly: !state.dolbyOnly)));
@@ -134,9 +147,13 @@ class HallListBloc extends Bloc<HallListEvent, HallListState> {
     final result = await _repository.fetchHalls();
     // Filters are read now: they may have changed while loading.
     switch (result) {
-      case Ok(:final value):
+      case Ok(:final value, :final savedAt):
         emit(HallListState.ready(value,
-            city: state.city, type: state.type, dolbyOnly: state.dolbyOnly, screenXOnly: state.screenXOnly));
+            city: state.city,
+            type: state.type,
+            dolbyOnly: state.dolbyOnly,
+            screenXOnly: state.screenXOnly,
+            savedAt: savedAt));
       case Err(:final failure):
         // A failed refresh keeps the rows already shown.
         if (state is! HallListReady) {

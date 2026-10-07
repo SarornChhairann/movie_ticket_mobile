@@ -73,7 +73,6 @@
     "trailer": "Play trailer",
     "showtimes": "Showtimes",
     "noShowtimes": "No showtimes available.",
-    "greeting": "Find your favourite movies!",
     "nowInCinemas": "Now in Cinemas",
     "seeAll": "See all",
     "allGenres": "All",
@@ -258,7 +257,6 @@
     "halls": {
       "title": "Halls",
       "empty": "No halls yet",
-      "searchEmpty": "No halls match your search",
       "seats": "{count} seats",
       "type": {
         "atmos": "Atmos",
@@ -267,7 +265,39 @@
       "dolby": "Dolby Atmos",
       "screenX": "ScreenX",
       "filterEmpty": "No halls match these filters"
-    }
+    },
+    "featured": {
+      "book": "Book"
+    },
+    "dates": {
+      "today": "Today",
+      "tomorrow": "Tomorrow"
+    },
+    "showing": {
+      "title": "Showing {date}",
+      "empty": "No shows {date}",
+      "nextDate": "See {date}",
+      "slot": "{time}, {hall}, {title}. Choose seats"
+    },
+    "offline": {
+      "timesDisabled": "Times can be booked when you're back online."
+    },
+    "greeting": {
+      "morning": {
+        "named": "Good morning, {name}",
+        "plain": "Good morning"
+      },
+      "afternoon": {
+        "named": "Good afternoon, {name}",
+        "plain": "Good afternoon"
+      },
+      "evening": {
+        "named": "Good evening, {name}",
+        "plain": "Good evening"
+      }
+    },
+    "yourHalls": "Your halls",
+    "recent": "Recently viewed"
   },
   "release": {
     "inDays": {
@@ -287,6 +317,10 @@
       "amenities": "Amenities",
       "normalPrice": "Seat {price}",
       "couplePrice": "Couple {price}"
+    },
+    "favourite": {
+      "add": "Add to your halls",
+      "remove": "Remove from your halls"
     }
   },
   "flow": {
@@ -349,5 +383,14 @@
     "upcoming": "Upcoming",
     "past": "Past",
     "browse": "Browse movies"
+  },
+  "search": {
+    "title": "Search movies and halls",
+    "movies": "Movies",
+    "halls": "Halls",
+    "recent": "Recent searches",
+    "clearRecent": "Clear all",
+    "empty": "Nothing matches your search.",
+    "clearSearch": "Clear search"
   }
 }

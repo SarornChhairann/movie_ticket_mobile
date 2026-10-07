@@ -9,6 +9,8 @@ part 'shell_state.freezed.dart';
 sealed class ShellState with _$ShellState {
   const factory ShellState.initial() = ShellInitial;
   const factory ShellState.loading() = ShellLoading;
-  const factory ShellState.ready(HomeSummary summary) = ShellReady;
+  /// [savedAt] is set when the server could not be reached and [summary] is the
+  /// copy saved on this phone (sprint 21): Home is showing saved data.
+  const factory ShellState.ready(HomeSummary summary, {DateTime? savedAt}) = ShellReady;
   const factory ShellState.failure(ApiFailure failure) = ShellFailure;
 }

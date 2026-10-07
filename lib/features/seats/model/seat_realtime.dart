@@ -29,10 +29,16 @@ class SeatRealtime {
     StompClient? client;
     Timer? poller;
 
+    /// Set when the seat map stops listening. Tearing the client down (or a
+    /// connect that was still pending) still fires its error/done callbacks;
+    /// they must not start a poller that nobody would ever cancel.
+    var cancelled = false;
+
     void startPolling() {
+      if (cancelled) return;
       poller ??= Timer.periodic(pollInterval, (_) async {
         final heldByOthers = await pollState();
-        if (heldByOthers != null && !controller.isClosed) {
+        if (heldByOthers != null && !cancelled) {
           controller.add(SeatEvent.snapshot(heldByOthers: heldByOthers));
         }
       });
@@ -54,7 +60,7 @@ class SeatRealtime {
                 destination: '/topic/showtimes/$showtimeId/seats',
                 callback: (frame) {
                   final body = frame.body;
-                  if (body == null || controller.isClosed) {
+                  if (body == null || cancelled) {
                     return;
                   }
                   final event = SeatEvent.fromDto(
@@ -74,6 +80,7 @@ class SeatRealtime {
         )..activate();
       },
       onCancel: () {
+        cancelled = true;
         stopPolling();
         client?.deactivate();
       },

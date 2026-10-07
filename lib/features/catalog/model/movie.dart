@@ -50,6 +50,18 @@ abstract class ShowtimeSlot with _$ShowtimeSlot {
   }) = _ShowtimeSlot;
 }
 
+/// A now-showing movie with its showtimes on one date (Home's Showing rail).
+@freezed
+abstract class ShowingMovie with _$ShowingMovie {
+  const ShowingMovie._();
+
+  const factory ShowingMovie({required Movie movie, required List<ShowtimeSlot> slots}) = _ShowingMovie;
+
+  bool get dolby => slots.any((s) => s.dolby);
+
+  bool get screenX => slots.any((s) => s.screenX);
+}
+
 @freezed
 abstract class HallGroup with _$HallGroup {
   const factory HallGroup({

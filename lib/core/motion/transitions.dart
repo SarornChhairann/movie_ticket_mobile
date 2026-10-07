@@ -17,6 +17,9 @@ enum RouteMotion {
   /// Closer look at the same thing (ticket → QR): rise + fade on Y.
   sharedAxisY,
 
+  /// A view over the same place (Home → search results): scale + fade on Z.
+  sharedAxisZ,
+
   /// The page fades while a poster Hero carries continuity (card → detail).
   container,
 
@@ -119,8 +122,39 @@ Widget _transition(RouteMotion motion, Animation<double> animation, Animation<do
         horizontal: motion == RouteMotion.sharedAxisX,
         child: child,
       );
+    case RouteMotion.sharedAxisZ:
+      return _SharedAxisZ(animation: animation, secondary: secondary, child: child);
     case RouteMotion.sheet:
       return child;
+  }
+}
+
+/// Material shared axis Z: the incoming page grows 0.8 → 1 and fades in after the
+/// outgoing one has mostly faded; the covered page grows 1 → 1.1 and fades out.
+class _SharedAxisZ extends StatelessWidget {
+  const _SharedAxisZ({required this.animation, required this.secondary, required this.child});
+
+  final Animation<double> animation;
+  final Animation<double> secondary;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([animation, secondary]),
+      child: child,
+      builder: (context, child) {
+        final inT = Motion.emphasized.transform(animation.value);
+        final outT = Motion.emphasized.transform(secondary.value);
+        final inOpacity = const Interval(0.3, 1).transform(animation.value);
+        final outOpacity = 1 - const Interval(0, 0.3).transform(secondary.value);
+        final scale = (0.8 + 0.2 * inT) * (1 + 0.1 * outT);
+        return Opacity(
+          opacity: (inOpacity * outOpacity).clamp(0, 1),
+          child: Transform.scale(scale: scale, child: child),
+        );
+      },
+    );
   }
 }
 

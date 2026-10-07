@@ -47,6 +47,7 @@ void main() {
       AppRoutes.ticketQr: RouteMotion.sharedAxisY,
       AppRoutes.profile: RouteMotion.sharedAxisX,
       AppRoutes.register: RouteMotion.sharedAxisX,
+      AppRoutes.search: RouteMotion.sharedAxisZ,
     };
     for (final MapEntry(key: route, value: motion) in expected.entries) {
       expect(AppRouter.motionFor(route), motion, reason: route);

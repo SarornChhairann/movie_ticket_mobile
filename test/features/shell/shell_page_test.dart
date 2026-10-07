@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/features/catalog/controller/showing_cubit.dart';
 import 'package:movie_ticket_mobile/core/navigation/shell_tabs.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/core/motion/motion.dart';
@@ -24,6 +25,7 @@ import 'package:movie_ticket_mobile/features/tickets/controller/my_bookings_bloc
 
 import '../../helpers/localized_app.dart';
 import '../auth/auth_fixtures.dart';
+import '../../helpers/showing.dart';
 
 class _MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
@@ -68,12 +70,21 @@ void main() {
   const avatar = Movie(id: 2, title: 'Avatar 3', comingSoon: true, genre: 'Science fiction');
 
   late MovieListBloc movieListBloc;
+  late ExploreMovieListBloc exploreBloc;
   late _RouteRecorder recorder;
   late _MockProfileBloc profileBloc;
   late _MockMyBookingsBloc myBookingsBloc;
   late _MockGuestBookingsBloc guestBookingsBloc;
+  late _MockShellCubit shellCubit;
 
-  Future<void> pump(WidgetTester tester, {AuthState auth = const AuthState.guest(), ShellTabs? tabs}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    AuthState auth = const AuthState.guest(),
+    ShellTabs? tabs,
+    // 12:00 UTC is 19:00 at the cinema: evening.
+    DateTime Function()? clock,
+    ShellState shellState = const ShellState.ready(HomeSummary(nowShowingCount: 2, comingSoonCount: 1, cinemaCount: 1)),
+  }) async {
     final repository = _MockCatalogRepository();
     when(() => repository.fetchMovies(MovieTab.nowShowing, search: any(named: 'search')))
         .thenAnswer((_) async => const Ok([dune, heat]));
@@ -81,14 +92,15 @@ void main() {
         .thenAnswer((_) async => const Ok([avatar]));
     movieListBloc = MovieListBloc(repository)..add(const RefreshRequested());
     addTearDown(movieListBloc.close);
+    exploreBloc = ExploreMovieListBloc(repository)..add(const RefreshRequested());
+    addTearDown(exploreBloc.close);
 
     final authBloc = _MockAuthBloc();
     whenListen(authBloc, const Stream<AuthState>.empty(), initialState: auth);
     final hallListBloc = _MockHallListBloc();
     whenListen(hallListBloc, const Stream<HallListState>.empty(), initialState: const HallListState.ready([]));
-    final cubit = _MockShellCubit();
-    whenListen(cubit, const Stream<ShellState>.empty(),
-        initialState: const ShellState.ready(HomeSummary(nowShowingCount: 2, comingSoonCount: 1, cinemaCount: 1)));
+    final cubit = shellCubit = _MockShellCubit();
+    whenListen(cubit, const Stream<ShellState>.empty(), initialState: shellState);
     profileBloc = _MockProfileBloc();
     whenListen(profileBloc, const Stream<ProfileState>.empty(), initialState: const ProfileState.ready(testUser));
     myBookingsBloc = _MockMyBookingsBloc();
@@ -109,7 +121,9 @@ void main() {
           BlocProvider<AuthBloc>.value(value: authBloc),
           BlocProvider<ShellCubit>.value(value: cubit),
           BlocProvider<MovieListBloc>.value(value: movieListBloc),
+          BlocProvider<ExploreMovieListBloc>.value(value: exploreBloc),
           BlocProvider<HallListBloc>.value(value: hallListBloc),
+          BlocProvider<ShowingCubit>.value(value: showingStub()),
           BlocProvider<ProfileBloc>.value(value: profileBloc),
           BlocProvider<tickets.MyBookingsBloc>.value(value: myBookingsBloc),
           BlocProvider<tickets.GuestBookingsBloc>.value(value: guestBookingsBloc),
@@ -117,7 +131,7 @@ void main() {
         child: Navigator(
           observers: [recorder],
           onGenerateRoute: (settings) => switch (settings.name) {
-            '/' => MaterialPageRoute<void>(settings: settings, builder: (_) => ShellPage(tabs: tabs)),
+            '/' => MaterialPageRoute<void>(settings: settings, builder: (_) => ShellPage(tabs: tabs, clock: clock ?? () => DateTime.utc(2026, 10, 7, 12))),
             // Stand-in login sheet; closing it is a dismiss.
             AppRoutes.login => MaterialPageRoute<AuthGateResult>(
                 settings: settings,
@@ -143,7 +157,7 @@ void main() {
   testWidgets('cold start shows the greeting, both rails, and genre chips from the API', (tester) async {
     await pump(tester);
 
-    expect(find.text('Find your favourite movies!'), findsOneWidget);
+    expect(find.text('Good evening'), findsOneWidget);
     expect(find.text('Now in Cinemas'), findsOneWidget);
     expect(find.text('Coming soon'), findsOneWidget);
     expect(find.descendant(of: find.byKey(const Key('rail.nowShowing')), matching: find.text('Dune')), findsOneWidget);
@@ -155,7 +169,7 @@ void main() {
     expect(Theme.of(tester.element(find.byType(ShellPage))).brightness, Brightness.dark);
   });
 
-  testWidgets('a genre chip hides non-matching titles', (tester) async {
+  testWidgets('a genre chip hides non-matching titles in the rail below it, never the carousel', (tester) async {
     await pump(tester);
 
     await tester.tap(find.byKey(const Key('genre.Crime')));
@@ -163,9 +177,11 @@ void main() {
     // Let the crossfade finish (not pumpAndSettle: carousel auto-advance never settles).
     await tester.pump(Motion.long + Motion.medium);
 
-    expect(find.text('Heat'), findsOneWidget);
-    expect(find.text('Dune'), findsNothing);
-    expect(find.text('Avatar 3'), findsNothing);
+    final rail = find.byKey(const Key('rail.nowShowing'));
+    expect(find.descendant(of: rail, matching: find.text('Heat')), findsOneWidget);
+    expect(find.descendant(of: rail, matching: find.text('Dune')), findsNothing);
+    // Sprint 20: the coming-soon carousel is not filtered by the chips above the rail.
+    expect(find.text('Avatar 3'), findsOneWidget);
   });
 
   testWidgets('opening a poster routes to movie detail with its id', (tester) async {
@@ -183,12 +199,18 @@ void main() {
   testWidgets('See all switches to Explore on that tab', (tester) async {
     await pump(tester);
 
+    // Sprint 20: Coming soon sits below the bookable sections.
+    await tester.scrollUntilVisible(find.byKey(const Key('home.comingSoon.seeAll')), 300,
+        scrollable: find.byType(Scrollable).first);
+    // Centre it so the tap does not land on the bottom bar.
+    await Scrollable.ensureVisible(tester.element(find.byKey(const Key('home.comingSoon.seeAll'))), alignment: 0.5);
+    await tester.pump();
     await tester.tap(find.byKey(const Key('home.comingSoon.seeAll')));
     await tester.pump();
     // Let the crossfade finish (not pumpAndSettle: carousel auto-advance never settles).
     await tester.pump(Motion.long + Motion.medium);
 
-    expect(movieListBloc.state.tab, MovieTab.comingSoon);
+    expect(exploreBloc.state.tab, MovieTab.comingSoon, reason: 'Explore has its own list (sprint 22)');
     final chip = tester.widget<ChoiceChip>(
       find.descendant(of: find.byKey(const Key('explore.tab.comingSoon')), matching: find.byType(ChoiceChip)),
     );
@@ -200,7 +222,7 @@ void main() {
   testWidgets('the app opens on Home for a signed-out shopper — no login wall', (tester) async {
     await pump(tester);
 
-    expect(find.text('Find your favourite movies!'), findsOneWidget);
+    expect(find.byKey(const Key('home.greeting')), findsOneWidget);
     expect(recorder.pushed.where((r) => r.name == AppRoutes.login), isEmpty);
   });
 
@@ -293,5 +315,80 @@ void main() {
     await tester.tap(find.byKey(const Key('nav.home')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('nav.bookings.badge')), findsNothing, reason: 'the badge clears on leaving');
+  });
+
+  testWidgets('home_viewed: once on arrival and once per return to Home, never on re-tapping it', (tester) async {
+    await pump(tester);
+    verify(() => shellCubit.homeViewed()).called(1);
+
+    await tester.tap(find.byKey(const Key('nav.home')));
+    await tester.pump(const Duration(seconds: 1));
+    verifyNever(() => shellCubit.homeViewed());
+
+    await tester.tap(find.byKey(const Key('nav.explore')));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const Key('nav.home')));
+    await tester.pump(const Duration(seconds: 1));
+    verify(() => shellCubit.homeViewed()).called(1);
+  });
+
+  testWidgets('a saved Home says so, with when it was saved', (tester) async {
+    await pump(
+      tester,
+      shellState: ShellState.ready(
+        const HomeSummary(nowShowingCount: 0, comingSoonCount: 0, cinemaCount: 0),
+        savedAt: DateTime(2026, 10, 7, 18, 40),
+      ),
+    );
+
+    expect(find.byKey(const Key('home.offline')), findsOneWidget);
+    expect(find.textContaining('18:40'), findsOneWidget);
+    expect(find.byKey(const Key('shell.offlineBanner')), findsNothing);
+  });
+
+  group('greeting (sprint 22)', () {
+    testWidgets('signed in: the time of day and the first name from the session', (tester) async {
+      await pump(tester, auth: const AuthState.authenticated(testUser));
+
+      expect(find.text('Good evening, Dara'), findsOneWidget);
+    });
+
+    testWidgets('by the cinema clock, not the phone zone', (tester) async {
+      // 02:00 UTC is 09:00 in Phnom Penh, whatever zone the phone is in.
+      await pump(tester, clock: () => DateTime.utc(2026, 10, 7, 2));
+
+      expect(find.text('Good morning'), findsOneWidget);
+    });
+  });
+
+  testWidgets('See all carries Home\'s genre to Explore', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('genre.Crime')));
+    await tester.pump(Motion.long + Motion.medium);
+
+    await tester.tap(find.byKey(const Key('catalog.nowInCinemas.seeAll')));
+    await tester.pump();
+    await tester.pump(Motion.long + Motion.medium);
+
+    expect(exploreBloc.state.genre, 'Crime');
+    expect(exploreBloc.state.tab, MovieTab.nowShowing);
+  });
+
+  testWidgets('an Explore search leaves Home\'s rails unfiltered', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('nav.explore')));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.enterText(find.byKey(const Key('catalog.search')), 'dune');
+    await tester.pump(MovieListBloc.searchDebounce);
+    await tester.pump(const Duration(seconds: 1));
+    expect(exploreBloc.state.search, 'dune');
+
+    await tester.tap(find.byKey(const Key('nav.home')));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(movieListBloc.state.search, '');
+    final rail = find.byKey(const Key('rail.nowShowing'));
+    expect(find.descendant(of: rail, matching: find.text('Dune')), findsOneWidget);
+    expect(find.descendant(of: rail, matching: find.text('Heat')), findsOneWidget);
   });
 }

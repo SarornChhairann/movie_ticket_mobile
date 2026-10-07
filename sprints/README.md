@@ -133,6 +133,7 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | G30 | Guest lookup ✅ | None | `POST /bookings/lookup { reference, phone }`; 5 misses per client per 10 min then 429 `TOO_MANY_ATTEMPTS`; 404 `BOOKING_NOT_FOUND` on any miss | 13 |
 | G31 | Payment resume ✅ | PayWay poll/close need the starting session, which rotates on app restart | Poll and close accept the bearer owner or the starting session (restored by the app after a kill) | 13 |
 | G32 | Hold extend ✅ | None | `POST /api/seat-holds/extend` once per hold, adds `hold_extend_minutes` (default 5); second call 409 `HOLD_EXTEND_LIMIT` | 14 |
+| G34 | Home showtimes ✅ | `GET /api/movies?type=now_showing&date=` chips have no hall name and include started showtimes (cached per date) | Chips add hall, cinema, date, Dolby/ScreenX; movie adds genre + duration; started showtimes dropped and the cap applied after the cache read | 20 |
 
 ## Sequence
 
@@ -157,10 +158,15 @@ Verified against `Ticket-Management-System` source on 2026-10-01. Each row is cl
 | 17 | `sprint-17-seat-experience` | Seat map focuses the selection, mini-map, Best seats reveal; full booking with TalkBack via list mode | — (UX only) |
 | 18 | `sprint-18-ticket-wallet` | "Up next" card on Home; ticket flips to a door-mode QR; works offline | G33 (optional) |
 | 19 | `sprint-19-quality-bar` | 200% text + Khmer + screen-reader walk-through; no frame > 16 ms; funnel events | — (UX only) |
+| 20 | `sprint-20-home-bookable` | Home → tap "19:30" on a poster → seat map in 2 taps; featured hero; date strip | G34 |
+| 21 | `sprint-21-home-fast` | Airplane-mode cold start shows last Home; one pull refreshes all; lazy halls, no frame > 16 ms | — |
+| 22 | `sprint-22-home-personal` | Greeting by name, favourite halls, recently viewed, one grouped search results view | — |
 
 Sprints 12–14 share one analysis: `booking-enhancement/PLAN.md` (findings A1–A9, approach, decisions to confirm).
 
 Sprints 15–19 share one analysis: `experience-enhancement/PLAN.md` (findings X1–X11, persona journeys, decisions D1–D7).
+
+Sprints 20–22 share one analysis: `home-enhancement/PLAN.md` (findings H1–H11, target Home layout, decisions D1–D6, gap row G34).
 
 ## Per-feature build order (Flutter)
 

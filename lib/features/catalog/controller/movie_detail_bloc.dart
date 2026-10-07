@@ -14,9 +14,12 @@ sealed class MovieDetailEvent {
 }
 
 final class DetailRequested extends MovieDetailEvent {
-  const DetailRequested(this.movieId);
+  const DetailRequested(this.movieId, {this.source});
 
   final int movieId;
+
+  /// Where the movie was opened from, for `movie_opened` (sprint 21).
+  final String? source;
 }
 
 final class DateSelected extends MovieDetailEvent {
@@ -61,7 +64,10 @@ class MovieDetailBloc extends Bloc<MovieDetailEvent, MovieDetailState> {
   int? _movieId;
 
   Future<void> _onDetailRequested(DetailRequested event, Emitter<MovieDetailState> emit) async {
-    _tracker.track(JourneyEvent(JourneyEventName.movieOpened, {'movieId': event.movieId}));
+    _tracker.track(JourneyEvent(
+      JourneyEventName.movieOpened,
+      {'movieId': event.movieId, 'source': ?event.source},
+    ));
     _movieId = event.movieId;
     emit(const MovieDetailState.loading());
     emit(switch (await _repository.fetchDetail(event.movieId)) {
@@ -84,7 +90,10 @@ class MovieDetailBloc extends Bloc<MovieDetailEvent, MovieDetailState> {
   }
 
   void _onShowtimeSelected(ShowtimeSelected event, Emitter<MovieDetailState> emit) {
-    _tracker.track(JourneyEvent(JourneyEventName.showtimeSelected, {'showtimeId': event.showtimeId}));
+    _tracker.track(JourneyEvent(
+      JourneyEventName.showtimeSelected,
+      {'movieId': ?_movieId, 'showtimeId': event.showtimeId, 'source': 'detail'},
+    ));
     final current = state;
     if (current is! MovieDetailReady || current.refreshing) return;
     final exists = current.detail.cinemas

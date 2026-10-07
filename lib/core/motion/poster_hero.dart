@@ -7,7 +7,7 @@ import 'motion.dart';
 
 /// Where a poster was opened from. The same movie can be on screen twice (e.g.
 /// carousel and a rail), and Hero tags must be unique per screen.
-enum HeroSource { carousel, nowShowing, explore }
+enum HeroSource { carousel, nowShowing, explore, featured, showing, recent, search }
 
 abstract final class HeroTags {
   static String poster(int movieId, HeroSource source) => 'poster-${source.name}-$movieId';

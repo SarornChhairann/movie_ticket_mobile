@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/features/catalog/controller/showing_cubit.dart';
 import 'package:movie_ticket_mobile/core/network/result.dart';
 import 'package:movie_ticket_mobile/core/widgets/genre_chip.dart';
 import 'package:movie_ticket_mobile/features/catalog/controller/hall_list_bloc.dart' as halls;
@@ -13,6 +14,7 @@ import 'package:movie_ticket_mobile/features/catalog/view/movie_home_view.dart';
 
 import '../../helpers/localized_app.dart';
 import 'hall_fixtures.dart';
+import '../../helpers/showing.dart';
 
 class _MockCatalogRepository extends Mock implements CatalogRepository {}
 
@@ -54,6 +56,7 @@ void main() {
         providers: [
           BlocProvider<MovieListBloc>.value(value: movieBloc),
           BlocProvider<halls.HallListBloc>.value(value: hallBloc),
+          BlocProvider<ShowingCubit>.value(value: showingStub()),
         ],
         child: Scaffold(body: MovieHomeView(header: const SizedBox(), onSeeAll: (_) {})),
       ),
@@ -158,7 +161,8 @@ void main() {
 
   testWidgets('filters never call the API; Clear resets them and keeps the search', (tester) async {
     await pump(tester);
-    await tester.enterText(find.byKey(const Key('catalog.search')), 'e');
+    // Home never searches (sprint 22); the bloc's search is Explore's.
+    movieBloc.add(const SearchChanged('e'));
     await tester.pump(MovieListBloc.searchDebounce);
     await tester.pumpAndSettle();
     clearInteractions(movieRepo);

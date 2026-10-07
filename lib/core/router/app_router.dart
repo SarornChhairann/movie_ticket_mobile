@@ -20,7 +20,12 @@ import '../../features/auth/view/splash_page.dart';
 import '../../features/catalog/controller/movie_detail_bloc.dart';
 import '../../features/catalog/controller/hall_list_bloc.dart' as hall_list;
 import '../../features/catalog/controller/hall_schedule_bloc.dart' as hall_schedule;
+import '../../features/catalog/controller/showing_cubit.dart';
+import '../../features/catalog/controller/favourite_halls_cubit.dart';
 import '../../features/catalog/controller/movie_list_bloc.dart';
+import '../../features/catalog/controller/recently_viewed_cubit.dart';
+import '../../features/catalog/controller/search_results_bloc.dart';
+import '../../features/catalog/view/search_results_page.dart';
 import '../../features/catalog/view/hall_schedule_page.dart';
 import '../../features/catalog/view/movie_detail_page.dart';
 import '../../features/checkout/controller/booking_flow_cubit.dart';
@@ -70,6 +75,9 @@ abstract final class AppRoutes {
 
   /// Argument: a `SeatMapArgs` (from movie detail) or a bare showtime id (`int`).
   static const seatMap = '/showtimes/seats';
+
+  /// Home's search results view (sprint 22). Argument: the `SearchSeed` Home loaded.
+  static const search = '/search';
 
   /// Argument: the hall id (`int`).
   static const hallSchedule = '/halls/schedule';
@@ -161,16 +169,35 @@ class AppRouter {
         ),
       AppRoutes.movieDetail => MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => _getIt<MovieDetailBloc>()..add(DetailRequested(_detailArgs(settings).movieId))),
+            BlocProvider(
+              create: (_) => _getIt<MovieDetailBloc>()
+                ..add(DetailRequested(_detailArgs(settings).movieId, source: _detailArgs(settings).trackingSource)),
+            ),
             // Used only by the coming-soon reminder form; created on first read.
             BlocProvider(create: (_) => _getIt<ReminderBloc>()),
+            // Sprint 22: each open is remembered for Home's Recently viewed.
+            BlocProvider(
+              lazy: false,
+              create: (_) => _getIt<RecentlyViewedCubit>()..viewed(_detailArgs(settings).movieId),
+            ),
           ],
           child: MovieDetailPage(heroSource: _detailArgs(settings).heroSource),
         ),
-      AppRoutes.hallSchedule => BlocProvider(
-          create: (_) => _getIt<hall_schedule.HallScheduleBloc>()
-            ..add(hall_schedule.ScheduleRequested(settings.arguments! as int)),
+      AppRoutes.hallSchedule => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => _getIt<hall_schedule.HallScheduleBloc>()
+                ..add(hall_schedule.ScheduleRequested(settings.arguments! as int)),
+            ),
+            // The heart in the app bar (sprint 22).
+            BlocProvider(create: (_) => _getIt<FavouriteHallsCubit>()..load()),
+          ],
           child: const HallSchedulePage(),
+        ),
+      AppRoutes.search => BlocProvider(
+          create: (_) => _getIt<SearchResultsBloc>(param1: settings.arguments as SearchSeed? ?? const SearchSeed())
+            ..add(const SearchOpened()),
+          child: const SearchResultsPage(),
         ),
       // A booking flow starts here: the flow cubit lives as long as the seat map
       // and is handed to checkout through its arguments (sprint 16).
@@ -249,8 +276,15 @@ class AppRouter {
           providers: [
             BlocProvider(create: (_) => _getIt<ShellCubit>()..pingRequested()),
             BlocProvider(create: (_) => _getIt<MovieListBloc>()..add(const RefreshRequested())),
+            // Explore's own list and search (sprint 22); loads on the first visit.
+            BlocProvider(create: (_) => _getIt<ExploreMovieListBloc>()..add(const RefreshRequested())),
+            // Home's "Your halls" and "Recently viewed" (sprint 22), on this phone only.
+            BlocProvider(create: (_) => _getIt<FavouriteHallsCubit>()..load(withTimes: true)),
+            BlocProvider(create: (_) => _getIt<RecentlyViewedCubit>()..load()),
             // Home's Halls section; loads and fails apart from the movies.
             BlocProvider(create: (_) => _getIt<hall_list.HallListBloc>()..add(const hall_list.LoadRequested())),
+            // Home's date strip and Showing rail (sprint 20).
+            BlocProvider(create: (_) => _getIt<ShowingCubit>()..load()),
             // Lazy: created (and loaded by the shell) only when a signed-in user
             // opens Bookings or Profile, so a guest never calls these endpoints.
             BlocProvider(create: (_) => _getIt<ProfileBloc>()),
@@ -291,6 +325,8 @@ class AppRouter {
         AppRoutes.movieDetail => RouteMotion.container,
         // An outcome, not a place.
         AppRoutes.paySuccess || AppRoutes.paymentResume => RouteMotion.fadeThrough,
+        // A view over Home, not a step away from it.
+        AppRoutes.search => RouteMotion.sharedAxisZ,
         // A closer look at the same ticket.
         AppRoutes.ticketQr || AppRoutes.ticketWallet => RouteMotion.sharedAxisY,
         // Steps forward in a sequence or hierarchy.
@@ -300,10 +336,27 @@ class AppRouter {
 
 /// Movie detail route argument.
 class MovieDetailArgs {
-  const MovieDetailArgs({required this.movieId, this.heroSource});
+  const MovieDetailArgs({required this.movieId, this.heroSource, this.source});
 
   final int movieId;
 
   /// The surface the poster was opened from; null means no hero flight.
   final HeroSource? heroSource;
+
+  /// Telemetry `source` when there is no [heroSource] (e.g. `hall`).
+  final String? source;
+
+  /// The `source` of `movie_opened` (sprint 21): which surface the movie was opened from.
+  String? get trackingSource =>
+      source ??
+      switch (heroSource) {
+        HeroSource.featured => 'hero',
+        HeroSource.showing => 'showing',
+        HeroSource.nowShowing => 'now',
+        HeroSource.carousel => 'comingSoon',
+        HeroSource.explore => 'explore',
+        HeroSource.recent => 'recent',
+        HeroSource.search => 'search',
+        null => null,
+      };
 }

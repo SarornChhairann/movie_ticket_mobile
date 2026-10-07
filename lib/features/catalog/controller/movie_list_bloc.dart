@@ -1,7 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../core/telemetry/journey_tracker.dart';
 import '../../../core/bloc/debounce.dart';
 import '../../../core/network/api_failure.dart';
 import '../../../core/network/result.dart';
@@ -54,11 +55,16 @@ final class MovieFiltersCleared extends MovieListEvent {
   const MovieFiltersCleared();
 }
 
+/// Loads both lists again. [done] completes when the load settles, so pull to
+/// refresh can wait for it (sprint 21).
 final class RefreshRequested extends MovieListEvent {
-  const RefreshRequested();
+  const RefreshRequested([this.done]);
+
+  final Completer<void>? done;
 }
 
-/// Home shows both rails and Explore shows [tab]; both share search and genre.
+/// Home shows both rails and Explore shows [tab]. Home and Explore each have
+/// their own bloc (sprint 22); only Explore's has a search.
 @freezed
 sealed class MovieListState with _$MovieListState {
   const MovieListState._();
@@ -87,6 +93,9 @@ sealed class MovieListState with _$MovieListState {
     String? rating,
     required List<Movie> nowShowing,
     required List<Movie> comingSoon,
+
+    /// Set when the lists are the copy saved on this phone (no connection).
+    DateTime? savedAt,
   }) = MovieListReady;
 
   const factory MovieListState.failure({
@@ -138,7 +147,7 @@ sealed class MovieListState with _$MovieListState {
 }
 
 class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
-  MovieListBloc(this._repository, {this._tracker = const NoopJourneyTracker()}) : super(const MovieListState.initial()) {
+  MovieListBloc(this._repository) : super(const MovieListState.initial()) {
     on<TabChanged>((event, emit) => emit(state.copyWith(tab: event.tab)));
     on<GenreSelected>((event, emit) => emit(state.copyWith(genre: event.genre)));
     on<LanguageSelected>((event, emit) => emit(state.copyWith(language: event.language)));
@@ -148,15 +157,17 @@ class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
       (event, emit) => _load(emit, search: event.query),
       transformer: debounce(searchDebounce),
     );
-    on<RefreshRequested>((_, emit) {
-      _tracker.track(JourneyEvent(JourneyEventName.homeViewed));
-      return _load(emit);
+    on<RefreshRequested>((event, emit) async {
+      try {
+        await _load(emit);
+      } finally {
+        event.done?.complete();
+      }
     });
   }
 
   static const searchDebounce = Duration(milliseconds: 300);
 
-  final JourneyTracker _tracker;
   final CatalogRepository _repository;
 
   /// Loads both lists. The spinner only shows before the first result; later
@@ -173,14 +184,15 @@ class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
     ).wait;
     // Tab and filters are read now: they may have changed while loading.
     emit(switch ((now, soon)) {
-      (Ok(value: final n), Ok(value: final c)) => MovieListState.ready(
+      (Ok(value: final n, savedAt: final ns), Ok(value: final c, savedAt: final cs)) => MovieListState.ready(
           tab: state.tab,
           search: q,
           genre: state.genre,
           language: state.language,
           rating: state.rating,
           nowShowing: n,
-          comingSoon: c),
+          comingSoon: c,
+          savedAt: ns ?? cs),
       (Err(:final failure), _) || (_, Err(:final failure)) => MovieListState.failure(
           tab: state.tab,
           search: q,
@@ -190,4 +202,11 @@ class MovieListBloc extends Bloc<MovieListEvent, MovieListState> {
           failure: failure),
     });
   }
+}
+
+/// Explore's own list (sprint 22): its search refetches only Explore, so Home's
+/// rails stay unfiltered. Home's [MovieListBloc] never gets a search; Home
+/// searches in the results view.
+class ExploreMovieListBloc extends MovieListBloc {
+  ExploreMovieListBloc(super.repository);
 }

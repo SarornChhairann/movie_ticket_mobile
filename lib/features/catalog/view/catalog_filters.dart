@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_failure.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/widgets/genre_chip.dart';
 import '../../../core/widgets/search_pill.dart';
 import '../controller/hall_list_bloc.dart' as halls;
 import '../controller/movie_list_bloc.dart';
+import '../controller/search_results_bloc.dart';
 import 'hall_list_section.dart';
 
-/// Search pill bound to [MovieListBloc]; starts from the bloc's current query.
-/// The tune button opens [showCatalogFilterSheet]; its badge counts active filters.
-/// [includeHalls] (Home) adds the hall filters from [halls.HallListBloc].
+/// Explore's search pill, bound to its [MovieListBloc]; starts from the bloc's
+/// current query. The tune button opens [showCatalogFilterSheet]; its badge
+/// counts active filters. [includeHalls] adds the hall filters from [halls.HallListBloc].
 class CatalogSearch extends StatefulWidget {
   const CatalogSearch({super.key, this.includeHalls = false});
 
@@ -45,6 +47,40 @@ class _CatalogSearchState extends State<CatalogSearch> {
       filterTooltip: 'catalog.filter'.tr(context: context),
       filterCount: movieFilters + hallFilters,
       onFilter: () => showCatalogFilterSheet(context, includeHalls: widget.includeHalls),
+    );
+  }
+}
+
+/// Home's search pill (sprint 22): tapping it opens the search results view over
+/// Home with what Home has loaded, so Home itself is never filtered by a search.
+/// The tune button still opens the filter sheet with the hall filters.
+class HomeSearchEntry extends StatelessWidget {
+  const HomeSearchEntry({super.key});
+
+  void _open(BuildContext context) {
+    final movies = context.read<MovieListBloc>().state;
+    final hallState = context.read<halls.HallListBloc>().state;
+    Navigator.of(context).pushNamed(
+      AppRoutes.search,
+      arguments: SearchSeed(
+        nowShowing: movies is MovieListReady ? movies.nowShowing : const [],
+        comingSoon: movies is MovieListReady ? movies.comingSoon : const [],
+        halls: hallState is halls.HallListReady ? hallState.halls : const [],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final movieFilters = context.select<MovieListBloc, int>((b) => b.state.activeFilterCount);
+    final hallFilters = context.select<halls.HallListBloc, int>((b) => b.state.activeFilterCount);
+    return SearchPill(
+      fieldKey: const Key('home.search'),
+      hint: 'search.title'.tr(context: context),
+      onTap: () => _open(context),
+      filterTooltip: 'catalog.filter'.tr(context: context),
+      filterCount: movieFilters + hallFilters,
+      onFilter: () => showCatalogFilterSheet(context, includeHalls: true),
     );
   }
 }

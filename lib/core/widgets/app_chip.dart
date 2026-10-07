@@ -17,16 +17,21 @@ class AppChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chip = ChoiceChip(
-      label: Text(label),
-      avatar: icon,
-      selected: selected,
-      onSelected: onSelected == null
-          ? null
-          : (_) {
-              AppHaptics.selection();
-              onSelected!();
-            },
+    // InkWell is a lookup boundary, so a chip inside a card cannot see the
+    // card's Material. This transparent one is the ancestor ChoiceChip requires.
+    final chip = Material(
+      type: MaterialType.transparency,
+      child: ChoiceChip(
+        label: Text(label),
+        avatar: icon,
+        selected: selected,
+        onSelected: onSelected == null
+            ? null
+            : (_) {
+                AppHaptics.selection();
+                onSelected!();
+              },
+      ),
     );
     return onSelected == null ? chip : Pressable(child: chip);
   }

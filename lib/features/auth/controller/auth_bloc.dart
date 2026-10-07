@@ -1,10 +1,11 @@
-import '../../../core/storage/booking_cache.dart';
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/result.dart';
 import '../../../core/session/session_end.dart';
+import '../../../core/storage/booking_cache.dart';
+import '../../catalog/model/local_prefs_store.dart';
 import '../model/auth_failure.dart';
 import '../model/auth_repository.dart';
 import '../model/user.dart';
@@ -18,7 +19,7 @@ export 'auth_state.dart';
 /// [AuthGuest]: the app opens on Home and asks for sign-in only when an action
 /// needs it (see `requireSignIn`).
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(this._repository, {this._bookingCache}) : super(const AuthState.unknown()) {
+  AuthBloc(this._repository, {this._bookingCache, this._localPrefs}) : super(const AuthState.unknown()) {
     on<SessionStarted>(_onSessionStarted);
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
@@ -37,6 +38,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   /// The account's bookings saved on the device leave with the session; null in tests.
   final BookingCache? _bookingCache;
+
+  /// Favourite halls, recently viewed, recent searches (sprint 22); null in tests.
+  final LocalPrefsStore? _localPrefs;
+
+  /// Sign-out and session end: what this phone kept for the account goes.
+  Future<void> _clearDevice() async {
+    await _bookingCache?.clearAccount();
+    await _localPrefs?.clear();
+  }
 
   Future<void> _onSessionStarted(SessionStarted event, Emitter<AuthState> emit) async {
     final result = await _repository.restoreSession();
@@ -72,7 +82,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) async {
     await _repository.logout();
-    await _bookingCache?.clearAccount();
+    await _clearDevice();
     emit(const AuthState.guest());
   }
 
@@ -81,7 +91,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (state is AuthGuest) {
       return;
     }
-    await _bookingCache?.clearAccount();
+    await _clearDevice();
     emit(switch (event.reason) {
       SessionBlocked(:final message) => AuthState.blocked(message),
       SessionExpired() => const AuthState.guest(failure: AuthFailure.sessionExpired()),

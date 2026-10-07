@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:movie_ticket_mobile/features/catalog/controller/showing_cubit.dart';
 import 'package:movie_ticket_mobile/core/network/api_failure.dart';
 import 'package:movie_ticket_mobile/core/router/app_router.dart';
 import 'package:movie_ticket_mobile/features/catalog/controller/hall_list_bloc.dart' as halls;
@@ -12,6 +13,7 @@ import 'package:movie_ticket_mobile/features/catalog/view/movie_home_view.dart';
 
 import '../../helpers/localized_app.dart';
 import 'hall_fixtures.dart';
+import '../../helpers/showing.dart';
 
 class _MovieList extends MockBloc<MovieListEvent, MovieListState> implements MovieListBloc {}
 
@@ -48,6 +50,7 @@ void main() {
         providers: [
           BlocProvider<MovieListBloc>.value(value: movieBloc),
           BlocProvider<halls.HallListBloc>.value(value: hallBloc),
+          BlocProvider<ShowingCubit>.value(value: showingStub()),
         ],
         child: Scaffold(body: MovieHomeView(header: const SizedBox(), onSeeAll: (_) {})),
       ),
@@ -60,7 +63,8 @@ void main() {
     await pump(tester, movieState: movies());
 
     final rail = tester.getTopLeft(find.byKey(const Key('rail.nowShowing'))).dy;
-    expect(tester.getTopLeft(find.byKey(const Key('section.halls'))).dy, greaterThan(rail));
+    // The section is a sliver (sprint 21): measure its header.
+    expect(tester.getTopLeft(find.text('Halls')).dy, greaterThan(rail));
     expect(find.text('Halls'), findsOneWidget);
     expect(find.text('រោងភាពយន្ត Legend Aeon Sen Sok'), findsOneWidget, reason: 'one header per cinema');
     expect(find.text('ភ្នំពេញ'), findsOneWidget, reason: 'shared city once under the header');
@@ -76,19 +80,12 @@ void main() {
     expect(tester.getTopLeft(find.byKey(const Key('hall.3'))).dy, greaterThan(legend), reason: 'server order kept');
   });
 
-  testWidgets('home search hides halls that do not match', (tester) async {
-    await pump(tester, movieState: movies(search: 'siem'));
-
-    expect(find.byKey(const Key('hall.3')), findsOneWidget);
-    expect(find.byKey(const Key('hall.1')), findsNothing);
-    expect(find.byKey(const Key('hall.2')), findsNothing);
-  });
-
-  testWidgets('a search with no hall match keeps the header with a note', (tester) async {
+  testWidgets('a movie search never filters Home halls (sprint 22: search has its own view)', (tester) async {
     await pump(tester, movieState: movies(search: 'zzz'));
 
-    expect(find.text('Halls'), findsOneWidget);
-    expect(find.text('No halls match your search'), findsOneWidget);
+    for (final id in [1, 2, 3]) {
+      expect(find.byKey(Key('hall.$id')), findsOneWidget);
+    }
   });
 
   testWidgets('a genre chip never hides halls', (tester) async {

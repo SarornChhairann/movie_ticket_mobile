@@ -8,7 +8,8 @@ class SearchPill extends StatelessWidget {
   const SearchPill({
     super.key,
     required this.hint,
-    required this.onChanged,
+    this.onChanged,
+    this.onTap,
     this.onFilter,
     this.filterTooltip,
     this.controller,
@@ -17,7 +18,11 @@ class SearchPill extends StatelessWidget {
   });
 
   final String hint;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onChanged;
+
+  /// Set for an entry point that opens a search view instead of typing here:
+  /// the field is read-only and tapping it calls this.
+  final VoidCallback? onTap;
   final VoidCallback? onFilter;
   final String? filterTooltip;
   final TextEditingController? controller;
@@ -35,6 +40,8 @@ class SearchPill extends StatelessWidget {
             key: fieldKey,
             controller: controller,
             onChanged: onChanged,
+            readOnly: onTap != null,
+            onTap: onTap,
             textInputAction: TextInputAction.search,
             style: const TextStyle(color: AppColors.white),
             decoration: InputDecoration(

@@ -1,3 +1,4 @@
+import 'dto/browse_dtos.dart';
 import 'dto/catalog_response_dtos.dart';
 import 'dto/movie_dto.dart';
 import 'movie.dart';
@@ -21,6 +22,35 @@ abstract final class CatalogMapper {
         comingSoon: dto.status == 'COMING_SOON',
         posterUrl: imageUrl(dto.imagePath, baseUrl),
         bannerUrl: imageUrl(dto.bannerPath, baseUrl),
+      );
+
+  /// One Showing rail entry; chips keep the server's order (by time).
+  static ShowingMovie showing(MovieBrowseDto dto, String baseUrl) => ShowingMovie(
+        movie: Movie(
+          id: dto.id,
+          title: dto.title,
+          genre: _blankToNull(dto.genre),
+          language: _blankToNull(dto.language),
+          format: _blankToNull(dto.format),
+          trailerUrl: _blankToNull(dto.trailerUrl),
+          rating: _blankToNull(dto.rating),
+          releaseDate: dto.releaseDate == null ? null : DateTime.tryParse(dto.releaseDate!),
+          durationMinutes: dto.durationMinutes,
+          comingSoon: dto.status == 'COMING_SOON',
+          posterUrl: imageUrl(dto.posterPath, baseUrl),
+          bannerUrl: imageUrl(dto.bannerPath, baseUrl),
+        ),
+        slots: [
+          for (final c in dto.showtimes)
+            ShowtimeSlot(
+              id: c.showtimeId,
+              time: _hhmm(c.time),
+              hallName: c.hallName ?? '',
+              cinemaName: c.cinemaName ?? '',
+              dolby: c.hasDolbyAtmos,
+              screenX: c.hasScreenX,
+            ),
+        ],
       );
 
   static String? imageUrl(String? path, String baseUrl) {

@@ -73,7 +73,6 @@
     "trailer": "ចាក់វីដេអូណែនាំ",
     "showtimes": "ម៉ោងបញ្ចាំង",
     "noShowtimes": "មិនមានម៉ោងបញ្ចាំងទេ។",
-    "greeting": "ស្វែងរកភាពយន្តដែលអ្នកចូលចិត្ត!",
     "nowInCinemas": "កំពុងបញ្ចាំងនៅរោងកុន",
     "seeAll": "មើលទាំងអស់",
     "allGenres": "ទាំងអស់",
@@ -258,7 +257,6 @@
     "halls": {
       "title": "សាលភាពយន្ត",
       "empty": "មិនទាន់មានសាលនៅឡើយទេ",
-      "searchEmpty": "គ្មានសាលត្រូវនឹងការស្វែងរករបស់អ្នកទេ",
       "seats": "{count} កៅអី",
       "type": {
         "atmos": "Atmos",
@@ -267,7 +265,39 @@
       "dolby": "Dolby Atmos",
       "screenX": "ScreenX",
       "filterEmpty": "គ្មានសាលត្រូវនឹងតម្រងទាំងនេះទេ"
-    }
+    },
+    "featured": {
+      "book": "កក់"
+    },
+    "dates": {
+      "today": "ថ្ងៃនេះ",
+      "tomorrow": "ថ្ងៃស្អែក"
+    },
+    "showing": {
+      "title": "កំពុងបញ្ចាំង {date}",
+      "empty": "មិនមានការបញ្ចាំង {date}",
+      "nextDate": "មើល {date}",
+      "slot": "{time}, {hall}, {title}។ ជ្រើសរើសកៅអី"
+    },
+    "offline": {
+      "timesDisabled": "អាចកក់ម៉ោងបញ្ចាំងបាន នៅពេលអ្នកភ្ជាប់អ៊ីនធឺណិតវិញ។"
+    },
+    "greeting": {
+      "morning": {
+        "named": "អរុណសួស្តី {name}",
+        "plain": "អរុណសួស្តី"
+      },
+      "afternoon": {
+        "named": "ទិវាសួស្តី {name}",
+        "plain": "ទិវាសួស្តី"
+      },
+      "evening": {
+        "named": "សាយ័ណ្ហសួស្តី {name}",
+        "plain": "សាយ័ណ្ហសួស្តី"
+      }
+    },
+    "yourHalls": "រោងភាពយន្តរបស់អ្នក",
+    "recent": "បានមើលថ្មីៗ"
   },
   "release": {
     "inDays": {
@@ -287,6 +317,10 @@
       "amenities": "សេវាកម្ម",
       "normalPrice": "កៅអី {price}",
       "couplePrice": "កៅអីគូ {price}"
+    },
+    "favourite": {
+      "add": "បន្ថែមទៅរោងភាពយន្តរបស់អ្នក",
+      "remove": "ដកចេញពីរោងភាពយន្តរបស់អ្នក"
     }
   },
   "flow": {
@@ -349,5 +383,14 @@
     "upcoming": "ខាងមុខ",
     "past": "កន្លងមក",
     "browse": "រកមើលភាពយន្ត"
+  },
+  "search": {
+    "title": "ស្វែងរកភាពយន្ត និងរោងភាពយន្ត",
+    "movies": "ភាពយន្ត",
+    "halls": "រោងភាពយន្ត",
+    "recent": "ការស្វែងរកថ្មីៗ",
+    "clearRecent": "សម្អាតទាំងអស់",
+    "empty": "គ្មានលទ្ធផលត្រូវនឹងការស្វែងរករបស់អ្នកទេ។",
+    "clearSearch": "សម្អាតការស្វែងរក"
   }
 }

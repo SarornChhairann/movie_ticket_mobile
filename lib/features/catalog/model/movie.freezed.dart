@@ -605,6 +605,297 @@ as num?,
 }
 
 /// @nodoc
+mixin _$ShowingMovie {
+
+ Movie get movie; List<ShowtimeSlot> get slots;
+/// Create a copy of ShowingMovie
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ShowingMovieCopyWith<ShowingMovie> get copyWith => _$ShowingMovieCopyWithImpl<ShowingMovie>(this as ShowingMovie, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ShowingMovie;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShowingMovie&&(identical(other.movie, _this.movie) || other.movie == _this.movie)&&const DeepCollectionEquality().equals(other.slots, _this.slots));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as ShowingMovie;
+  return Object.hash(runtimeType,_this.movie,const DeepCollectionEquality().hash(_this.slots));
+}
+
+@override
+String toString() {
+  final _this = this as ShowingMovie;
+  return 'ShowingMovie(movie: ${_this.movie}, slots: ${_this.slots})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ShowingMovieCopyWith<$Res>  {
+  factory $ShowingMovieCopyWith(ShowingMovie value, $Res Function(ShowingMovie) _then) = _$ShowingMovieCopyWithImpl;
+@useResult
+$Res call({
+ Movie movie, List<ShowtimeSlot> slots
+});
+
+
+$MovieCopyWith<$Res> get movie;
+
+}
+/// @nodoc
+class _$ShowingMovieCopyWithImpl<$Res>
+    implements $ShowingMovieCopyWith<$Res> {
+  _$ShowingMovieCopyWithImpl(this._self, this._then);
+
+  final ShowingMovie _self;
+  final $Res Function(ShowingMovie) _then;
+
+/// Create a copy of ShowingMovie
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? movie = null,Object? slots = null,}) {
+  return _then(ShowingMovie(
+movie: null == movie ? _self.movie : movie // ignore: cast_nullable_to_non_nullable
+as Movie,slots: null == slots ? _self.slots : slots // ignore: cast_nullable_to_non_nullable
+as List<ShowtimeSlot>,
+  ));
+}
+/// Create a copy of ShowingMovie
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MovieCopyWith<$Res> get movie {
+  
+  return $MovieCopyWith<$Res>(_self.movie, (value) {
+    return _then(_self.copyWith(movie: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [ShowingMovie].
+extension ShowingMoviePatterns on ShowingMovie {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ShowingMovie value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ShowingMovie() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ShowingMovie value)  $default,){
+final _that = this;
+switch (_that) {
+case _ShowingMovie():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ShowingMovie value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ShowingMovie() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Movie movie,  List<ShowtimeSlot> slots)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ShowingMovie() when $default != null:
+return $default(_that.movie,_that.slots);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Movie movie,  List<ShowtimeSlot> slots)  $default,) {final _that = this;
+switch (_that) {
+case _ShowingMovie():
+return $default(_that.movie,_that.slots);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Movie movie,  List<ShowtimeSlot> slots)?  $default,) {final _that = this;
+switch (_that) {
+case _ShowingMovie() when $default != null:
+return $default(_that.movie,_that.slots);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ShowingMovie extends ShowingMovie {
+  const _ShowingMovie({required this.movie, required  List<ShowtimeSlot> slots}): _slots = slots,super._();
+  
+
+@override final  Movie movie;
+ final  List<ShowtimeSlot> _slots;
+@override List<ShowtimeSlot> get slots {
+  if (_slots is EqualUnmodifiableListView) return _slots;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_slots);
+}
+
+
+/// Create a copy of ShowingMovie
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ShowingMovieCopyWith<_ShowingMovie> get copyWith => __$ShowingMovieCopyWithImpl<_ShowingMovie>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShowingMovie&&(identical(other.movie, movie) || other.movie == movie)&&const DeepCollectionEquality().equals(other.slots, _slots));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,movie,const DeepCollectionEquality().hash(_slots));
+}
+
+@override
+String toString() {
+    return 'ShowingMovie(movie: $movie, slots: $slots)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ShowingMovieCopyWith<$Res> implements $ShowingMovieCopyWith<$Res> {
+  factory _$ShowingMovieCopyWith(_ShowingMovie value, $Res Function(_ShowingMovie) _then) = __$ShowingMovieCopyWithImpl;
+@override @useResult
+$Res call({
+ Movie movie, List<ShowtimeSlot> slots
+});
+
+
+@override $MovieCopyWith<$Res> get movie;
+
+}
+/// @nodoc
+class __$ShowingMovieCopyWithImpl<$Res>
+    implements _$ShowingMovieCopyWith<$Res> {
+  __$ShowingMovieCopyWithImpl(this._self, this._then);
+
+  final _ShowingMovie _self;
+  final $Res Function(_ShowingMovie) _then;
+
+/// Create a copy of ShowingMovie
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? movie = null,Object? slots = null,}) {
+  return _then(_ShowingMovie(
+movie: null == movie ? _self.movie : movie // ignore: cast_nullable_to_non_nullable
+as Movie,slots: null == slots ? _self._slots : slots // ignore: cast_nullable_to_non_nullable
+as List<ShowtimeSlot>,
+  ));
+}
+
+/// Create a copy of ShowingMovie
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MovieCopyWith<$Res> get movie {
+  
+  return $MovieCopyWith<$Res>(_self.movie, (value) {
+    return _then(_self.copyWith(movie: value));
+  });
+}
+}
+
+/// @nodoc
 mixin _$HallGroup {
 
  String get hallName; bool get dolby; bool get screenX; List<ShowtimeSlot> get slots;

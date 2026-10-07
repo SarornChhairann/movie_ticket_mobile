@@ -11,6 +11,9 @@ extension LocaleFormat on BuildContext {
 
   String money(num amount) => formatMoney(amount, locale: _localeName);
 
+  /// A short day for date chips, e.g. `Fri 10` (a cinema date, no zone conversion).
+  String shortDay(DateTime date) => DateFormat('EEE d', _localeName).format(date);
+
   String showLine({String? hallName, String? showDate, String? showTime}) =>
       formatShowLine(hallName: hallName, showDate: showDate, showTime: showTime, locale: _localeName);
 }

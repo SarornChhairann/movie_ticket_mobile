@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../core/network/api_failure.dart';
 import '../../../core/network/result.dart';
+import '../../../core/telemetry/journey_tracker.dart';
 import '../model/hall.dart';
 import '../model/hall_repository.dart';
 
@@ -24,6 +25,14 @@ final class DateSelected extends HallScheduleEvent {
   final DateTime date;
 }
 
+/// A time chip was tapped; the view opens the seat map. Tracked only.
+final class ShowtimeChosen extends HallScheduleEvent {
+  const ShowtimeChosen({required this.movieId, required this.showtimeId});
+
+  final int movieId;
+  final int showtimeId;
+}
+
 @freezed
 sealed class HallScheduleState with _$HallScheduleState {
   const factory HallScheduleState.initial() = HallScheduleInitial;
@@ -42,12 +51,18 @@ sealed class HallScheduleState with _$HallScheduleState {
 
 /// One hall's bookable schedule. No hold and no total here: a time opens the seat map.
 class HallScheduleBloc extends Bloc<HallScheduleEvent, HallScheduleState> {
-  HallScheduleBloc(this._repository) : super(const HallScheduleState.initial()) {
+  HallScheduleBloc(this._repository, {this._tracker = const NoopJourneyTracker()})
+      : super(const HallScheduleState.initial()) {
     on<ScheduleRequested>(_onRequested);
     on<DateSelected>(_onDateSelected);
+    on<ShowtimeChosen>((event, _) => _tracker.track(JourneyEvent(
+          JourneyEventName.showtimeSelected,
+          {'movieId': event.movieId, 'showtimeId': event.showtimeId, 'source': 'hall'},
+        )));
   }
 
   final HallRepository _repository;
+  final JourneyTracker _tracker;
 
   Future<void> _onRequested(ScheduleRequested event, Emitter<HallScheduleState> emit) async {
     emit(HallScheduleState.loading(event.hallId));

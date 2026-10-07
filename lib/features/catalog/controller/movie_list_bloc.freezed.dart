@@ -166,12 +166,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  initial,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  loading,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon)?  ready,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  initial,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  loading,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon,  DateTime? savedAt)?  ready,TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case MovieListInitial() when initial != null:
 return initial(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListLoading() when loading != null:
 return loading(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListReady() when ready != null:
-return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon);case MovieListFailure() when failure != null:
+return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon,_that.savedAt);case MovieListFailure() when failure != null:
 return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.failure);case _:
   return orElse();
 
@@ -190,12 +190,12 @@ return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)  initial,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)  loading,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon)  ready,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)  initial,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)  loading,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon,  DateTime? savedAt)  ready,required TResult Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)  failure,}) {final _that = this;
 switch (_that) {
 case MovieListInitial():
 return initial(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListLoading():
 return loading(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListReady():
-return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon);case MovieListFailure():
+return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon,_that.savedAt);case MovieListFailure():
 return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.failure);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -210,12 +210,12 @@ return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  initial,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  loading,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon)?  ready,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  initial,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating)?  loading,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  List<Movie> nowShowing,  List<Movie> comingSoon,  DateTime? savedAt)?  ready,TResult? Function( MovieTab tab,  String search,  String? genre,  String? language,  String? rating,  ApiFailure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case MovieListInitial() when initial != null:
 return initial(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListLoading() when loading != null:
 return loading(_that.tab,_that.search,_that.genre,_that.language,_that.rating);case MovieListReady() when ready != null:
-return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon);case MovieListFailure() when failure != null:
+return ready(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.nowShowing,_that.comingSoon,_that.savedAt);case MovieListFailure() when failure != null:
 return failure(_that.tab,_that.search,_that.genre,_that.language,_that.rating,_that.failure);case _:
   return null;
 
@@ -380,7 +380,7 @@ as String?,
 
 
 class MovieListReady extends MovieListState {
-  const MovieListReady({required this.tab, required this.search, this.genre, this.language, this.rating, required  List<Movie> nowShowing, required  List<Movie> comingSoon}): _nowShowing = nowShowing,_comingSoon = comingSoon,super._();
+  const MovieListReady({required this.tab, required this.search, this.genre, this.language, this.rating, required  List<Movie> nowShowing, required  List<Movie> comingSoon, this.savedAt}): _nowShowing = nowShowing,_comingSoon = comingSoon,super._();
   
 
 @override final  MovieTab tab;
@@ -402,6 +402,8 @@ class MovieListReady extends MovieListState {
   return EqualUnmodifiableListView(_comingSoon);
 }
 
+/// Set when the lists are the copy saved on this phone (no connection).
+ final  DateTime? savedAt;
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
@@ -413,18 +415,18 @@ $MovieListReadyCopyWith<MovieListReady> get copyWith => _$MovieListReadyCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListReady&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.language, language) || other.language == language)&&(identical(other.rating, rating) || other.rating == rating)&&const DeepCollectionEquality().equals(other.nowShowing, _nowShowing)&&const DeepCollectionEquality().equals(other.comingSoon, _comingSoon));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is MovieListReady&&(identical(other.tab, tab) || other.tab == tab)&&(identical(other.search, search) || other.search == search)&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.language, language) || other.language == language)&&(identical(other.rating, rating) || other.rating == rating)&&const DeepCollectionEquality().equals(other.nowShowing, _nowShowing)&&const DeepCollectionEquality().equals(other.comingSoon, _comingSoon)&&(identical(other.savedAt, savedAt) || other.savedAt == savedAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,tab,search,genre,language,rating,const DeepCollectionEquality().hash(_nowShowing),const DeepCollectionEquality().hash(_comingSoon));
+    return Object.hash(runtimeType,tab,search,genre,language,rating,const DeepCollectionEquality().hash(_nowShowing),const DeepCollectionEquality().hash(_comingSoon),savedAt);
 }
 
 @override
 String toString() {
-    return 'MovieListState.ready(tab: $tab, search: $search, genre: $genre, language: $language, rating: $rating, nowShowing: $nowShowing, comingSoon: $comingSoon)';
+    return 'MovieListState.ready(tab: $tab, search: $search, genre: $genre, language: $language, rating: $rating, nowShowing: $nowShowing, comingSoon: $comingSoon, savedAt: $savedAt)';
 }
 
 
@@ -435,7 +437,7 @@ abstract mixin class $MovieListReadyCopyWith<$Res> implements $MovieListStateCop
   factory $MovieListReadyCopyWith(MovieListReady value, $Res Function(MovieListReady) _then) = _$MovieListReadyCopyWithImpl;
 @override @useResult
 $Res call({
- MovieTab tab, String search, String? genre, String? language, String? rating, List<Movie> nowShowing, List<Movie> comingSoon
+ MovieTab tab, String search, String? genre, String? language, String? rating, List<Movie> nowShowing, List<Movie> comingSoon, DateTime? savedAt
 });
 
 
@@ -452,7 +454,7 @@ class _$MovieListReadyCopyWithImpl<$Res>
 
 /// Create a copy of MovieListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,Object? nowShowing = null,Object? comingSoon = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tab = null,Object? search = null,Object? genre = freezed,Object? language = freezed,Object? rating = freezed,Object? nowShowing = null,Object? comingSoon = null,Object? savedAt = freezed,}) {
   return _then(MovieListReady(
 tab: null == tab ? _self.tab : tab // ignore: cast_nullable_to_non_nullable
 as MovieTab,search: null == search ? _self.search : search // ignore: cast_nullable_to_non_nullable
@@ -461,7 +463,8 @@ as String?,language: freezed == language ? _self.language : language // ignore: 
 as String?,rating: freezed == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as String?,nowShowing: null == nowShowing ? _self._nowShowing : nowShowing // ignore: cast_nullable_to_non_nullable
 as List<Movie>,comingSoon: null == comingSoon ? _self._comingSoon : comingSoon // ignore: cast_nullable_to_non_nullable
-as List<Movie>,
+as List<Movie>,savedAt: freezed == savedAt ? _self.savedAt : savedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

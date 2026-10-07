@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:movie_ticket_mobile/features/catalog/controller/showing_cubit.dart';
 import 'package:movie_ticket_mobile/core/widgets/sticky_summary_bar.dart';
 import 'package:movie_ticket_mobile/core/widgets/booking_progress.dart';
 import 'package:movie_ticket_mobile/core/widgets/booking_capsule.dart';
@@ -26,6 +27,7 @@ import '../../features/checkout/checkout_fixtures.dart';
 import '../../features/seats/seat_fixtures.dart';
 import '../../features/tickets/tickets_fixtures.dart';
 import '../../helpers/localized_app.dart';
+import '../../helpers/showing.dart';
 
 class _Auth extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
@@ -78,6 +80,7 @@ void main() {
         providers: [
           BlocProvider<AuthBloc>.value(value: mock(_Auth(), const AuthState.guest())),
           BlocProvider<HallListBloc>.value(value: mock(_Halls(), hallState)),
+          BlocProvider<ShowingCubit>.value(value: showingStub(movies: showingMovies)),
         ],
         child: Builder(
           builder: (context) =>
@@ -106,6 +109,9 @@ void main() {
     await tester.scrollUntilVisible(find.byKey(const Key('hall.1')), 300,
         scrollable: find.byType(Scrollable).first);
     expect(find.byKey(const Key('hall.1')), findsOneWidget, reason: 'the final hall list shows under reduced motion');
+    // The drag can reach the end of the (lazy) list; let the platform's overscroll
+    // stretch settle — scroll feedback, not app motion.
+    await tester.pump(const Duration(seconds: 1));
     expectStill(tester, 'Home');
 
     await tester.pump(const Duration(seconds: 12));

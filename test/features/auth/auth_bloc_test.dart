@@ -9,6 +9,7 @@ import 'package:movie_ticket_mobile/core/session/session_end.dart';
 import 'package:movie_ticket_mobile/features/auth/controller/auth_bloc.dart';
 import 'package:movie_ticket_mobile/features/auth/model/auth_failure.dart';
 import 'package:movie_ticket_mobile/features/auth/model/auth_repository.dart';
+import 'package:movie_ticket_mobile/features/catalog/model/local_prefs_store.dart';
 
 import 'auth_fixtures.dart';
 
@@ -16,14 +17,19 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 
 class _MockBookingCache extends Mock implements BookingCache {}
 
+class _MockLocalPrefs extends Mock implements LocalPrefsStore {}
+
 void main() {
   late _MockAuthRepository repository;
   final bookingCache = _MockBookingCache();
   late StreamController<SessionEnd> sessionEnded;
+  late _MockLocalPrefs localPrefs;
 
   setUp(() {
     repository = _MockAuthRepository();
     sessionEnded = StreamController<SessionEnd>.broadcast();
+    localPrefs = _MockLocalPrefs();
+    when(() => localPrefs.clear()).thenAnswer((_) async {});
     when(() => repository.sessionEnded).thenAnswer((_) => sessionEnded.stream);
   });
 
@@ -149,6 +155,25 @@ void main() {
     act: (bloc) => bloc.add(const LogoutRequested()),
     expect: () => const [AuthState.guest()],
     verify: (_) => verify(() => bookingCache.clearAccount()).called(1),
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'LogoutRequested wipes favourites, recently viewed, and recent searches (sprint 22)',
+    setUp: () => when(() => repository.logout()).thenAnswer((_) async {}),
+    build: () => AuthBloc(repository, localPrefs: localPrefs),
+    seed: () => const AuthState.authenticated(testUser),
+    act: (bloc) => bloc.add(const LogoutRequested()),
+    expect: () => const [AuthState.guest()],
+    verify: (_) => verify(() => localPrefs.clear()).called(1),
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'an expired session also wipes them',
+    build: () => AuthBloc(repository, localPrefs: localPrefs),
+    seed: () => const AuthState.authenticated(testUser),
+    act: (_) => sessionEnded.add(const SessionExpired()),
+    expect: () => const [AuthState.guest(failure: AuthFailure.sessionExpired())],
+    verify: (_) => verify(() => localPrefs.clear()).called(1),
   );
 
   blocTest<AuthBloc, AuthState>(

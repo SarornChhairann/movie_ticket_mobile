@@ -26,6 +26,14 @@ void main() {
     });
   }
 
+  // Sprint 22: the personal Home and the search results, in Khmer too.
+  for (final name in const ['homePersonal', 'search']) {
+    testWidgets('$name screen (km)', (tester) async {
+      await pumpScreen(tester, mainScreens()[name]!(), locale: const Locale('km'));
+      await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/screen_${name}_km.png'));
+    });
+  }
+
   // Sprint 16: each step of the booking flow, with progress and capsule.
   for (final step in const [FlowStep.snacks, FlowStep.pay]) {
     testWidgets('checkout flow step ${step.name}', (tester) async {

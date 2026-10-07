@@ -5,6 +5,6 @@ import 'model/shell_repository.dart';
 
 void registerShell(GetIt getIt) {
   getIt
-    ..registerLazySingleton(() => ShellRepository(getIt()))
-    ..registerFactory(() => ShellCubit(getIt()));
+    ..registerLazySingleton(() => ShellRepository(getIt(), cache: getIt()))
+    ..registerFactory(() => ShellCubit(getIt(), tracker: getIt()));
 }

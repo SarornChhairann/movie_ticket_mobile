@@ -165,12 +165,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  initial,TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  loading,TResult Function( List<Hall> halls,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  ready,TResult Function( ApiFailure failure,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  initial,TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  loading,TResult Function( List<Hall> halls,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly,  DateTime? savedAt)?  ready,TResult Function( ApiFailure failure,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case HallListInitial() when initial != null:
 return initial(_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListLoading() when loading != null:
 return loading(_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListReady() when ready != null:
-return ready(_that.halls,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListFailure() when failure != null:
+return ready(_that.halls,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly,_that.savedAt);case HallListFailure() when failure != null:
 return failure(_that.failure,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case _:
   return orElse();
 
@@ -189,12 +189,12 @@ return failure(_that.failure,_that.city,_that.type,_that.dolbyOnly,_that.screenX
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  initial,required TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  loading,required TResult Function( List<Hall> halls,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  ready,required TResult Function( ApiFailure failure,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  initial,required TResult Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  loading,required TResult Function( List<Hall> halls,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly,  DateTime? savedAt)  ready,required TResult Function( ApiFailure failure,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)  failure,}) {final _that = this;
 switch (_that) {
 case HallListInitial():
 return initial(_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListLoading():
 return loading(_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListReady():
-return ready(_that.halls,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListFailure():
+return ready(_that.halls,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly,_that.savedAt);case HallListFailure():
 return failure(_that.failure,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -209,12 +209,12 @@ return failure(_that.failure,_that.city,_that.type,_that.dolbyOnly,_that.screenX
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  initial,TResult? Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  loading,TResult? Function( List<Hall> halls,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  ready,TResult? Function( ApiFailure failure,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  initial,TResult? Function( String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  loading,TResult? Function( List<Hall> halls,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly,  DateTime? savedAt)?  ready,TResult? Function( ApiFailure failure,  String? city,  String? type,  bool dolbyOnly,  bool screenXOnly)?  failure,}) {final _that = this;
 switch (_that) {
 case HallListInitial() when initial != null:
 return initial(_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListLoading() when loading != null:
 return loading(_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListReady() when ready != null:
-return ready(_that.halls,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case HallListFailure() when failure != null:
+return ready(_that.halls,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly,_that.savedAt);case HallListFailure() when failure != null:
 return failure(_that.failure,_that.city,_that.type,_that.dolbyOnly,_that.screenXOnly);case _:
   return null;
 
@@ -375,7 +375,7 @@ as bool,
 
 
 class HallListReady extends HallListState {
-  const HallListReady( List<Hall> halls, {this.city, this.type, this.dolbyOnly = false, this.screenXOnly = false}): _halls = halls,super._();
+  const HallListReady( List<Hall> halls, {this.city, this.type, this.dolbyOnly = false, this.screenXOnly = false, this.savedAt}): _halls = halls,super._();
   
 
  final  List<Hall> _halls;
@@ -389,6 +389,7 @@ class HallListReady extends HallListState {
 @override final  String? type;
 @override@JsonKey() final  bool dolbyOnly;
 @override@JsonKey() final  bool screenXOnly;
+ final  DateTime? savedAt;
 
 /// Create a copy of HallListState
 /// with the given fields replaced by the non-null parameter values.
@@ -400,18 +401,18 @@ $HallListReadyCopyWith<HallListReady> get copyWith => _$HallListReadyCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is HallListReady&&const DeepCollectionEquality().equals(other.halls, _halls)&&(identical(other.city, city) || other.city == city)&&(identical(other.type, type) || other.type == type)&&(identical(other.dolbyOnly, dolbyOnly) || other.dolbyOnly == dolbyOnly)&&(identical(other.screenXOnly, screenXOnly) || other.screenXOnly == screenXOnly));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is HallListReady&&const DeepCollectionEquality().equals(other.halls, _halls)&&(identical(other.city, city) || other.city == city)&&(identical(other.type, type) || other.type == type)&&(identical(other.dolbyOnly, dolbyOnly) || other.dolbyOnly == dolbyOnly)&&(identical(other.screenXOnly, screenXOnly) || other.screenXOnly == screenXOnly)&&(identical(other.savedAt, savedAt) || other.savedAt == savedAt));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_halls),city,type,dolbyOnly,screenXOnly);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_halls),city,type,dolbyOnly,screenXOnly,savedAt);
 }
 
 @override
 String toString() {
-    return 'HallListState.ready(halls: $halls, city: $city, type: $type, dolbyOnly: $dolbyOnly, screenXOnly: $screenXOnly)';
+    return 'HallListState.ready(halls: $halls, city: $city, type: $type, dolbyOnly: $dolbyOnly, screenXOnly: $screenXOnly, savedAt: $savedAt)';
 }
 
 
@@ -422,7 +423,7 @@ abstract mixin class $HallListReadyCopyWith<$Res> implements $HallListStateCopyW
   factory $HallListReadyCopyWith(HallListReady value, $Res Function(HallListReady) _then) = _$HallListReadyCopyWithImpl;
 @override @useResult
 $Res call({
- List<Hall> halls, String? city, String? type, bool dolbyOnly, bool screenXOnly
+ List<Hall> halls, String? city, String? type, bool dolbyOnly, bool screenXOnly, DateTime? savedAt
 });
 
 
@@ -439,14 +440,15 @@ class _$HallListReadyCopyWithImpl<$Res>
 
 /// Create a copy of HallListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? halls = null,Object? city = freezed,Object? type = freezed,Object? dolbyOnly = null,Object? screenXOnly = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? halls = null,Object? city = freezed,Object? type = freezed,Object? dolbyOnly = null,Object? screenXOnly = null,Object? savedAt = freezed,}) {
   return _then(HallListReady(
 null == halls ? _self._halls : halls // ignore: cast_nullable_to_non_nullable
 as List<Hall>,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
 as String?,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String?,dolbyOnly: null == dolbyOnly ? _self.dolbyOnly : dolbyOnly // ignore: cast_nullable_to_non_nullable
 as bool,screenXOnly: null == screenXOnly ? _self.screenXOnly : screenXOnly // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,savedAt: freezed == savedAt ? _self.savedAt : savedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

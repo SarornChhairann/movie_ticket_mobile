@@ -20,6 +20,7 @@ import '../../auth/controller/auth_bloc.dart';
 import '../../auth/view/auth_gate.dart';
 import '../../catalog/controller/movie_list_bloc.dart';
 import '../../catalog/model/movie.dart';
+import '../../catalog/view/featured_hero.dart';
 import '../../catalog/view/movie_home_view.dart';
 import '../../catalog/view/movie_list_view.dart';
 import '../../profile/controller/profile_bloc.dart';
@@ -28,8 +29,10 @@ import '../../tickets/controller/my_bookings_bloc.dart' as tickets;
 import '../../tickets/controller/up_next_cubit.dart';
 import '../../tickets/view/up_next_card.dart';
 import '../../tickets/view/my_bookings_page.dart';
+import '../../tickets/view/offline_note.dart';
 import '../controller/shell_cubit.dart';
 import '../controller/shell_state.dart';
+import '../model/greeting.dart';
 import 'account_action.dart';
 import 'ticket_landing.dart';
 import 'language_toggle.dart';
@@ -41,10 +44,13 @@ enum ShellTab { home, explore, bookings, profile }
 /// this phone with Find my booking and a sign-in button. The Account tab is open
 /// to guests (language, sign-in) and becomes Profile once signed in.
 class ShellPage extends StatefulWidget {
-  const ShellPage({super.key, this.tabs});
+  const ShellPage({super.key, this.tabs, this.clock = DateTime.now});
 
   /// Tab requests from screens above the shell (Success → Bookings).
   final ShellTabs? tabs;
+
+  /// For the greeting's time of day; injected for tests.
+  final DateTime Function() clock;
 
   @override
   State<ShellPage> createState() => _ShellPageState();
@@ -63,6 +69,25 @@ class _ShellPageState extends State<ShellPage> {
     super.initState();
     _requests = widget.tabs?.requests.listen(_onTabRequest);
     _loadUpNext();
+    _homeViewed();
+  }
+
+  /// One `home_viewed` per visit: cold start or switching to Home (sprint 21).
+  void _homeViewed() {
+    try {
+      context.read<ShellCubit>().homeViewed();
+    } on Object {
+      // No shell cubit above (some tests).
+    }
+  }
+
+  /// The shell's part of Home's pull to refresh: connectivity + hero, and Up next.
+  Future<void> _refreshShell() async {
+    final signedIn = context.read<AuthBloc>().state is AuthAuthenticated;
+    await Future.wait([
+      context.read<ShellCubit>().pingRequested(),
+      if (_maybeUpNext() case final upNext?) upNext.load(signedIn: signedIn),
+    ]);
   }
 
   /// Up next follows the session: the account's bookings, or the guest's on this phone.
@@ -108,6 +133,7 @@ class _ShellPageState extends State<ShellPage> {
 
   Future<void> _select(ShellTab tab) async {
     if (tab != ShellTab.bookings && _bookingsBadge) _bookingsBadge = false;
+    if (tab == ShellTab.home && _tab != ShellTab.home) _homeViewed();
     final signedIn = context.read<AuthBloc>().state is AuthAuthenticated;
     // Guests get the bookings saved on this phone and Find my booking (sprint 13).
     if (tab == ShellTab.bookings && !signedIn) context.read<tickets.GuestBookingsBloc>().add(const tickets.RefreshRequested());
@@ -136,8 +162,14 @@ class _ShellPageState extends State<ShellPage> {
     }
   }
 
+  /// Explore has its own list (sprint 22); Home's filters go along with "See all".
   void _seeAll(MovieTab tab) {
-    context.read<MovieListBloc>().add(TabChanged(tab));
+    final home = context.read<MovieListBloc>().state;
+    context.read<ExploreMovieListBloc>()
+      ..add(TabChanged(tab))
+      ..add(GenreSelected(home.genre))
+      ..add(LanguageSelected(home.language))
+      ..add(RatingSelected(home.rating));
     _select(ShellTab.explore);
   }
 
@@ -148,7 +180,15 @@ class _ShellPageState extends State<ShellPage> {
       ShellTab.home => SafeArea(
           bottom: false,
           child: MovieHomeView(
-            header: _HomeHeader(onAccount: _openAccount),
+            header: _HomeHeader(onAccount: _openAccount, clock: widget.clock),
+            hero: BlocBuilder<ShellCubit, ShellState>(
+              buildWhen: (a, b) => b is! ShellLoading,
+              builder: (context, state) => switch (state) {
+                ShellReady(:final summary) when summary.featured != null => FeaturedHero(movie: summary.featured!),
+                _ => const SizedBox.shrink(),
+              },
+            ),
+            onRefresh: _refreshShell,
             onSeeAll: _seeAll,
           ),
         ),
@@ -161,7 +201,12 @@ class _ShellPageState extends State<ShellPage> {
                 padding: const EdgeInsets.fromLTRB(Space.screen, Space.x2, Space.screen, 0),
                 child: Text('nav.explore'.tr(context: context), style: Theme.of(context).textTheme.headlineSmall),
               ),
-              const Expanded(child: MovieListView()),
+              Expanded(
+                child: BlocProvider<MovieListBloc>.value(
+                  value: context.read<ExploreMovieListBloc>(),
+                  child: const MovieListView(),
+                ),
+              ),
             ],
           ),
         ),
@@ -217,9 +262,10 @@ class _ShellPageState extends State<ShellPage> {
 
 /// Greeting, avatar, and the connectivity banner.
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.onAccount});
+  const _HomeHeader({required this.onAccount, required this.clock});
 
   final VoidCallback onAccount;
+  final DateTime Function() clock;
 
   @override
   Widget build(BuildContext context) {
@@ -228,6 +274,11 @@ class _HomeHeader extends StatelessWidget {
         BlocBuilder<ShellCubit, ShellState>(
           builder: (context, state) => Reveal(
             child: switch (state) {
+              // Saved copy: the server could not be reached (sprint 21).
+              ShellReady(:final savedAt?) => KeyedSubtree(
+                  key: const Key('home.offline'),
+                  child: OfflineNote(savedAt: savedAt),
+                ),
               ShellFailure(:final failure) => ErrorBanner(
                   key: const Key('shell.offlineBanner'),
                   message: switch (failure) {
@@ -246,10 +297,18 @@ class _HomeHeader extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  'catalog.greeting'.tr(context: context),
-                  key: const Key('home.greeting'),
-                  style: Theme.of(context).textTheme.headlineSmall,
+                child: BlocBuilder<AuthBloc, AuthState>(
+                  buildWhen: (a, b) => _name(a) != _name(b),
+                  builder: (context, auth) {
+                    // The name the session already loaded; no extra call (sprint 22).
+                    final name = _name(auth);
+                    return Text(
+                      greetingKey(dayPartAt(clock()), named: name != null)
+                          .tr(context: context, namedArgs: {'name': ?name}),
+                      key: const Key('home.greeting'),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: Space.x2),
@@ -264,6 +323,8 @@ class _HomeHeader extends StatelessWidget {
     );
   }
 }
+
+String? _name(AuthState state) => state is AuthAuthenticated ? firstName(state.user.name) : null;
 
 class _GuestProfile extends StatelessWidget {
   const _GuestProfile({required this.onSignIn});

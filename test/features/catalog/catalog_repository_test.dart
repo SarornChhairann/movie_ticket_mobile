@@ -42,6 +42,64 @@ void main() {
     expect((result as Ok<MovieDetail, ApiFailure>).value.movie.title, 'Dune');
   });
 
+  test('showing: asks /api/movies for the date, maps chips, and drops movies without times', () async {
+    adapter.onGet(
+      '/api/movies',
+      (s) => s.reply(200, [
+        {
+          'id': 1,
+          'title': 'Dune',
+          'posterPath': '/uploads/movies/dune.jpg',
+          'bannerPath': '',
+          'rating': 'PG-13',
+          'status': 'NOW_SHOWING',
+          'genre': 'Sci-Fi',
+          'durationMinutes': 155,
+          'showtimes': [
+            {
+              'showtimeId': 10,
+              'time': '19:30',
+              'showDate': '2026-10-07',
+              'hallName': 'Hall 3',
+              'cinemaName': 'Legend',
+              'hasDolbyAtmos': true,
+              'hasScreenX': false,
+            },
+            // An older API without the G34 fields still parses.
+            {'showtimeId': 11, 'time': '21:45:00'},
+          ],
+        },
+        {'id': 2, 'title': 'Heat', 'showtimes': []},
+      ]),
+      queryParameters: {'type': 'now_showing', 'date': '2026-10-07'},
+    );
+
+    final result = await repository.fetchShowing(DateTime(2026, 10, 7));
+
+    final movies = (result as Ok<List<ShowingMovie>, ApiFailure>).value;
+    expect(movies.map((m) => m.movie.id), [1]);
+    final dune = movies.single;
+    expect(dune.movie.posterUrl, 'http://api.test/uploads/movies/dune.jpg');
+    expect(dune.movie.bannerUrl, isNull);
+    expect(dune.movie.durationMinutes, 155);
+    expect(dune.movie.genre, 'Sci-Fi');
+    expect(dune.slots.map((s) => (s.id, s.time, s.hallName)), [(10, '19:30', 'Hall 3'), (11, '21:45', '')]);
+    expect(dune.dolby, isTrue);
+    expect(dune.screenX, isFalse);
+  });
+
+  test('showing: a network error becomes a failure', () async {
+    adapter.onGet(
+      '/api/movies',
+      (s) => s.throws(0, DioException.connectionError(requestOptions: RequestOptions(), reason: 'offline')),
+      queryParameters: {'type': 'now_showing', 'date': '2026-10-07'},
+    );
+
+    final result = await repository.fetchShowing(DateTime(2026, 10, 7));
+
+    expect((result as Err<List<ShowingMovie>, ApiFailure>).failure, isA<ApiFailureNetwork>());
+  });
+
   test('server error becomes a failure', () async {
     adapter.onGet('/movies/9', (s) => s.reply(400, {'error': 'Movie not found: 9', 'type': 'BAD_REQUEST'}));
 

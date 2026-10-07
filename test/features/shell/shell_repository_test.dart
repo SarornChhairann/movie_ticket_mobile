@@ -35,6 +35,22 @@ void main() {
     );
   });
 
+  test('the featured movie is the admin pick, else the first hero movie, with absolute images', () async {
+    Map<String, dynamic> movie(int id, String title) =>
+        {'id': id, 'title': title, 'status': 'NOW_SHOWING', 'imagePath': '/uploads/movies/$id.jpg'};
+    adapter.onGet('/', (server) => server.reply(200, {
+          'heroMovies': [movie(2, 'Heat'), movie(3, 'Alien')],
+          'featuredMovie': movie(1, 'Dune'),
+        }));
+    final picked = (await repository.fetchHome()) as Ok<HomeSummary, ApiFailure>;
+    expect(picked.value.featured?.title, 'Dune');
+    expect(picked.value.featured?.posterUrl, 'http://api.test/uploads/movies/1.jpg');
+
+    adapter.onGet('/', (server) => server.reply(200, {'heroMovies': [movie(2, 'Heat')], 'featuredMovie': null}));
+    final fallback = (await repository.fetchHome()) as Ok<HomeSummary, ApiFailure>;
+    expect(fallback.value.featured?.title, 'Heat');
+  });
+
   test('returns a server failure instead of throwing', () async {
     adapter.onGet('/', (server) => server.reply(500, {'error': 'boom', 'type': 'INTERNAL_SERVER_ERROR'}));
 
