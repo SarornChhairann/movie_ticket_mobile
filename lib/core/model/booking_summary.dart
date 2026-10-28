@@ -75,6 +75,9 @@ abstract class BookingSummary with _$BookingSummary {
     required List<TicketPass> tickets,
     String? bookedAt,
     @Default(RefundState.none) RefundState refund,
+
+    /// Where the confirmation (with the QR tickets) was emailed; null if unknown.
+    String? customerEmail,
   }) = _BookingSummary;
 
   factory BookingSummary.fromDto(BookingDetailDto dto) => BookingSummary(
@@ -89,6 +92,7 @@ abstract class BookingSummary with _$BookingSummary {
         totalAmount: dto.totalAmount,
         bookedAt: dto.bookedAt,
         refund: RefundState.parse(dto.paymentStatus),
+        customerEmail: dto.customerEmail,
         tickets: [
           for (final t in dto.tickets)
             TicketPass(

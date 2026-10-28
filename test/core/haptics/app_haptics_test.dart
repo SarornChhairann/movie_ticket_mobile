@@ -72,7 +72,7 @@ void main() {
   testWidgets('a seat tap is a selection', (tester) async {
     final bloc = _MockSeatMapBloc();
     whenListen(bloc, const Stream<SeatMapState>.empty(),
-        initialState: SeatMapReady(data: seatMap(), heldByOthers: const {}, booked: const {3, 14}, partyAsked: true));
+        initialState: SeatMapReady(data: seatMap(), heldByOthers: const {}, booked: const {3, 14}));
     await pumpLocalized(tester, BlocProvider<SeatMapBloc>.value(value: bloc, child: const SeatMapPage()));
 
     await tester.tap(find.text('A1'));

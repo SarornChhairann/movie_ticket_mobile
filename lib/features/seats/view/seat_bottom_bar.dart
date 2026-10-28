@@ -1,6 +1,6 @@
 part of 'seat_map_page.dart';
 
-/// The seat step's [StickySummaryBar]: party size and Best seats on top, the
+/// The seat step's [StickySummaryBar]: Best seats on top, the
 /// seat count and codes on the left, Continue on the right. No prices here:
 /// they come from the server quote on the next step.
 class _SummaryBar extends StatelessWidget {
@@ -19,38 +19,17 @@ class _SummaryBar extends StatelessWidget {
       loading: state.holding,
       // The hold call is the server check: only seats it still grants go on.
       onAction: state.canContinue ? () => context.read<SeatMapBloc>().add(const HoldRequested()) : null,
-      top: Row(
-        children: [
-          // Both shrink on a narrow phone or in Khmer rather than overflow.
-          Flexible(
-            child: OutlinedButton.icon(
-              key: const Key('seats.party'),
-              icon: const Icon(Icons.group_outlined),
-              label: Text(
-                state.partySize == null
-                    ? 'seats.partyShort'.tr(context: context)
-                    : 'seats.partyCount'.tr(context: context, namedArgs: {'count': '${state.partySize}'}),
-                overflow: TextOverflow.ellipsis,
-              ),
-              onPressed: state.holding ? null : () => SeatMapPage.askPartySize(context, state),
-            ),
-          ),
-          const SizedBox(width: Space.x1),
-          Flexible(
-            child: TextButton.icon(
-              key: const Key('seats.best'),
-              icon: const Icon(Icons.auto_awesome),
-              label: Text('seats.best'.tr(context: context), overflow: TextOverflow.ellipsis),
-              onPressed: state.holding
-                  ? null
-                  : () async {
-                      final bloc = context.read<SeatMapBloc>();
-                      final size = state.partySize ?? await SeatMapPage.askPartySize(context, state);
-                      if (size != null) bloc.add(const BestSeatsRequested());
-                    },
-            ),
-          ),
-        ],
+      // Best seats moves however many seats are picked to the best block.
+      top: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          key: const Key('seats.best'),
+          icon: const Icon(Icons.auto_awesome),
+          label: Text('seats.best'.tr(context: context), overflow: TextOverflow.ellipsis),
+          onPressed: state.holding || state.selected.isEmpty
+              ? null
+              : () => context.read<SeatMapBloc>().add(const BestSeatsRequested()),
+        ),
       ),
       summary: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -6,7 +6,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:movie_ticket_mobile/features/seats/model/seat_map.dart';
 import 'package:movie_ticket_mobile/features/seats/controller/seat_map_bloc.dart';
 import 'package:movie_ticket_mobile/features/seats/model/seat_map_args.dart';
-import 'package:movie_ticket_mobile/features/seats/view/party_size_sheet.dart';
 import 'package:movie_ticket_mobile/features/seats/view/seat_map_page.dart';
 
 import '../../helpers/finders.dart';
@@ -130,74 +129,19 @@ void main() {
       expect(find.byKey(const Key('hold.extend')), findsNothing);
     });
 
-    testWidgets('Best seats with a party size asks the bloc; the party button shows the size', (tester) async {
-      final bloc = await pump(tester, ready().copyWith(partySize: 2, partyAsked: true));
+    testWidgets('Best seats is off until a seat is picked, then asks the bloc', (tester) async {
+      var bloc = await pump(tester, ready());
+      expect(tester.widget<TextButton>(find.byKey(const Key('seats.best'))).onPressed, isNull);
 
-      expect(find.text('2 seats'), findsOneWidget);
+      bloc = await pump(tester, ready(selected: {1}));
       await tester.tap(find.byKey(const Key('seats.best')));
       await tester.pump();
       verify(() => bloc.add(any(that: isA<BestSeatsRequested>()))).called(1);
     });
 
-    testWidgets('the first map asks how many seats; a choice is sent to the bloc', (tester) async {
-      final bloc = _MockSeatMapBloc();
-      whenListen(
-        bloc,
-        Stream<SeatMapState>.fromIterable([ready()]),
-        initialState: const SeatMapState.loading(),
-      );
-      await pumpLocalized(tester, BlocProvider<SeatMapBloc>.value(value: bloc, child: const SeatMapPage()));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PartySizeSheet), findsOneWidget);
-      await tester.tap(find.byKey(const Key('party.3')));
-      await tester.pumpAndSettle();
-      // The listener runs in the bloc stream's (real) zone, so its continuation does too.
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-
-      verify(() => bloc.add(any(that: isA<PartySizeChosen>().having((e) => e.size, 'size', 3)))).called(1);
-    });
   });
 
   group('seat experience (sprint 17)', () {
-    testWidgets('list mode reads rows and seats with their state', (tester) async {
-      final bloc = await pump(tester, ready().copyWith(partyAsked: true));
-      await tester.tap(find.byKey(const Key('seats.viewToggle')));
-      await tester.pumpAndSettle();
-
-      // A1 free, A2 held by someone else, A3 booked.
-      expect(find.text('Row A: 1 available — seats 1'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('seats.row.A')));
-      await tester.pumpAndSettle();
-      expect(find.text('Seat 1, available'), findsOneWidget);
-      expect(find.text('Seat 2, held by someone else'), findsOneWidget);
-      expect(find.text('Seat 3, booked'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('seats.listSeat.1')));
-      verify(() => bloc.add(any(that: isA<SeatToggled>().having((e) => e.seatId, 'seatId', 1)))).called(1);
-
-      await tester.tap(find.byKey(const Key('seats.row.B')));
-      await tester.pumpAndSettle();
-      expect(find.text('Seat 1, available, couple pair with 2'), findsOneWidget);
-    });
-
-    testWidgets('with a screen reader on, list mode is the default', (tester) async {
-      final bloc = _MockSeatMapBloc();
-      whenListen(bloc, const Stream<SeatMapState>.empty(), initialState: ready().copyWith(partyAsked: true));
-      await pumpLocalized(
-        tester,
-        Builder(
-          builder: (context) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(accessibleNavigation: true),
-            child: BlocProvider<SeatMapBloc>.value(value: bloc, child: const SeatMapPage()),
-          ),
-        ),
-      );
-
-      expect(find.byKey(const Key('seats.list')), findsOneWidget);
-      expect(find.byKey(const Key('seats.canvas')), findsNothing);
-    });
-
     testWidgets('a seat taken from the pending selection is named, with Pick next best', (tester) async {
       final bloc = await pump(tester, ready(selected: {1}).copyWith(justTaken: ['A2']));
 
@@ -206,23 +150,9 @@ void main() {
       verify(() => bloc.add(any(that: isA<PickNextBestRequested>()))).called(1);
     });
 
-    testWidgets('zoomed in: mini-map and Whole hall appear; Whole hall zooms back out', (tester) async {
-      await pump(tester, ready().copyWith(partyAsked: true));
-      expect(find.byKey(const Key('seats.minimap')), findsNothing);
-
-      final viewer = tester.widget<InteractiveViewer>(find.byKey(const Key('seats.canvas')));
-      viewer.transformationController!.value = Matrix4.identity()..scaleByDouble(2.5, 2.5, 1, 1);
-      await tester.pump();
-      expect(find.byKey(const Key('seats.minimap')), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('seats.fitHall')));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('seats.minimap')), findsNothing);
-    });
-
     testWidgets('reduced motion: rows are drawn flat (no perspective)', (tester) async {
       final bloc = _MockSeatMapBloc();
-      whenListen(bloc, const Stream<SeatMapState>.empty(), initialState: ready().copyWith(partyAsked: true));
+      whenListen(bloc, const Stream<SeatMapState>.empty(), initialState: ready());
       await pumpLocalized(
         tester,
         Builder(

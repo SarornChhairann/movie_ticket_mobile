@@ -110,30 +110,20 @@
     "title": "Select Seat",
     "count": "{count} seat(s) selected",
     "limit": "You can pick up to {max} seats per booking.",
-    "partySize": "How many seats?",
-    "partySkip": "Skip",
-    "partyCount": "{count} seats",
     "best": "Best seats",
     "noBlock": "No row has that many seats together. Pick seats yourself or choose fewer.",
     "holdEnding": "Your seats are held for {time} more.",
     "extend": "Extend",
     "extendDone": "Hold extended.",
     "tooltip": "Row {row} · Seat {seat}",
-    "coupleWith": "couple pair with {seat}",
-    "rowSummary": "Row {row}: {count} available — seats {list}",
     "justTaken": "{seat} was just taken",
     "pickNext": "Pick next best",
-    "listView": "List view",
-    "mapView": "Map view",
-    "fitHall": "Whole hall",
-    "seatLabel": "Seat {seat}",
     "state": {
       "available": "available",
       "selected": "selected",
       "held": "held by someone else",
       "booked": "booked"
-    },
-    "partyShort": "Party size"
+    }
   },
   "checkout": {
     "title": "Checkout",
@@ -168,7 +158,7 @@
     "guestTitle": "Your details",
     "guestName": "Name",
     "guestPhone": "Phone",
-    "guestEmail": "Email (optional)",
+    "guestEmail": "Email (your tickets are sent here)",
     "pay": "Pay",
     "holdTooShort": "Less than 3 minutes are left on your seats, too little to pay. Please pick seats again.",
     "holdExtendToPay": "Less than 3 minutes left: extend your hold to pay."
@@ -194,6 +184,7 @@
     "leave": "Leave",
     "notCompleted": "The payment was not completed.",
     "referenceHint": "Keep this reference. With your phone number it finds your tickets under Bookings.",
+    "emailedTo": "Your tickets were sent to {email}.",
     "resumeTitle": "Checking your payment",
     "resumeBody": "We're confirming your last ABA payment. This can take a moment.",
     "resumeFailed": "That payment did not go through. Your seats were not booked and you were not charged by us.",

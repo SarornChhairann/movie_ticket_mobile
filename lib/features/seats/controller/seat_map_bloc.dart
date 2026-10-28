@@ -31,7 +31,6 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
     on<RemoteSeatChanged>(_onRemoteSeatChanged);
     on<HoldTicked>(_onHoldTicked);
     on<HoldExpired>(_onHoldExpired);
-    on<PartySizeChosen>(_onPartySizeChosen);
     on<BestSeatsRequested>(_onBestSeatsRequested);
     on<HoldExtendRequested>(_onHoldExtendRequested);
     on<HoldChanged>(_onHoldChanged);
@@ -89,8 +88,6 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
 
   /// Fetches the map, keeping the current selection where still possible.
   Future<void> _reload(Emitter<SeatMapState> emit, int showtimeId, {Set<int> keepSelected = const {}}) async {
-    // The party size belongs to the visit, not to one load of the map.
-    final before = state;
     final result = await _repository.loadMap(showtimeId);
     switch (result) {
       case Ok(:final value):
@@ -100,8 +97,6 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
           heldByOthers: value.heldByOthers,
           booked: booked,
           selected: keepSelected.difference(booked).difference(value.heldByOthers),
-          partySize: before is SeatMapReady ? before.partySize : null,
-          partyAsked: before is SeatMapReady && before.partyAsked,
         ));
       case Err(:final failure):
         emit(SeatMapState.failure(failure));
@@ -145,20 +140,10 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
     await _hold(emit, s, proceed: true);
   }
 
-  void _onPartySizeChosen(PartySizeChosen event, Emitter<SeatMapState> emit) {
-    final s = state;
-    if (s is! SeatMapReady) return;
-    final size = event.size;
-    // A smaller party drops what no longer fits: keep the first seats picked by code.
-    final keep = size == null ? s.selected : s.selectedSeats.take(size).map((x) => x.id).toSet();
-    emit(s.copyWith(partySize: size, partyAsked: true, selected: keep, effect: null, message: null));
-  }
-
   Future<void> _onBestSeatsRequested(BestSeatsRequested event, Emitter<SeatMapState> emit) async {
     final s = state;
-    final size = s is SeatMapReady ? s.partySize : null;
-    if (s is! SeatMapReady || size == null || s.holding) return;
-    await _pickBest(emit, s, size);
+    if (s is! SeatMapReady || s.selected.isEmpty || s.holding) return;
+    await _pickBest(emit, s, s.selected.length);
   }
 
   /// Someone took part of the pending selection: pick a fresh block for the
@@ -166,7 +151,7 @@ class SeatMapBloc extends Bloc<SeatMapEvent, SeatMapState> {
   Future<void> _onPickNextBest(PickNextBestRequested event, Emitter<SeatMapState> emit) async {
     final s = state;
     if (s is! SeatMapReady || s.holding) return;
-    final count = s.partySize ?? s.selected.length + s.justTaken.length;
+    final count = s.selected.length + s.justTaken.length;
     if (count == 0) return;
     await _pickBest(emit, s.copyWith(justTaken: const []), count);
   }

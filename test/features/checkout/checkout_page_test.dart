@@ -48,7 +48,7 @@ void main() {
   });
 
   testWidgets('pay is enabled for a guest with name and phone', (tester) async {
-    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')));
     expect(payButton(tester).onPressed, isNotNull);
   });
 
@@ -57,7 +57,7 @@ void main() {
       morningDiscount: 1,
       weekendSurcharge: 0.9,
     );
-    await pump(tester, ready(quote: quote, guest: const GuestInfo(name: 'Dara', phone: '012')));
+    await pump(tester, ready(quote: quote, guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')));
 
     const order = [
       'line.base',
@@ -87,7 +87,7 @@ void main() {
   });
 
   testWidgets('pay shows progress and is disabled while submitting', (tester) async {
-    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')).copyWith(submitting: true));
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')).copyWith(submitting: true));
 
     expect(payButton(tester).onPressed, isNull);
     expect(find.descendant(of: find.byKey(const Key('checkout.pay')), matching: find.byType(CircularProgressIndicator)),
@@ -139,7 +139,7 @@ void main() {
   });
 
   testWidgets('checkout lists no payment method', (tester) async {
-    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')));
 
     expect(find.byKey(const Key('pay.method')), findsNothing);
     expect(find.byKey(const Key('pay.abaKhqr')), findsNothing, reason: 'the method lives on the pay sheet');
@@ -147,7 +147,7 @@ void main() {
   });
 
   testWidgets('Pay opens the sheet with the server total and the ABA KHQR tile', (tester) async {
-    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')));
 
     await tester.tap(find.byKey(const Key('checkout.pay')));
     await tester.pumpAndSettle();
@@ -163,7 +163,7 @@ void main() {
   });
 
   testWidgets('Process payment starts the payment once', (tester) async {
-    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012')));
+    await pump(tester, ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')));
     await tester.tap(find.byKey(const Key('checkout.pay')));
     await tester.pumpAndSettle();
 
@@ -176,7 +176,7 @@ void main() {
   testWidgets('Process payment is disabled while the purchase request is in flight', (tester) async {
     bloc = _MockCheckoutBloc();
     whenListen(bloc, const Stream<CheckoutState>.empty(),
-        initialState: ready(guest: const GuestInfo(name: 'Dara', phone: '012')).copyWith(submitting: true));
+        initialState: ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')).copyWith(submitting: true));
     await pumpLocalized(
       tester,
       BlocProvider<CheckoutBloc>.value(value: bloc, child: const Scaffold(body: PaySheet())),

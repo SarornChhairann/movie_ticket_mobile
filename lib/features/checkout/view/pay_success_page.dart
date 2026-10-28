@@ -100,6 +100,15 @@ class _PaySuccessPageState extends State<PaySuccessPage> {
             ),
             Text('pay.referenceHint'.tr(context: context), style: textTheme.bodySmall, textAlign: TextAlign.center),
           ],
+          if (c.customerEmail case final email? when email.trim().isNotEmpty) ...[
+            const SizedBox(height: Space.x2),
+            Text(
+              'pay.emailedTo'.tr(context: context, namedArgs: {'email': email}),
+              key: const Key('pay.emailedTo'),
+              style: textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
           const Divider(height: Space.x4),
           for (final t in c.tickets)
             AppListTile(

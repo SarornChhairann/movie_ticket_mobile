@@ -93,7 +93,7 @@ void main() {
     detail.add(const ShowtimeSelected(50));
     await pumpEventQueue();
 
-    // Seats: party of 2, Best seats → held.
+    // Seats: two picked, Best seats → held.
     final seatRepo = _Seats();
     when(() => seatRepo.sessionId).thenReturn('me');
     when(() => seatRepo.release(any(), any())).thenAnswer((_) async {});
@@ -103,8 +103,7 @@ void main() {
       data: seatMap(),
       heldByOthers: const {},
       booked: const {3, 14},
-      partySize: 2,
-      partyAsked: true,
+      selected: const {11, 12},
     ));
     seatBloc.add(const seats.BestSeatsRequested());
     await seatBloc.stream.firstWhere((s) => s is seats.SeatMapReady && s.hold != null);
@@ -124,7 +123,7 @@ void main() {
       ..add(QuoteRequested(testHold));
     await checkout.stream.firstWhere((s) => s is CheckoutReady);
     checkout
-      ..add(const GuestEdited(GuestInfo(name: 'Dara', phone: '012')))
+      ..add(const GuestEdited(GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com')))
       ..add(const PaymentStartRequested());
     await checkout.stream.firstWhere((s) => s is CheckoutReady && s.payway != null);
     const confirmation = BookingSummary(

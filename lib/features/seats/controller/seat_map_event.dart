@@ -40,14 +40,7 @@ final class HoldExpired extends SeatMapEvent {
   const HoldExpired();
 }
 
-/// "How many seats?" answered; null means skipped (the server cap applies).
-final class PartySizeChosen extends SeatMapEvent {
-  const PartySizeChosen(this.size);
-
-  final int? size;
-}
-
-/// Pick and hold the best block for the party size.
+/// Move the current selection to the best block of as many seats, and hold it.
 final class BestSeatsRequested extends SeatMapEvent {
   const BestSeatsRequested();
 }

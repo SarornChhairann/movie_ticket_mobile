@@ -144,7 +144,6 @@ Map<String, Widget Function()> mainScreens() => {
                 heldByOthers: const {2},
                 booked: const {3},
                 selected: const {1},
-                partyAsked: true,
               ),
             ),
             child: const SeatMapPage(),

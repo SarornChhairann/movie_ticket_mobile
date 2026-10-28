@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,7 +17,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/seat_colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/genre_chip.dart';
 import '../../../core/widgets/hold_banner.dart';
@@ -35,14 +33,11 @@ import '../model/couple_pairing.dart';
 import '../model/seat_layout.dart';
 import '../model/seat_map.dart';
 import '../model/seat_map_args.dart';
-import 'party_size_sheet.dart';
 import 'seat_focus_controller.dart';
 
 part 'seat_grid.dart';
 part 'screen_painter.dart';
 part 'seat_canvas.dart';
-part 'seat_minimap.dart';
-part 'seat_list_mode.dart';
 part 'seat_glow.dart';
 part 'seat_box.dart';
 part 'seat_chair_painter.dart';
@@ -60,35 +55,12 @@ class SeatMapPage extends StatelessWidget {
   /// The detail screen's showtime choice; null when opened with a bare id.
   final SeatMapArgs? args;
 
-  /// Party size choices when the server sent no cap.
-  static const fallbackMaxSeats = 8;
-
-  static int _maxChoice(SeatMapReady s) => s.data.maxSeats > 0 ? s.data.maxSeats : fallbackMaxSeats;
-
-  /// Opens "How many seats?" and applies the answer; null (Skip) keeps the server cap.
-  static Future<int?> askPartySize(BuildContext context, SeatMapReady s) async {
-    final bloc = context.read<SeatMapBloc>();
-    final size = await PartySizeSheet.show(context, max: _maxChoice(s), selected: s.partySize);
-    bloc.add(PartySizeChosen(size ?? s.partySize));
-    return size ?? s.partySize;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        // Asked once per visit, when the first map arrives and nothing is held yet.
-        BlocListener<SeatMapBloc, SeatMapState>(
-          listenWhen: (previous, current) =>
-              previous is! SeatMapReady && current is SeatMapReady && !current.partyAsked && current.hold == null,
-          listener: (context, state) => askPartySize(context, state as SeatMapReady),
-        ),
-        // The booking capsule follows the map: showtime, held seats, expiry.
-        BlocListener<SeatMapBloc, SeatMapState>(
-          listenWhen: (previous, current) => current is SeatMapReady,
-          listener: (context, state) => _syncFlow(context, state as SeatMapReady),
-        ),
-      ],
+    // The booking capsule follows the map: showtime, held seats, expiry.
+    return BlocListener<SeatMapBloc, SeatMapState>(
+      listenWhen: (previous, current) => current is SeatMapReady,
+      listener: (context, state) => _syncFlow(context, state as SeatMapReady),
       child: _ResumeRecheck(child: _consumer(context)),
     );
   }

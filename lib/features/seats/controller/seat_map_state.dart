@@ -40,12 +40,6 @@ sealed class SeatMapState with _$SeatMapState {
     @Default(false) bool holding,
     int? secondsLeft,
 
-    /// "How many seats?" for this visit; null when skipped or not asked yet.
-    int? partySize,
-
-    /// The party size question was answered or skipped; it is asked once per visit.
-    @Default(false) bool partyAsked,
-
     /// The extend call is running.
     @Default(false) bool extending,
 
@@ -88,9 +82,8 @@ extension SeatMapReadyX on SeatMapReady {
 
   bool get canContinue => selected.isNotEmpty && !holding;
 
-  /// Most seats this visit may pick: the party size if one was chosen, else the
-  /// server cap; null when neither is known.
-  int? get seatCap => partySize ?? (data.maxSeats > 0 ? data.maxSeats : null);
+  /// Most seats this visit may pick: the server cap; null when it sent none.
+  int? get seatCap => data.maxSeats > 0 ? data.maxSeats : null;
 
   /// True when adding [count] more seats would pass [seatCap].
   bool wouldExceedLimit(int count) {

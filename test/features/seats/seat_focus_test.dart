@@ -49,46 +49,14 @@ void main() {
       final shown = SeatFocus.visible(m, viewport);
       expect(shown.contains(Offset.zero), isTrue);
       expect(shown.right, greaterThanOrEqualTo(layout.size.width - 0.5));
+      expect(shown.bottom, greaterThanOrEqualTo(layout.size.height - 0.5));
       expect(m.getMaxScaleOnAxis(), lessThanOrEqualTo(1));
-      expect(SeatFocus.zoomedIn(m, viewport, layout.size), isFalse);
     });
 
-    test('a single seat is framed at the comfortable zoom, centred', () {
-      final seat = layout.seatRects[310]!;
-      final m = SeatFocus.focus(viewport, layout.size, seat);
-      expect(m.getMaxScaleOnAxis(), SeatFocus.comfortableScale);
-      final shown = SeatFocus.visible(m, viewport);
-      expect(shown.center.dx, closeTo(seat.center.dx, 1));
-      expect(shown.contains(seat.topLeft) && shown.contains(seat.bottomRight), isTrue);
-      expect(SeatFocus.zoomedIn(m, viewport, layout.size), isTrue);
-    });
-
-    test('a block stays fully in view', () {
-      final block = layout.boundsOf([505, 506, 507, 508, 509, 510])!;
-      final shown = SeatFocus.visible(SeatFocus.focus(viewport, layout.size, block), viewport);
-      expect(shown.contains(block.topLeft) && shown.contains(block.bottomRight), isTrue);
-    });
-
-    test('a seat at the row end is not centred past the canvas edge', () {
-      final end = layout.seatRects[120]!;
-      final shown = SeatFocus.visible(SeatFocus.focus(viewport, layout.size, end), viewport);
-      expect(shown.right, lessThanOrEqualTo(layout.size.width + 0.5));
-      expect(shown.contains(end.center), isTrue);
-    });
-
-    test('a couple pair is framed as one', () {
-      final pair = layout.boundsOf([1101, 1102])!;
-      final shown = SeatFocus.visible(SeatFocus.focus(viewport, layout.size, pair), viewport);
-      expect(shown.contains(pair.topLeft) && shown.contains(pair.bottomRight), isTrue);
-    });
-
-    test('centreOn keeps the zoom and moves to the tapped point; screenY follows rows', () {
-      final zoomed = SeatFocus.focus(viewport, layout.size, layout.seatRects[101]!);
-      final moved = SeatFocus.centreOn(zoomed, viewport, layout.size, layout.seatRects[910]!.center);
-      expect(moved.getMaxScaleOnAxis(), zoomed.getMaxScaleOnAxis());
-      expect(SeatFocus.visible(moved, viewport).contains(layout.seatRects[910]!.center), isTrue);
+    test('screenY follows rows under the fit', () {
+      final m = SeatFocus.fit(viewport, layout.size);
       final rowE = layout.rowCentres[5]!;
-      expect(SeatFocus.screenY(moved, rowE), closeTo(rowE * moved.getMaxScaleOnAxis() + moved.getTranslation().y, 0.01));
+      expect(SeatFocus.screenY(m, rowE), closeTo(rowE * m.storage[5] + m.getTranslation().y, 0.01));
     });
   });
 }

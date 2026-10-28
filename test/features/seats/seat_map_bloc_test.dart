@@ -279,47 +279,35 @@ void main() {
     verify(() => repository.release(50, {1, 2})).called(1);
   });
 
-  group('party size and best seats (sprint 14)', () {
+  group('best seats (sprint 14)', () {
     blocTest<SeatMapBloc, SeatMapState>(
-      'a party size caps the selection and trims what no longer fits',
-      build: build,
-      seed: () => ready(selected: {1, 2}),
-      act: (bloc) => bloc
-        ..add(const PartySizeChosen(1))
-        ..add(const SeatToggled(2)),
-      expect: () => [
-        ready(selected: {1}).copyWith(partySize: 1, partyAsked: true),
-        ready(selected: {1}).copyWith(partySize: 1, partyAsked: true, effect: SeatMapEffect.limit),
-      ],
-    );
-
-    blocTest<SeatMapBloc, SeatMapState>(
-      'skip keeps the server cap and does not ask again',
-      build: build,
-      seed: ready,
-      act: (bloc) => bloc.add(const PartySizeChosen(null)),
-      expect: () => [ready().copyWith(partyAsked: true)],
-    );
-
-    blocTest<SeatMapBloc, SeatMapState>(
-      'best seats holds the block without leaving the map',
+      'best seats moves the picked count to the best block and holds it without leaving the map',
       setUp: () => when(() => repository.hold(50, {1, 2})).thenAnswer((_) async => Ok(hold)),
       build: build,
-      seed: () => ready().copyWith(partySize: 2, partyAsked: true),
+      seed: () => ready(selected: {11, 12}),
       act: (bloc) => bloc.add(const BestSeatsRequested()),
       expect: () => [
         // The picks light up (in order) before the hold answers.
-        ready(selected: {1, 2}).copyWith(partySize: 2, partyAsked: true, holding: true, revealOrder: [1, 2]),
-        ready(selected: {1, 2}, hold: hold).copyWith(partySize: 2, partyAsked: true, secondsLeft: 600),
+        ready(selected: {1, 2}).copyWith(holding: true, revealOrder: [1, 2]),
+        ready(selected: {1, 2}, hold: hold).copyWith(secondsLeft: 600),
       ],
+    );
+
+    blocTest<SeatMapBloc, SeatMapState>(
+      'with nothing picked, best seats does nothing',
+      build: build,
+      seed: ready,
+      act: (bloc) => bloc.add(const BestSeatsRequested()),
+      expect: () => <SeatMapState>[],
+      verify: (_) => verifyNever(() => repository.hold(any(), any())),
     );
 
     blocTest<SeatMapBloc, SeatMapState>(
       'no block in one row says so and holds nothing',
       build: build,
-      seed: () => ready().copyWith(partySize: 3, partyAsked: true),
+      seed: () => ready(selected: {11, 12, 13}),
       act: (bloc) => bloc.add(const BestSeatsRequested()),
-      expect: () => [ready().copyWith(partySize: 3, partyAsked: true, effect: SeatMapEffect.noBlock)],
+      expect: () => [ready(selected: {11, 12, 13}).copyWith(effect: SeatMapEffect.noBlock)],
       verify: (_) => verifyNever(() => repository.hold(any(), any())),
     );
   });
@@ -413,11 +401,11 @@ void main() {
             ApiFailure.server(status: 400, code: 'SEAT_LIMIT', message: 'Too many.'),
           )),
       build: build,
-      seed: () => ready().copyWith(partySize: 2, partyAsked: true),
+      seed: () => ready(selected: {11, 12}),
       act: (bloc) => bloc.add(const BestSeatsRequested()),
       expect: () => [
-        ready(selected: {1, 2}).copyWith(partySize: 2, partyAsked: true, holding: true, revealOrder: [1, 2]),
-        ready().copyWith(partySize: 2, partyAsked: true, effect: SeatMapEffect.limit, message: 'Too many.'),
+        ready(selected: {1, 2}).copyWith(holding: true, revealOrder: [1, 2]),
+        ready(selected: {11, 12}).copyWith(effect: SeatMapEffect.limit, message: 'Too many.'),
       ],
     );
 

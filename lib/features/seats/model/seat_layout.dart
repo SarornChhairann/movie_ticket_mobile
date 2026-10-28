@@ -68,15 +68,4 @@ class SeatLayout {
     }
     return SeatLayout._(Size(width, height), rects, centres, letters);
   }
-
-  /// The smallest rect around [ids], or null when none are laid out.
-  Rect? boundsOf(Iterable<int> ids) {
-    Rect? bounds;
-    for (final id in ids) {
-      final r = seatRects[id];
-      if (r == null) continue;
-      bounds = bounds == null ? r : bounds.expandToInclude(r);
-    }
-    return bounds;
-  }
 }

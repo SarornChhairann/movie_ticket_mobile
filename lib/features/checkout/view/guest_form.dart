@@ -48,8 +48,8 @@ class _GuestForm extends StatelessWidget {
           decoration: InputDecoration(
             labelText: 'checkout.guestEmail'.tr(context: context),
           ),
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? null : err(Validators.email(v)),
+          // Required: the tickets (one QR per seat) are emailed here.
+          validator: (v) => err(Validators.email(v)),
           onChanged: (v) =>
               bloc.add(GuestEdited(bloc.guestOr(guest).copyWith(email: v))),
         ),

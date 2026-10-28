@@ -150,10 +150,11 @@ void main() {
   );
 
   group('canPay', () {
-    test('a guest needs name and phone; email is optional but must be valid', () {
+    test('a guest needs name, phone, and a valid email (the tickets are mailed there)', () {
       expect(ready().canPay, isFalse);
       expect(ready(guest: const GuestInfo(name: 'Dara')).canPay, isFalse);
-      expect(ready(guest: const GuestInfo(name: 'Dara', phone: '012')).canPay, isTrue);
+      expect(ready(guest: const GuestInfo(name: 'Dara', phone: '012')).canPay, isFalse);
+      expect(ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: '  ')).canPay, isFalse);
       expect(ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'bad')).canPay, isFalse);
       expect(ready(guest: const GuestInfo(name: 'Dara', phone: '012', email: 'd@x.com')).canPay, isTrue);
     });
@@ -178,7 +179,7 @@ void main() {
       totalAmount: 12.5,
       tickets: [TicketPass(code: 'T-1', seatCode: 'D1', status: 'ACTIVE')],
     );
-    const guest = GuestInfo(name: 'Dara', phone: '012');
+    const guest = GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com');
     const session = PaywaySession(
       bookingId: 99,
       tranId: 'CK2RT1',
@@ -312,7 +313,7 @@ void main() {
   group('hold extend and the Pay guard (sprint 14)', () {
     late _MockSeatRepository holds;
     final extended = testHold.copyWith(expiresAt: testHold.expiresAt.add(const Duration(minutes: 5)), extended: true);
-    const guest = GuestInfo(name: 'Dara', phone: '012');
+    const guest = GuestInfo(name: 'Dara', phone: '012', email: 'dara@example.com');
     CheckoutReady short() => ready(guest: guest).copyWith(secondsLeft: 120);
 
     setUp(() => holds = _MockSeatRepository());

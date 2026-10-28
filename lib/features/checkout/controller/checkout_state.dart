@@ -71,7 +71,7 @@ extension CheckoutReadyX on CheckoutReady {
   bool get guestValid =>
       Validators.required(guest.name) == null &&
       Validators.required(guest.phone) == null &&
-      (guest.email.trim().isEmpty || Validators.email(guest.email) == null);
+      Validators.email(guest.email) == null;
 
   /// The Pay button's guard. Validation lives here, not in the view.
   bool get canPay => !quoting && !submitting && !holdTooShort && (!requiresGuest || guestValid);

@@ -27,6 +27,7 @@ void main() {
     showTime: '14:00:00',
     totalAmount: 12.5,
     tickets: [TicketPass(code: 'T-1', seatCode: 'D1', status: 'ACTIVE')],
+    customerEmail: 'dara@example.com',
   );
 
   Future<void> pump(WidgetTester tester, AuthState auth) async {
@@ -46,8 +47,17 @@ void main() {
     expect(find.text('Keep this reference. With your phone number it finds your tickets under Bookings.'), findsOneWidget);
   });
 
+  testWidgets('the address the tickets were emailed to is shown', (tester) async {
+    await pump(tester, const AuthState.guest());
+
+    expect(find.byKey(const Key('pay.emailedTo')), findsOneWidget);
+    expect(find.text('Your tickets were sent to dara@example.com.'), findsOneWidget);
+  });
+
   testWidgets('a signed-in user gets View tickets', (tester) async {
     await pump(tester, const AuthState.authenticated(testUser));
+    await tester.scrollUntilVisible(find.byKey(const Key('pay.viewTickets')), 100,
+        scrollable: find.byType(Scrollable).first);
 
     expect(find.byKey(const Key('pay.viewTickets')), findsOneWidget);
     expect(find.byKey(const Key('ticket.T-1')), findsOneWidget);
