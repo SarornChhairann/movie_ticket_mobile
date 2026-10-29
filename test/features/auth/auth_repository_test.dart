@@ -123,4 +123,31 @@ void main() {
     expect((result as Ok<User?, AuthFailure>).value, isNull);
     expect(await tokenStore.readRefreshToken(), isNull);
   });
+  test('requestPasswordReset posts the trimmed email', () async {
+    adapter.onPost('/api/auth/forgot-password', (s) => s.reply(202, {'message': 'ok'}),
+        data: {'email': 'dara@example.com'});
+
+    expect(await repository.requestPasswordReset(' dara@example.com '), isA<Ok<void, AuthFailure>>());
+  });
+
+  test('resetPassword 400 RESET_CODE_INVALID maps to resetCodeInvalid', () async {
+    adapter.onPost(
+      '/api/auth/reset-password',
+      (s) => s.reply(400, {'error': 'That code is wrong.', 'type': 'BAD_REQUEST', 'code': 'RESET_CODE_INVALID'}),
+      data: {'email': 'dara@example.com', 'code': '000000', 'newPassword': 'newsecret'},
+    );
+
+    final result = await repository.resetPassword(email: 'dara@example.com', code: '000000', newPassword: 'newsecret');
+
+    expect((result as Err<void, AuthFailure>).failure, const AuthFailure.resetCodeInvalid());
+  });
+
+  test('resetPassword 204 succeeds and stores no tokens', () async {
+    adapter.onPost('/api/auth/reset-password', (s) => s.reply(204, null), data: Matchers.any);
+
+    final result = await repository.resetPassword(email: 'dara@example.com', code: '123456', newPassword: 'newsecret');
+
+    expect(result, isA<Ok<void, AuthFailure>>());
+    expect(await tokenStore.readAccessToken(), isNull);
+  });
 }

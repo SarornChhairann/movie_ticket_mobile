@@ -16,6 +16,8 @@ import '../../features/auth/view/auth_gate.dart';
 import '../../features/auth/view/blocked_page.dart';
 import '../../features/auth/view/login_page.dart';
 import '../../features/auth/view/register_page.dart';
+import '../../features/auth/view/forgot_password_page.dart';
+import '../../features/auth/controller/password_reset_bloc.dart';
 import '../../features/auth/view/splash_page.dart';
 import '../../features/catalog/controller/movie_detail_bloc.dart';
 import '../../features/catalog/controller/hall_list_bloc.dart' as hall_list;
@@ -67,6 +69,9 @@ abstract final class AppRoutes {
   /// Pushed on demand by `requireSignIn`; argument: `LoginArgs`; pops an `AuthGateResult`.
   static const login = '/login';
   static const register = '/register';
+
+  /// Pushed from login. Argument: the email typed so far (`String?`); pops `true` once reset.
+  static const forgotPassword = '/forgot-password';
   static const blocked = '/blocked';
   static const shell = '/';
 
@@ -149,6 +154,10 @@ class AppRouter {
       AppRoutes.splash => const SplashPage(),
       AppRoutes.login => LoginPage(args: settings.arguments as LoginArgs? ?? const LoginArgs()),
       AppRoutes.register => const RegisterPage(),
+      AppRoutes.forgotPassword => BlocProvider(
+          create: (_) => _getIt<PasswordResetBloc>(),
+          child: ForgotPasswordPage(initialEmail: settings.arguments as String? ?? ''),
+        ),
       AppRoutes.blocked => const BlockedPage(),
       AppRoutes.profile => MultiBlocProvider(
           providers: [

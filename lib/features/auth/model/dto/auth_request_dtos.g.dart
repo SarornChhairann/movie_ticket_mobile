@@ -18,3 +18,15 @@ Map<String, dynamic> _$RegisterRequestDtoToJson(RegisterRequestDto instance) =>
 
 Map<String, dynamic> _$RefreshRequestDtoToJson(RefreshRequestDto instance) =>
     <String, dynamic>{'refresh_token': instance.refreshToken};
+
+Map<String, dynamic> _$ForgotPasswordRequestDtoToJson(
+  ForgotPasswordRequestDto instance,
+) => <String, dynamic>{'email': instance.email};
+
+Map<String, dynamic> _$ResetPasswordRequestDtoToJson(
+  ResetPasswordRequestDto instance,
+) => <String, dynamic>{
+  'email': instance.email,
+  'code': instance.code,
+  'newPassword': instance.newPassword,
+};

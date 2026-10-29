@@ -32,3 +32,23 @@ class RefreshRequestDto {
 
   Map<String, dynamic> toJson() => _$RefreshRequestDtoToJson(this);
 }
+
+@JsonSerializable(createFactory: false)
+class ForgotPasswordRequestDto {
+  const ForgotPasswordRequestDto({required this.email});
+
+  final String email;
+
+  Map<String, dynamic> toJson() => _$ForgotPasswordRequestDtoToJson(this);
+}
+
+@JsonSerializable(createFactory: false)
+class ResetPasswordRequestDto {
+  const ResetPasswordRequestDto({required this.email, required this.code, required this.newPassword});
+
+  final String email;
+  final String code;
+  final String newPassword;
+
+  Map<String, dynamic> toJson() => _$ResetPasswordRequestDtoToJson(this);
+}

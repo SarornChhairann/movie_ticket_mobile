@@ -8,6 +8,7 @@ import '../model/auth_failure.dart';
 String authFailureText(BuildContext context, AuthFailure failure) => switch (failure) {
       AuthInvalidCredentials() => 'auth.invalid_credentials'.tr(context: context),
       AuthSessionExpired() => 'auth.sessionExpired'.tr(context: context),
+      AuthResetCodeInvalid() => 'auth.reset.codeInvalid'.tr(context: context),
       AuthNetwork() => 'shell.offline'.tr(context: context),
       AuthBlocked(:final message) ||
       AuthEmailInUse(:final message) ||

@@ -57,6 +57,15 @@ class _LoginPageState extends State<LoginPage> {
     navigator.pop(result);
   }
 
+  Future<void> _forgotPassword() async {
+    final reset = await Navigator.of(context).pushNamed<bool>(AppRoutes.forgotPassword, arguments: _email.text);
+    if (reset == true && mounted) {
+      _password.clear();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('auth.reset.done'.tr(context: context))));
+    }
+  }
+
   void _continueAsGuest() {
     context.read<AuthBloc>().add(const GuestContinued());
     _close(AuthGateResult.guest);
@@ -131,7 +140,15 @@ class _LoginPageState extends State<LoginPage> {
                         validator: (v) => Validators.password(v)?.tr(context: context),
                         onFieldSubmitted: (_) => _submit(),
                       ),
-                      const SizedBox(height: Space.x3),
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: TextButton(
+                          key: const Key('login.forgotPassword'),
+                          onPressed: submitting ? null : _forgotPassword,
+                          child: Text('auth.forgotPassword'.tr(context: context)),
+                        ),
+                      ),
+                      const SizedBox(height: Space.x1),
                       PrimaryButton(
                         key: const Key('login.submit'),
                         label: 'auth.login'.tr(context: context),

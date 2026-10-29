@@ -11,7 +11,7 @@ import 'dto/auth_request_dtos.dart';
 import 'dto/user_dto.dart';
 import 'user.dart';
 
-/// Login, register, session restore, and logout against `/api/auth/**`.
+/// Login, register, session restore, logout, and forgot password against `/api/auth/**`.
 ///
 /// Login and refresh return no user id, status, or points (gap G4), so every
 /// successful token exchange is followed by `GET /profile`.
@@ -94,6 +94,38 @@ class AuthRepository {
       // The server session expires on its own; the local copy must go regardless.
     } finally {
       await _tokenStore.clear();
+    }
+  }
+
+  /// Emails a 6-digit reset code. The server answers 202 whether or not the
+  /// email has an account, so success only means the request was accepted.
+  Future<Result<void, AuthFailure>> requestPasswordReset(String email) async {
+    try {
+      await _dio.post<void>(
+        '/api/auth/forgot-password',
+        data: ForgotPasswordRequestDto(email: email.trim()).toJson(),
+      );
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(AuthFailure.fromApi(ApiFailure.fromDioException(e)));
+    }
+  }
+
+  /// Sets a new password with the emailed code. Signs nobody in: the server
+  /// ends every session of the account, so the user logs in afterwards.
+  Future<Result<void, AuthFailure>> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post<void>(
+        '/api/auth/reset-password',
+        data: ResetPasswordRequestDto(email: email.trim(), code: code.trim(), newPassword: newPassword).toJson(),
+      );
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(AuthFailure.fromApi(ApiFailure.fromDioException(e)));
     }
   }
 

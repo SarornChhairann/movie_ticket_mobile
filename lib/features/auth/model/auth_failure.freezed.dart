@@ -56,14 +56,15 @@ extension AuthFailurePatterns on AuthFailure {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AuthInvalidCredentials value)?  invalidCredentials,TResult Function( AuthBlocked value)?  blocked,TResult Function( AuthEmailInUse value)?  emailInUse,TResult Function( AuthValidation value)?  validation,TResult Function( AuthSessionExpired value)?  sessionExpired,TResult Function( AuthNetwork value)?  network,TResult Function( AuthUnknown value)?  unknown,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AuthInvalidCredentials value)?  invalidCredentials,TResult Function( AuthBlocked value)?  blocked,TResult Function( AuthEmailInUse value)?  emailInUse,TResult Function( AuthValidation value)?  validation,TResult Function( AuthResetCodeInvalid value)?  resetCodeInvalid,TResult Function( AuthSessionExpired value)?  sessionExpired,TResult Function( AuthNetwork value)?  network,TResult Function( AuthUnknown value)?  unknown,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case AuthInvalidCredentials() when invalidCredentials != null:
 return invalidCredentials(_that);case AuthBlocked() when blocked != null:
 return blocked(_that);case AuthEmailInUse() when emailInUse != null:
 return emailInUse(_that);case AuthValidation() when validation != null:
-return validation(_that);case AuthSessionExpired() when sessionExpired != null:
+return validation(_that);case AuthResetCodeInvalid() when resetCodeInvalid != null:
+return resetCodeInvalid(_that);case AuthSessionExpired() when sessionExpired != null:
 return sessionExpired(_that);case AuthNetwork() when network != null:
 return network(_that);case AuthUnknown() when unknown != null:
 return unknown(_that);case _:
@@ -84,14 +85,15 @@ return unknown(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AuthInvalidCredentials value)  invalidCredentials,required TResult Function( AuthBlocked value)  blocked,required TResult Function( AuthEmailInUse value)  emailInUse,required TResult Function( AuthValidation value)  validation,required TResult Function( AuthSessionExpired value)  sessionExpired,required TResult Function( AuthNetwork value)  network,required TResult Function( AuthUnknown value)  unknown,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AuthInvalidCredentials value)  invalidCredentials,required TResult Function( AuthBlocked value)  blocked,required TResult Function( AuthEmailInUse value)  emailInUse,required TResult Function( AuthValidation value)  validation,required TResult Function( AuthResetCodeInvalid value)  resetCodeInvalid,required TResult Function( AuthSessionExpired value)  sessionExpired,required TResult Function( AuthNetwork value)  network,required TResult Function( AuthUnknown value)  unknown,}){
 final _that = this;
 switch (_that) {
 case AuthInvalidCredentials():
 return invalidCredentials(_that);case AuthBlocked():
 return blocked(_that);case AuthEmailInUse():
 return emailInUse(_that);case AuthValidation():
-return validation(_that);case AuthSessionExpired():
+return validation(_that);case AuthResetCodeInvalid():
+return resetCodeInvalid(_that);case AuthSessionExpired():
 return sessionExpired(_that);case AuthNetwork():
 return network(_that);case AuthUnknown():
 return unknown(_that);}
@@ -108,14 +110,15 @@ return unknown(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AuthInvalidCredentials value)?  invalidCredentials,TResult? Function( AuthBlocked value)?  blocked,TResult? Function( AuthEmailInUse value)?  emailInUse,TResult? Function( AuthValidation value)?  validation,TResult? Function( AuthSessionExpired value)?  sessionExpired,TResult? Function( AuthNetwork value)?  network,TResult? Function( AuthUnknown value)?  unknown,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AuthInvalidCredentials value)?  invalidCredentials,TResult? Function( AuthBlocked value)?  blocked,TResult? Function( AuthEmailInUse value)?  emailInUse,TResult? Function( AuthValidation value)?  validation,TResult? Function( AuthResetCodeInvalid value)?  resetCodeInvalid,TResult? Function( AuthSessionExpired value)?  sessionExpired,TResult? Function( AuthNetwork value)?  network,TResult? Function( AuthUnknown value)?  unknown,}){
 final _that = this;
 switch (_that) {
 case AuthInvalidCredentials() when invalidCredentials != null:
 return invalidCredentials(_that);case AuthBlocked() when blocked != null:
 return blocked(_that);case AuthEmailInUse() when emailInUse != null:
 return emailInUse(_that);case AuthValidation() when validation != null:
-return validation(_that);case AuthSessionExpired() when sessionExpired != null:
+return validation(_that);case AuthResetCodeInvalid() when resetCodeInvalid != null:
+return resetCodeInvalid(_that);case AuthSessionExpired() when sessionExpired != null:
 return sessionExpired(_that);case AuthNetwork() when network != null:
 return network(_that);case AuthUnknown() when unknown != null:
 return unknown(_that);case _:
@@ -135,13 +138,14 @@ return unknown(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  invalidCredentials,TResult Function( String message)?  blocked,TResult Function( String message)?  emailInUse,TResult Function( String message)?  validation,TResult Function()?  sessionExpired,TResult Function()?  network,TResult Function( String message)?  unknown,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  invalidCredentials,TResult Function( String message)?  blocked,TResult Function( String message)?  emailInUse,TResult Function( String message)?  validation,TResult Function()?  resetCodeInvalid,TResult Function()?  sessionExpired,TResult Function()?  network,TResult Function( String message)?  unknown,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AuthInvalidCredentials() when invalidCredentials != null:
 return invalidCredentials();case AuthBlocked() when blocked != null:
 return blocked(_that.message);case AuthEmailInUse() when emailInUse != null:
 return emailInUse(_that.message);case AuthValidation() when validation != null:
-return validation(_that.message);case AuthSessionExpired() when sessionExpired != null:
+return validation(_that.message);case AuthResetCodeInvalid() when resetCodeInvalid != null:
+return resetCodeInvalid();case AuthSessionExpired() when sessionExpired != null:
 return sessionExpired();case AuthNetwork() when network != null:
 return network();case AuthUnknown() when unknown != null:
 return unknown(_that.message);case _:
@@ -162,13 +166,14 @@ return unknown(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  invalidCredentials,required TResult Function( String message)  blocked,required TResult Function( String message)  emailInUse,required TResult Function( String message)  validation,required TResult Function()  sessionExpired,required TResult Function()  network,required TResult Function( String message)  unknown,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  invalidCredentials,required TResult Function( String message)  blocked,required TResult Function( String message)  emailInUse,required TResult Function( String message)  validation,required TResult Function()  resetCodeInvalid,required TResult Function()  sessionExpired,required TResult Function()  network,required TResult Function( String message)  unknown,}) {final _that = this;
 switch (_that) {
 case AuthInvalidCredentials():
 return invalidCredentials();case AuthBlocked():
 return blocked(_that.message);case AuthEmailInUse():
 return emailInUse(_that.message);case AuthValidation():
-return validation(_that.message);case AuthSessionExpired():
+return validation(_that.message);case AuthResetCodeInvalid():
+return resetCodeInvalid();case AuthSessionExpired():
 return sessionExpired();case AuthNetwork():
 return network();case AuthUnknown():
 return unknown(_that.message);}
@@ -185,13 +190,14 @@ return unknown(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  invalidCredentials,TResult? Function( String message)?  blocked,TResult? Function( String message)?  emailInUse,TResult? Function( String message)?  validation,TResult? Function()?  sessionExpired,TResult? Function()?  network,TResult? Function( String message)?  unknown,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  invalidCredentials,TResult? Function( String message)?  blocked,TResult? Function( String message)?  emailInUse,TResult? Function( String message)?  validation,TResult? Function()?  resetCodeInvalid,TResult? Function()?  sessionExpired,TResult? Function()?  network,TResult? Function( String message)?  unknown,}) {final _that = this;
 switch (_that) {
 case AuthInvalidCredentials() when invalidCredentials != null:
 return invalidCredentials();case AuthBlocked() when blocked != null:
 return blocked(_that.message);case AuthEmailInUse() when emailInUse != null:
 return emailInUse(_that.message);case AuthValidation() when validation != null:
-return validation(_that.message);case AuthSessionExpired() when sessionExpired != null:
+return validation(_that.message);case AuthResetCodeInvalid() when resetCodeInvalid != null:
+return resetCodeInvalid();case AuthSessionExpired() when sessionExpired != null:
 return sessionExpired();case AuthNetwork() when network != null:
 return network();case AuthUnknown() when unknown != null:
 return unknown(_that.message);case _:
@@ -437,6 +443,38 @@ as String,
 
 
 }
+
+/// @nodoc
+
+
+class AuthResetCodeInvalid extends AuthFailure {
+  const AuthResetCodeInvalid(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthResetCodeInvalid);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'AuthFailure.resetCodeInvalid()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 

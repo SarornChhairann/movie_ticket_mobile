@@ -40,6 +40,21 @@
       "bookings": "Sign in to see your bookings and tickets.",
       "account": "Sign in to see your profile and points.",
       "checkout": "Sign in to book faster and earn points — or continue as a guest."
+    },
+    "forgotPassword": "Forgot password?",
+    "reset": {
+      "title": "Reset password",
+      "emailHint": "Enter the email you signed up with. We'll send you a 6-digit code.",
+      "sendCode": "Send code",
+      "codeSent": "If {} has an account, a code is on its way.",
+      "codeHint": "Enter the 6-digit code sent to {} and choose a new password. The code expires in 15 minutes.",
+      "code": "6-digit code",
+      "codeLength": "Enter the 6 digits from the email.",
+      "submit": "Reset password",
+      "resend": "Send a new code",
+      "changeEmail": "Use a different email",
+      "codeInvalid": "That code is wrong or has expired. Request a new one.",
+      "done": "Password reset. Log in with your new password."
     }
   },
   "profile": {
