@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Compile-time override. Pass `--dart-define=API_BASE_URL=...` to point at
+/// Compile-time override. Pass `--dart-define=API_BASE_URL=http://localhost:8010/` to point at
 /// another host. Debug and profile builds fall back to the local API on 8010.
 const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
